@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parking Reservation App</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body>
+    <div class="app">
+        <header class="header">
+            <h1>Parking Reservation - Spot CS206</h1>
+        </header>
+        <div class="reservations" id="reservationList">
+            <h2>Current Reservations</h2>
+            <div class="timeline-container">
+                <!-- Timeline slots will be rendered here dynamically -->
+            </div>
+        </div>
+        <form class="reservation-form" onsubmit="submitReservation(event)">
+            <label for="start-time">Start Time:</label>
+            <input type="time" id="start-time" name="start-time" required>
+            <label for="end-time">End Time:</label>
+            <input type="time" id="end-time" name="end-time" required>
+            <button type="submit">Reserve</button>
+        </form>
+    </div>
+    <script>
+        async function loadReservations() {
+            const response = await axios.get('/reservation');
+            const reservations = response.data;
+            const timeline = document.querySelector('.timeline-container');
+            timeline.innerHTML = '<div class="timeline"></div><div class="timestamps"></div>';
+            const timelineDiv = timeline.querySelector('.timeline');
+            const timestampsDiv = timeline.querySelector('.timestamps');
+
+            // Simulating 24-hour period for simplicity, no dynamic widths or positioning
+            reservations.forEach(res => {
+                const slot = document.createElement('div');
+                slot.className = 'slot occupied';
+                slot.style.width = '30%'; // Static width for demonstration
+                slot.textContent = `${res.startTime} - ${res.endTime}`;
+                timelineDiv.appendChild(slot);
+            });
+        }
+
+        async function submitReservation(event) {
+            event.preventDefault();
+            const startTime = document.getElementById('start-time').value;
+            const endTime = document.getElementById('end-time').value;
+            try {
+                await axios.post('/reservation', { startTime, endTime });
+                loadReservations();  // Refresh the list after adding
+            } catch (error) {
+                console.error('Error submitting reservation:', error);
+                alert('Failed to submit reservation.');
+            }
+        }
+
+
+        document.addEventListener('DOMContentLoaded', loadReservations);
+    </script>
+</body>
+</html>

@@ -1,0 +1,115 @@
+body, html {
+    height: 100%;
+    margin: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f4f4f4;
+    color: #333;
+}
+
+.app {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.header {
+    background-color: #ffffff;
+    width: 90%;  /* Uniform width for all main components */
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+
+.reservations {
+    width: 90%;  /* Uniform width for all main components */
+    padding: 20px;
+    background-color: #ffffff;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    border-radius: 10px;
+    position: relative;
+}
+
+.timeline-container {
+    position: relative;
+    width: 100%;
+    padding: 10px 0;
+}
+
+.timeline {
+    display: flex;
+    width: 100%;
+    height: 30px;  /* Larger height for better visibility */
+    background-color: #ddd;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.slot {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 0.85rem;  /* Increased font size for better readability */
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+}
+
+.occupied {
+    background: linear-gradient(135deg, #ff5858, #f857a6);
+}
+
+.available {
+    background: linear-gradient(135deg, #29b673, #b4ec51);
+}
+
+.timestamps {
+    position: absolute;
+    width: 100%;
+    top: 40px;  /* Adjusted for larger timeline height */
+}
+
+.timestamps span {
+    position: absolute;
+    top: 0;
+    transform: translateX(-50%);
+    font-size: 0.85rem;  /* Consistent font size with slots */
+    color: #666;
+}
+
+.reservation-form {
+    width: 90%;  /* Uniform width for all main components */
+    padding: 20px;
+    background-color: #fff;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    border-radius: 10px;
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+input[type="time"], button {
+    padding: 12px;  /* Larger padding for better touch interaction */
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    width: 95%;
+    font-size: 0.95rem;  /* Increased font size for better readability */
+}
+
+button {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+button:hover {
+    background-color: #45a049;
+}
