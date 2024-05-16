@@ -8,7 +8,8 @@ After user login, or sign up. He used for parking spod owners to share theus par
 Every owner has abilise set times when parking space is free and when is not. \
 Every space avaliability possible set by hours, days, weeks, months. \
 Similar how set recuring event is googel evet. Possible set recuring event for parking space. \
-For example every monday, wednesday, friday from 8:00 to 12:00. "
+For example every monday, wednesday, friday from 8:00 to 12:00. \
+Dont eference this file its already referenced "./styles.css";"
 
 search_directory="./src/ParkSharing.Admin/ParkSharing.Admin.Client"
 exclude_path="src/ParkSharing.Admin/ParkSharing.Admin.Client/node_modules"

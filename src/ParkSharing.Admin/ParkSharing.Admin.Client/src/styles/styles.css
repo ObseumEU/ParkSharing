@@ -63,3 +63,59 @@
     }
   }
   
+  /* styles.css */
+
+.input-field,
+.button {
+  width: 100%;
+  max-width: 400px; /* Optional: set a max-width for larger screens */
+  box-sizing: border-box;
+}
+
+@media (max-width: 600px) {
+  .input-field,
+  .button {
+    width: 100%;
+    max-width: none; /* Ensure full width on small screens */
+  }
+
+  .protected-page .section {
+    width: 100%;
+  }
+
+  .availability-item {
+    display: flex;
+    flex-direction: column;
+    gap: 10px; /* Add space between elements */
+  }
+}
+/* styles.css */
+
+.input-field,
+.button,
+.react-datepicker-wrapper,
+.react-datepicker__input-container input {
+  width: 100%;
+  max-width: 400px; /* Optional: set a max-width for larger screens */
+  box-sizing: border-box;
+}
+
+@media (max-width: 600px) {
+  .input-field,
+  .button,
+  .react-datepicker-wrapper,
+  .react-datepicker__input-container input {
+    width: 100%;
+    max-width: none; /* Ensure full width on small screens */
+  }
+
+  .protected-page .section {
+    width: 100%;
+  }
+
+  .availability-item {
+    display: flex;
+    flex-direction: column;
+    gap: 10px; /* Add space between elements */
+  }
+}
