@@ -1,0 +1,60 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.002.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{DAF453F5-601C-4A4F-A30C-285FCBD59152}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ParkSharing.Tests", "ParkSharing.Tests\ParkSharing.Tests.csproj", "{AD3D81D1-6460-45C7-8F3D-E8FF6CF01F85}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ParkSharing.Admin.Server", "ParkSharing.Admin\ParkSharing.Admin.Server\ParkSharing.Admin.Server.csproj", "{97758592-0C31-400B-86B1-2D102C5B241E}"
+EndProject
+Project("{54A90642-561A-4BB1-A94E-469ADEE60C69}") = "parksharing.admin.client", "ParkSharing.Admin\parksharing.admin.client\parksharing.admin.client.esproj", "{815A94AB-FD4B-453B-84E1-4DE0C9C1AFB5}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ParkSharing.Reservation.Server", "ParkSharing.Reservation\ParkSharing.Reservation.Server.csproj", "{0A05F57B-60F1-494F-9274-2BBB3A94A170}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ParkSharing.Shared", "ParkSharing.Shared\ParkSharing.Shared.csproj", "{BD9D1DEF-007C-4A74-86E9-C07A41BD299F}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{AD3D81D1-6460-45C7-8F3D-E8FF6CF01F85}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AD3D81D1-6460-45C7-8F3D-E8FF6CF01F85}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AD3D81D1-6460-45C7-8F3D-E8FF6CF01F85}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AD3D81D1-6460-45C7-8F3D-E8FF6CF01F85}.Release|Any CPU.Build.0 = Release|Any CPU
+		{97758592-0C31-400B-86B1-2D102C5B241E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{97758592-0C31-400B-86B1-2D102C5B241E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{97758592-0C31-400B-86B1-2D102C5B241E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{97758592-0C31-400B-86B1-2D102C5B241E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{815A94AB-FD4B-453B-84E1-4DE0C9C1AFB5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{815A94AB-FD4B-453B-84E1-4DE0C9C1AFB5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{815A94AB-FD4B-453B-84E1-4DE0C9C1AFB5}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{815A94AB-FD4B-453B-84E1-4DE0C9C1AFB5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{815A94AB-FD4B-453B-84E1-4DE0C9C1AFB5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{815A94AB-FD4B-453B-84E1-4DE0C9C1AFB5}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{0A05F57B-60F1-494F-9274-2BBB3A94A170}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0A05F57B-60F1-494F-9274-2BBB3A94A170}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0A05F57B-60F1-494F-9274-2BBB3A94A170}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0A05F57B-60F1-494F-9274-2BBB3A94A170}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BD9D1DEF-007C-4A74-86E9-C07A41BD299F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BD9D1DEF-007C-4A74-86E9-C07A41BD299F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BD9D1DEF-007C-4A74-86E9-C07A41BD299F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BD9D1DEF-007C-4A74-86E9-C07A41BD299F}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{AD3D81D1-6460-45C7-8F3D-E8FF6CF01F85} = {DAF453F5-601C-4A4F-A30C-285FCBD59152}
+		{97758592-0C31-400B-86B1-2D102C5B241E} = {DAF453F5-601C-4A4F-A30C-285FCBD59152}
+		{815A94AB-FD4B-453B-84E1-4DE0C9C1AFB5} = {DAF453F5-601C-4A4F-A30C-285FCBD59152}
+		{0A05F57B-60F1-494F-9274-2BBB3A94A170} = {DAF453F5-601C-4A4F-A30C-285FCBD59152}
+		{BD9D1DEF-007C-4A74-86E9-C07A41BD299F} = {DAF453F5-601C-4A4F-A30C-285FCBD59152}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {E8F57FA2-6280-4867-9E5B-0496548C34AB}
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,1225 @@
+This is application ASP.NET with frontend React with Vite \ 
+This app need have authentication used with Auth0\ 
+After user login, or sign up. He used for parking spod owners to share theus parking space for others. Every owner has abilise set times when parking space is free and when is not. Every space possible set by hours, days, weeks, months. Similar how set recuring event is googel evet. Possible set recuring event for parking space. For example every monday, wednesday, friday from 8:00 to 12:00. 
+--------------------------------------------------
+File: ./src/ParkSharing.Admin/ParkSharing.Admin.Client/src/app.js
+--------------------------------------------------
+import { useAuth0 } from "@auth0/auth0-react";
+import React from "react";
+import { Route, Routes } from "react-router-dom";
+import { PageLoader } from "./components/page-loader";
+import { AuthenticationGuard } from "./components/authentication-guard";
+import { AdminPage } from "./pages/admin-page";
+import { CallbackPage } from "./pages/callback-page";
+import { HomePage } from "./pages/home-page";
+import { NotFoundPage } from "./pages/not-found-page";
+import { ProfilePage } from "./pages/profile-page";
+import { ProtectedPage } from "./pages/protected-page";
+import { PublicPage } from "./pages/public-page";
+
+export const App = () => {
+  const { isLoading } = useAuth0();
+
+  if (isLoading) {
+    return (
+      <div className="page-layout">
+        <PageLoader />
+      </div>
+    );
+  }
+
+  return (
+    <Routes>
+      <Route path="/" element={<HomePage />} />
+      <Route
+        path="/profile"
+        element={<AuthenticationGuard component={ProfilePage} />}
+      />
+      <Route path="/public" element={<PublicPage />} />
+      <Route
+        path="/protected"
+        element={<AuthenticationGuard component={ProtectedPage} />}
+      />
+      <Route
+        path="/admin"
+        element={<AuthenticationGuard component={AdminPage} />}
+      />
+      <Route path="/callback" element={<CallbackPage />} />
+      <Route path="*" element={<NotFoundPage />} />
+    </Routes>
+  );
+};
+
+--------------------------------------------------
+File: ./src/ParkSharing.Admin/ParkSharing.Admin.Client/src/auth0-provider-with-navigate.js
+--------------------------------------------------
+import { Auth0Provider } from "@auth0/auth0-react";
+import React from "react";
+import { useNavigate } from "react-router-dom";
+
+export const Auth0ProviderWithNavigate = ({ children }) => {
+  const navigate = useNavigate();
+
+  const domain = process.env.REACT_APP_AUTH0_DOMAIN;
+  const clientId = process.env.REACT_APP_AUTH0_CLIENT_ID;
+  const redirectUri = process.env.REACT_APP_AUTH0_CALLBACK_URL;
+  const audience = process.env.REACT_APP_AUTH0_AUDIENCE;
+
+  const onRedirectCallback = (appState) => {
+    navigate(appState?.returnTo || window.location.pathname);
+  };
+
+  if (!(domain && clientId && redirectUri && audience)) {
+    return null;
+  }
+
+  return (
+    <Auth0Provider
+      domain={domain}
+      clientId={clientId}
+      authorizationParams={{
+        audience: audience,
+        redirect_uri: redirectUri,
+      }}
+      onRedirectCallback={onRedirectCallback}
+    >
+      {children}
+    </Auth0Provider>
+  );
+};
+
+--------------------------------------------------
+File: ./src/ParkSharing.Admin/ParkSharing.Admin.Client/src/components/auth0-feature.js
+--------------------------------------------------
+import React from "react";
+
+export const Auth0Feature = ({ title, description, resourceUrl, icon }) => (
+  <a
+    href={resourceUrl}
+    className="auth0-feature"
+    target="_blank"
+    rel="noopener noreferrer"
+  >
+    <h3 className="auth0-feature__headline">
+      <img
+        className="auth0-feature__icon"
+        src={icon}
+        alt="external link icon"
+      />
+      {title}
+    </h3>
+    <p className="auth0-feature__description">{description}</p>
+  </a>
+);
+
+--------------------------------------------------
+File: ./src/ParkSharing.Admin/ParkSharing.Admin.Client/src/components/auth0-features.js
+--------------------------------------------------
+import React from "react";
+import { Auth0Feature } from "./auth0-feature";
+
+export const Auth0Features = () => {
+  const featuresList = [
+    {
+      title: "Identity Providers",
+      description:
+        "Auth0 supports social providers such as Google, Facebook, and Twitter, along with Enterprise providers such as Microsoft Office 365, Google Apps, and Azure. You can also use any OAuth 2.0 Authorization Server.",
+      resourceUrl: "https://auth0.com/docs/connections",
+      icon: "https://cdn.auth0.com/blog/hello-auth0/identity-providers-logo.svg",
+    },
+    {
+      title: "Multi-Factor Authentication",
+      description:
+        "You can require your users to provide more than one piece of identifying information when logging in. MFA delivers one-time codes to your users via SMS, voice, email, WebAuthn, and push notifications.",
+      resourceUrl: "https://auth0.com/docs/multifactor-authentication",
+      icon: "https://cdn.auth0.com/blog/hello-auth0/mfa-logo.svg",
+    },
+    {
+      title: "Attack Protection",
+      description:
+        "Auth0 can detect attacks and stop malicious attempts to access your application such as blocking traffic from certain IPs and displaying CAPTCHA. Auth0 supports the principle of layered protection in security that uses a variety of signals to detect and mitigate attacks.",
+      resourceUrl: "https://auth0.com/docs/attack-protection",
+      icon: "https://cdn.auth0.com/blog/hello-auth0/advanced-protection-logo.svg",
+    },
+    {
+      title: "Serverless Extensibility",
+      description:
+        "Actions are functions that allow you to customize the behavior of Auth0. Each action is bound to a specific triggering event on the Auth0 platform. Auth0 invokes the custom code of these Actions when the corresponding triggering event is produced at runtime.",
+      resourceUrl: "https://auth0.com/docs/actions",
+      icon: "https://cdn.auth0.com/blog/hello-auth0/private-cloud-logo.svg",
+    },
+  ];
+
+  return (
+    <div className="auth0-features">
+      <h2 className="auth0-features__title">Explore Auth0 Features</h2>
+      <div className="auth0-features__grid">
+        {featuresList.map((feature) => (
+          <Auth0Feature
+            key={feature.resourceUrl}
+            title={feature.title}
+            description={feature.description}
+            resourceUrl={feature.resourceUrl}
+            icon={feature.icon}
+          />
+        ))}
+      </div>
+    </div>
+  );
+};
+
+--------------------------------------------------
+File: ./src/ParkSharing.Admin/ParkSharing.Admin.Client/src/components/authentication-guard.js
+--------------------------------------------------
+import { withAuthenticationRequired } from "@auth0/auth0-react";
+import React from "react";
+import { PageLoader } from "./page-loader";
+
+export const AuthenticationGuard = ({ component }) => {
+  const Component = withAuthenticationRequired(component, {
+    onRedirecting: () => (
+      <div className="page-layout">
+        <PageLoader />
+      </div>
+    ),
+  });
+
+  return <Component />;
+};
+
+--------------------------------------------------
+File: ./src/ParkSharing.Admin/ParkSharing.Admin.Client/src/components/buttons/login-button.js
+--------------------------------------------------
+import { useAuth0 } from "@auth0/auth0-react";
+import React from "react";
+
+export const LoginButton = () => {
+  const { loginWithRedirect } = useAuth0();
+
+  const handleLogin = async () => {
+    await loginWithRedirect({
+      appState: {
+        returnTo: "/profile",
+      },
+      authorizationParams: {
+        prompt: "login",
+      },
+    });
+  };
+
+  return (
+    <button className="button__login" onClick={handleLogin}>
+      Log In
+    </button>
+  );
+};
+
+--------------------------------------------------
+File: ./src/ParkSharing.Admin/ParkSharing.Admin.Client/src/components/buttons/logout-button.js
+--------------------------------------------------
+import { useAuth0 } from "@auth0/auth0-react";
+import React from "react";
+
+export const LogoutButton = () => {
+  const { logout } = useAuth0();
+
+  const handleLogout = () => {
+    logout({
+      logoutParams: {
+        returnTo: window.location.origin,
+      },
+    });
+  };
+
+  return (
+    <button className="button__logout" onClick={handleLogout}>
+      Log Out
+    </button>
+  );
+};
+
+--------------------------------------------------
+File: ./src/ParkSharing.Admin/ParkSharing.Admin.Client/src/components/buttons/signup-button.js
+--------------------------------------------------
+import { useAuth0 } from "@auth0/auth0-react";
+import React from "react";
+
+export const SignupButton = () => {
+  const { loginWithRedirect } = useAuth0();
+
+  const handleSignUp = async () => {
+    await loginWithRedirect({
+      appState: {
+        returnTo: "/profile",
+      },
+      authorizationParams: {
+        prompt: "login",
+        screen_hint: "signup",
+      },
+    });
+  };
+
+  return (
+    <button className="button__sign-up" onClick={handleSignUp}>
+      Sign Up
+    </button>
+  );
+};
+
+--------------------------------------------------
+File: ./src/ParkSharing.Admin/ParkSharing.Admin.Client/src/components/code-snippet.js
+--------------------------------------------------
+import React from "react";
+
+export const CodeSnippet = ({ title, code = "" }) => (
+  <div className="code-snippet">
+    <span className="code-snippet__title">{title}</span>
+    <div className="code-snippet__container">
+      <div className="code-snippet__wrapper">
+        <pre className="code-snippet__body">{code}</pre>
+      </div>
+    </div>
+  </div>
+);
+
+--------------------------------------------------
+File: ./src/ParkSharing.Admin/ParkSharing.Admin.Client/src/components/hero-banner.js
+--------------------------------------------------
+import React from "react";
+
+export const HeroBanner = () => {
+  const logo = "https://cdn.auth0.com/blog/developer-hub/react-logo.svg";
+
+  return (
+    <div className="hero-banner hero-banner--pink-yellow">
+      <div className="hero-banner__logo">
+        <img className="hero-banner__image" src={logo} alt="React logo" />
+      </div>
+      <h1 className="hero-banner__headline">Hello, React World!</h1>
+      <p className="hero-banner__description">
+        This is a sample application that demonstrates the authentication flow
+        for React apps using <strong>Auth0</strong>.
+      </p>
+      <a
+        id="code-sample-link"
+        target="_blank"
+        rel="noopener noreferrer"
+        href="https://developer.auth0.com/resources/code-samples/spa/react/basic-authentication"
+        className="button button--secondary"
+      >
+        Check out the React code sample →
+      </a>
+    </div>
+  );
+};
+
+--------------------------------------------------
+File: ./src/ParkSharing.Admin/ParkSharing.Admin.Client/src/components/navigation/desktop/nav-bar-brand.js
+--------------------------------------------------
+import React from "react";
+import { NavLink } from "react-router-dom";
+
+export const NavBarBrand = () => {
+  return (
+    <div className="nav-bar__brand">
+      <NavLink to="/">
+        <img
+          className="nav-bar__logo"
+          src="https://cdn.auth0.com/blog/hub/code-samples/hello-world/auth0-logo.svg"
+          alt="Auth0 shield logo"
+          width="122"
+          height="36"
+        />
+      </NavLink>
+    </div>
+  );
+};
+
+--------------------------------------------------
+File: ./src/ParkSharing.Admin/ParkSharing.Admin.Client/src/components/navigation/desktop/nav-bar-buttons.js
+--------------------------------------------------
+import { useAuth0 } from "@auth0/auth0-react";
+import React from "react";
+import { LoginButton } from "../../buttons/login-button";
+import { LogoutButton } from "../../buttons/logout-button";
+import { SignupButton } from "../../buttons/signup-button";
+
+export const NavBarButtons = () => {
+  const { isAuthenticated } = useAuth0();
+
+  return (
+    <div className="nav-bar__buttons">
+      {!isAuthenticated && (
+        <>
+          <SignupButton />
+          <LoginButton />
+        </>
+      )}
+      {isAuthenticated && (
+        <>
+          <LogoutButton />
+        </>
+      )}
+    </div>
+  );
+};
+
+--------------------------------------------------
+File: ./src/ParkSharing.Admin/ParkSharing.Admin.Client/src/components/navigation/desktop/nav-bar-tab.js
+--------------------------------------------------
+import React from "react";
+import { NavLink } from "react-router-dom";
+
+export const NavBarTab = ({ path, label }) => {
+  return (
+    <NavLink
+      to={path}
+      end
+      className={({ isActive }) =>
+        "nav-bar__tab " + (isActive ? "nav-bar__tab--active" : "")
+      }
+    >
+      {label}
+    </NavLink>
+  );
+};
+
+--------------------------------------------------
+File: ./src/ParkSharing.Admin/ParkSharing.Admin.Client/src/components/navigation/desktop/nav-bar-tabs.js
+--------------------------------------------------
+import { useAuth0 } from "@auth0/auth0-react";
+import React from "react";
+import { NavBarTab } from "./nav-bar-tab";
+
+export const NavBarTabs = () => {
+  const { isAuthenticated } = useAuth0();
+
+  return (
+    <div className="nav-bar__tabs">
+      <NavBarTab path="/profile" label="Profile" />
+      <NavBarTab path="/public" label="Public" />
+      {isAuthenticated && (
+        <>
+          <NavBarTab path="/protected" label="Protected" />
+          <NavBarTab path="/admin" label="Admin" />
+        </>
+      )}
+    </div>
+  );
+};
+
+--------------------------------------------------
+File: ./src/ParkSharing.Admin/ParkSharing.Admin.Client/src/components/navigation/desktop/nav-bar.js
+--------------------------------------------------
+import React from "react";
+import { NavBarBrand } from "./nav-bar-brand";
+import { NavBarButtons } from "./nav-bar-buttons";
+import { NavBarTabs } from "./nav-bar-tabs";
+
+export const NavBar = () => {
+  return (
+    <div className="nav-bar__container">
+      <nav className="nav-bar">
+        <NavBarBrand />
+        <NavBarTabs />
+        <NavBarButtons />
+      </nav>
+    </div>
+  );
+};
+
+--------------------------------------------------
+File: ./src/ParkSharing.Admin/ParkSharing.Admin.Client/src/components/navigation/mobile/mobile-menu-toggle-button.js
+--------------------------------------------------
+import React from "react";
+
+export const MobileMenuToggleButton = ({ icon, handleClick }) => {
+  return (
+    <span
+      className="mobile-nav-bar__toggle material-icons"
+      id="mobile-menu-toggle-button"
+      onClick={handleClick}
+    >
+      {icon}
+    </span>
+  );
+};
+
+--------------------------------------------------
+File: ./src/ParkSharing.Admin/ParkSharing.Admin.Client/src/components/navigation/mobile/mobile-nav-bar-brand.js
+--------------------------------------------------
+import React from "react";
+import { NavLink } from "react-router-dom";
+
+export const MobileNavBarBrand = ({ handleClick }) => {
+  return (
+    <div onClick={handleClick} className="mobile-nav-bar__brand">
+      <NavLink to="/">
+        <img
+          className="mobile-nav-bar__logo"
+          src="https://cdn.auth0.com/blog/hub/code-samples/hello-world/auth0-logo.svg"
+          alt="Auth0 shield logo"
+          width="82"
+          height="24"
+        />
+      </NavLink>
+    </div>
+  );
+};
+
+--------------------------------------------------
+File: ./src/ParkSharing.Admin/ParkSharing.Admin.Client/src/components/navigation/mobile/mobile-nav-bar-buttons.js
+--------------------------------------------------
+import { useAuth0 } from "@auth0/auth0-react";
+import React from "react";
+import { LoginButton } from "../../buttons/login-button";
+import { LogoutButton } from "../../buttons/logout-button";
+import { SignupButton } from "../../buttons/signup-button";
+
+export const MobileNavBarButtons = () => {
+  const { isAuthenticated } = useAuth0();
+
+  return (
+    <div className="mobile-nav-bar__buttons">
+      {!isAuthenticated && (
+        <>
+          <SignupButton />
+          <LoginButton />
+        </>
+      )}
+      {isAuthenticated && (
+        <>
+          <LogoutButton />
+        </>
+      )}
+    </div>
+  );
+};
+
+--------------------------------------------------
+File: ./src/ParkSharing.Admin/ParkSharing.Admin.Client/src/components/navigation/mobile/mobile-nav-bar-tab.js
+--------------------------------------------------
+import React from "react";
+import { NavLink } from "react-router-dom";
+
+export const MobileNavBarTab = ({ path, label, handleClick }) => {
+  return (
+    <NavLink
+      onClick={handleClick}
+      to={path}
+      end
+      className={({ isActive }) =>
+        "mobile-nav-bar__tab " + (isActive ? "mobile-nav-bar__tab--active" : "")
+      }
+    >
+      {label}
+    </NavLink>
+  );
+};
+
+--------------------------------------------------
+File: ./src/ParkSharing.Admin/ParkSharing.Admin.Client/src/components/navigation/mobile/mobile-nav-bar-tabs.js
+--------------------------------------------------
+import { useAuth0 } from "@auth0/auth0-react";
+import React from "react";
+import { MobileNavBarTab } from "./mobile-nav-bar-tab";
+
+export const MobileNavBarTabs = ({ handleClick }) => {
+  const { isAuthenticated } = useAuth0();
+
+  return (
+    <div className="mobile-nav-bar__tabs">
+      <MobileNavBarTab
+        path="/profile"
+        label="Profile"
+        handleClick={handleClick}
+      />
+      <MobileNavBarTab
+        path="/public"
+        label="Public"
+        handleClick={handleClick}
+      />
+      {isAuthenticated && (
+        <>
+          <MobileNavBarTab
+            path="/protected"
+            label="Protected"
+            handleClick={handleClick}
+          />
+          <MobileNavBarTab
+            path="/admin"
+            label="Admin"
+            handleClick={handleClick}
+          />
+        </>
+      )}
+    </div>
+  );
+};
+
+--------------------------------------------------
+File: ./src/ParkSharing.Admin/ParkSharing.Admin.Client/src/components/navigation/mobile/mobile-nav-bar.js
+--------------------------------------------------
+import React from "react";
+import { MobileMenuToggleButton } from "./mobile-menu-toggle-button";
+import { MobileNavBarBrand } from "./mobile-nav-bar-brand";
+import { MobileNavBarButtons } from "./mobile-nav-bar-buttons";
+import { MobileNavBarTabs } from "./mobile-nav-bar-tabs";
+
+const MobileMenuState = {
+  CLOSED: "closed",
+  OPEN: "open",
+};
+
+const MobileMenuIcon = {
+  CLOSE: "close",
+  MENU: "menu",
+};
+
+export const MobileNavBar = () => {
+  const [mobileMenuState, setMobileMenuState] = React.useState(
+    MobileMenuState.CLOSED
+  );
+  const [mobileMenuIcon, setMobileMenuIcon] = React.useState(
+    MobileMenuIcon.MENU
+  );
+
+  const isMobileMenuOpen = () => {
+    return mobileMenuState === MobileMenuState.OPEN;
+  };
+
+  const closeMobileMenu = () => {
+    document.body.classList.remove("mobile-scroll-lock");
+    setMobileMenuState(MobileMenuState.CLOSED);
+    setMobileMenuIcon(MobileMenuIcon.MENU);
+  };
+
+  const openMobileMenu = () => {
+    document.body.classList.add("mobile-scroll-lock");
+    setMobileMenuState(MobileMenuState.OPEN);
+    setMobileMenuIcon(MobileMenuIcon.CLOSE);
+  };
+
+  const toggleMobileMenu = () => {
+    if (isMobileMenuOpen()) {
+      closeMobileMenu();
+    } else {
+      openMobileMenu();
+    }
+  };
+
+  return (
+    <div className="mobile-nav-bar__container">
+      <nav className="mobile-nav-bar">
+        <MobileNavBarBrand handleClick={closeMobileMenu} />
+        <MobileMenuToggleButton
+          icon={mobileMenuIcon}
+          handleClick={toggleMobileMenu}
+        />
+
+        {isMobileMenuOpen() && (
+          <div className="mobile-nav-bar__menu">
+            <MobileNavBarTabs handleClick={closeMobileMenu} />
+            <MobileNavBarButtons />
+          </div>
+        )}
+      </nav>
+    </div>
+  );
+};
+
+--------------------------------------------------
+File: ./src/ParkSharing.Admin/ParkSharing.Admin.Client/src/components/page-footer-hyperlink.js
+--------------------------------------------------
+import React from "react";
+
+export const PageFooterHyperlink = ({ children, path }) => {
+  return (
+    <a
+      className="page-footer__hyperlink"
+      href={path}
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      {children}
+    </a>
+  );
+};
+
+--------------------------------------------------
+File: ./src/ParkSharing.Admin/ParkSharing.Admin.Client/src/components/page-footer.js
+--------------------------------------------------
+import React from "react";
+import { PageFooterHyperlink } from "./page-footer-hyperlink";
+
+export const PageFooter = () => {
+  const resourceList = [
+    {
+      path: "https://auth0.com/why-auth0/",
+      label: "Why Auth0",
+    },
+    {
+      path: "https://auth0.com/docs/get-started",
+      label: "How It Works",
+    },
+    {
+      path: "https://auth0.com/blog/developers/",
+      label: "Developer Blog",
+    },
+    {
+      path: "https://auth0.com/contact-us",
+      label: "Contact an Expert",
+    },
+  ];
+
+  return (
+    <footer className="page-footer">
+      <div className="page-footer-grid">
+        <div className="page-footer-grid__info">
+          <div className="page-footer-info__message">
+            <p className="page-footer-message__headline">
+              <span>This sample application is brought to you by&nbsp;</span>
+              <PageFooterHyperlink path="https://auth0.com/">
+                Auth0
+              </PageFooterHyperlink>
+            </p>
+            <p className="page-footer-message__description">
+              <PageFooterHyperlink path="https://auth0.com/docs/quickstarts/">
+                <span>
+                  Securely implement authentication using Auth0 on any stack and
+                  any device&nbsp;
+                </span>
+                <u>in less than 10 minutes</u>
+              </PageFooterHyperlink>
+            </p>
+          </div>
+          <div className="page-footer-info__button">
+            <a
+              id="create-account-button"
+              className="button button--secondary"
+              href="https://auth0.com/signup"
+              target="_blank"
+              rel="noreferrer noopener"
+            >
+              Create Free Auth0 Account
+            </a>
+          </div>
+          <div className="page-footer-info__resource-list">
+            {resourceList.map((resource) => (
+              <div
+                key={resource.path}
+                className="page-footer-info__resource-list-item"
+              >
+                <PageFooterHyperlink path={resource.path}>
+                  {resource.label}
+                </PageFooterHyperlink>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="page-footer-grid__brand">
+          <div className="page-footer-brand">
+            <img
+              className="page-footer-brand__logo"
+              src="https://cdn.auth0.com/blog/hello-auth0/auth0-shield.svg"
+              alt="Auth0"
+              width="20"
+              height="22.22"
+            />
+            <PageFooterHyperlink path="https://auth0.com/">
+              Auth0 Inc
+            </PageFooterHyperlink>
+          </div>
+        </div>
+      </div>
+    </footer>
+  );
+};
+
+--------------------------------------------------
+File: ./src/ParkSharing.Admin/ParkSharing.Admin.Client/src/components/page-layout.js
+--------------------------------------------------
+import React from "react";
+import { NavBar } from "./navigation/desktop/nav-bar";
+import { MobileNavBar } from "./navigation/mobile/mobile-nav-bar";
+import { PageFooter } from "./page-footer";
+
+export const PageLayout = ({ children }) => {
+  return (
+    <div className="page-layout">
+      <NavBar />
+      <MobileNavBar />
+      <div className="page-layout__content">{children}</div>
+      <PageFooter />
+    </div>
+  );
+};
+
+--------------------------------------------------
+File: ./src/ParkSharing.Admin/ParkSharing.Admin.Client/src/components/page-loader.js
+--------------------------------------------------
+import React from "react";
+
+export const PageLoader = () => {
+  const loadingImg = "https://cdn.auth0.com/blog/hello-auth0/loader.svg";
+
+  return (
+    <div className="loader">
+      <img src={loadingImg} alt="Loading..." />
+    </div>
+  );
+};
+
+--------------------------------------------------
+File: ./src/ParkSharing.Admin/ParkSharing.Admin.Client/src/index.js
+--------------------------------------------------
+import React from "react";
+import { createRoot } from "react-dom/client";
+import { BrowserRouter } from "react-router-dom";
+import { App } from "./app";
+import { Auth0ProviderWithNavigate } from "./auth0-provider-with-navigate";
+import "./styles/styles.css";
+
+const container = document.getElementById("root");
+const root = createRoot(container);
+
+root.render(
+  <React.StrictMode>
+    <BrowserRouter>
+      <Auth0ProviderWithNavigate>
+        <App />
+      </Auth0ProviderWithNavigate>
+    </BrowserRouter>
+  </React.StrictMode>
+);
+
+--------------------------------------------------
+File: ./src/ParkSharing.Admin/ParkSharing.Admin.Client/src/pages/admin-page.js
+--------------------------------------------------
+import { useAuth0 } from "@auth0/auth0-react";
+import React, { useEffect, useState } from "react";
+import { CodeSnippet } from "../components/code-snippet";
+import { PageLayout } from "../components/page-layout";
+import { getAdminResource } from "../services/message.service";
+
+export const AdminPage = () => {
+  const [message, setMessage] = useState("");
+
+  const { getAccessTokenSilently } = useAuth0();
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const getMessage = async () => {
+      const accessToken = await getAccessTokenSilently();
+      const { data, error } = await getAdminResource(accessToken);
+
+      if (!isMounted) {
+        return;
+      }
+
+      if (data) {
+        setMessage(JSON.stringify(data, null, 2));
+      }
+
+      if (error) {
+        setMessage(JSON.stringify(error, null, 2));
+      }
+    };
+
+    getMessage();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [getAccessTokenSilently]);
+
+  return (
+    <PageLayout>
+      <div className="content-layout">
+        <h1 id="page-title" className="content__title">
+          Admin Page
+        </h1>
+        <div className="content__body">
+          <p id="page-description">
+            <span>
+              This page retrieves an <strong>admin message</strong> from an
+              external API.
+            </span>
+            <span>
+              <strong>
+                Only authenticated users with the{" "}
+                <code>read:admin-messages</code> permission should access this
+                page.
+              </strong>
+            </span>
+          </p>
+          <CodeSnippet title="Admin Message" code={message} />
+        </div>
+      </div>
+    </PageLayout>
+  );
+};
+
+--------------------------------------------------
+File: ./src/ParkSharing.Admin/ParkSharing.Admin.Client/src/pages/callback-page.js
+--------------------------------------------------
+import { useAuth0 } from "@auth0/auth0-react";
+import React from "react";
+import { NavBar } from "../components/navigation/desktop/nav-bar";
+import { MobileNavBar } from "../components/navigation/mobile/mobile-nav-bar";
+import { PageLayout } from "../components/page-layout";
+
+export const CallbackPage = () => {
+  const { error } = useAuth0();
+
+  if (error) {
+    return (
+      <PageLayout>
+        <div className="content-layout">
+          <h1 id="page-title" className="content__title">
+            Error
+          </h1>
+          <div className="content__body">
+            <p id="page-description">
+              <span>{error.message}</span>
+            </p>
+          </div>
+        </div>
+      </PageLayout>
+    );
+  }
+
+  return (
+    <div className="page-layout">
+      <NavBar />
+      <MobileNavBar />
+      <div className="page-layout__content" />
+    </div>
+  );
+};
+
+--------------------------------------------------
+File: ./src/ParkSharing.Admin/ParkSharing.Admin.Client/src/pages/home-page.js
+--------------------------------------------------
+import React from "react";
+import { Auth0Features } from "../components/auth0-features";
+import { HeroBanner } from "../components/hero-banner";
+import { PageLayout } from "../components/page-layout";
+
+export const HomePage = () => (
+  <PageLayout>
+    <HeroBanner />
+    <Auth0Features />
+  </PageLayout>
+);
+
+--------------------------------------------------
+File: ./src/ParkSharing.Admin/ParkSharing.Admin.Client/src/pages/not-found-page.js
+--------------------------------------------------
+import React from "react";
+import { PageLayout } from "../components/page-layout";
+
+export const NotFoundPage = () => {
+  return (
+    <PageLayout>
+      <div className="content-layout">
+        <h1 id="page-title" className="content__title">
+          Not Found
+        </h1>
+      </div>
+    </PageLayout>
+  );
+};
+
+--------------------------------------------------
+File: ./src/ParkSharing.Admin/ParkSharing.Admin.Client/src/pages/profile-page.js
+--------------------------------------------------
+import { useAuth0 } from "@auth0/auth0-react";
+import React from "react";
+import { CodeSnippet } from "../components/code-snippet";
+import { PageLayout } from "../components/page-layout";
+
+export const ProfilePage = () => {
+  const { user } = useAuth0();
+
+  if (!user) {
+    return null;
+  }
+
+  return (
+    <PageLayout>
+      <div className="content-layout">
+        <h1 id="page-title" className="content__title">
+          Profile Page
+        </h1>
+        <div className="content__body">
+          <p id="page-description">
+            <span>
+              You can use the <strong>ID Token</strong> to get the profile
+              information of an authenticated user.
+            </span>
+            <span>
+              <strong>Only authenticated users can access this page.</strong>
+            </span>
+          </p>
+          <div className="profile-grid">
+            <div className="profile__header">
+              <img
+                src={user.picture}
+                alt="Profile"
+                className="profile__avatar"
+              />
+              <div className="profile__headline">
+                <h2 className="profile__title">{user.name}</h2>
+                <span className="profile__description">{user.email}</span>
+              </div>
+            </div>
+            <div className="profile__details">
+              <CodeSnippet
+                title="Decoded ID Token"
+                code={JSON.stringify(user, null, 2)}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </PageLayout>
+  );
+};
+
+--------------------------------------------------
+File: ./src/ParkSharing.Admin/ParkSharing.Admin.Client/src/pages/protected-page.js
+--------------------------------------------------
+import { useAuth0 } from "@auth0/auth0-react";
+import React, { useEffect, useState } from "react";
+import { CodeSnippet } from "../components/code-snippet";
+import { PageLayout } from "../components/page-layout";
+import { getProtectedResource } from "../services/message.service";
+
+export const ProtectedPage = () => {
+  const [message, setMessage] = useState("");
+
+  const { getAccessTokenSilently } = useAuth0();
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const getMessage = async () => {
+      const accessToken = await getAccessTokenSilently();
+      const { data, error } = await getProtectedResource(accessToken);
+
+      if (!isMounted) {
+        return;
+      }
+
+      if (data) {
+        setMessage(JSON.stringify(data, null, 2));
+      }
+
+      if (error) {
+        setMessage(JSON.stringify(error, null, 2));
+      }
+    };
+
+    getMessage();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [getAccessTokenSilently]);
+
+  return (
+    <PageLayout>
+      <div className="content-layout">
+        <h1 id="page-title" className="content__title">
+          Protected Page
+        </h1>
+        <div className="content__body">
+          <p id="page-description">
+            <span>
+              This page retrieves a <strong>protected message</strong> from an
+              external API.
+            </span>
+            <span>
+              <strong>Only authenticated users can access this page.</strong>
+            </span>
+          </p>
+          <CodeSnippet title="Protected Message" code={message} />
+        </div>
+      </div>
+    </PageLayout>
+  );
+};
+
+--------------------------------------------------
+File: ./src/ParkSharing.Admin/ParkSharing.Admin.Client/src/pages/public-page.js
+--------------------------------------------------
+import React, { useEffect, useState } from "react";
+import { CodeSnippet } from "../components/code-snippet";
+import { PageLayout } from "../components/page-layout";
+import { getPublicResource } from "../services/message.service";
+
+export const PublicPage = () => {
+  const [message, setMessage] = useState("");
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const getMessage = async () => {
+      const { data, error } = await getPublicResource();
+
+      if (!isMounted) {
+        return;
+      }
+
+      if (data) {
+        setMessage(JSON.stringify(data, null, 2));
+      }
+
+      if (error) {
+        setMessage(JSON.stringify(error, null, 2));
+      }
+    };
+
+    getMessage();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  return (
+    <PageLayout>
+      <div className="content-layout">
+        <h1 id="page-title" className="content__title">
+          Public Page
+        </h1>
+        <div className="content__body">
+          <p id="page-description">
+            <span>
+              This page retrieves a <strong>public message</strong> from an
+              external API.
+            </span>
+            <span>
+              <strong>Any visitor can access this page.</strong>
+            </span>
+          </p>
+          <CodeSnippet title="Public Message" code={message} />
+        </div>
+      </div>
+    </PageLayout>
+  );
+};
+
+--------------------------------------------------
+File: ./src/ParkSharing.Admin/ParkSharing.Admin.Client/src/services/external-api.service.js
+--------------------------------------------------
+import axios from "axios";
+
+export const callExternalApi = async (options) => {
+  try {
+    const response = await axios(options.config);
+    const { data } = response;
+
+    return {
+      data,
+      error: null,
+    };
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      const axiosError = error;
+
+      const { response } = axiosError;
+
+      let message = "http request failed";
+
+      if (response && response.statusText) {
+        message = response.statusText;
+      }
+
+      if (axiosError.message) {
+        message = axiosError.message;
+      }
+
+      if (response && response.data && response.data.message) {
+        message = response.data.message;
+      }
+
+      return {
+        data: null,
+        error: {
+          message,
+        },
+      };
+    }
+
+    return {
+      data: null,
+      error: {
+        message: error.message,
+      },
+    };
+  }
+};
+
+--------------------------------------------------
+File: ./src/ParkSharing.Admin/ParkSharing.Admin.Client/src/services/message.service.js
+--------------------------------------------------
+import { callExternalApi } from "./external-api.service";
+
+const apiServerUrl = process.env.REACT_APP_API_SERVER_URL;
+
+export const getPublicResource = async () => {
+  const config = {
+    url: `${apiServerUrl}/api/messages/public`,
+    method: "GET",
+    headers: {
+      "content-type": "application/json",
+    },
+  };
+
+  const { data, error } = await callExternalApi({ config });
+
+  return {
+    data: data || null,
+    error,
+  };
+};
+
+export const getProtectedResource = async (accessToken) => {
+  const config = {
+    url: `${apiServerUrl}/api/messages/protected`,
+    method: "GET",
+    headers: {
+      "content-type": "application/json",
+      Authorization: `Bearer ${accessToken}`,
+    },
+  };
+
+  const { data, error } = await callExternalApi({ config });
+
+  return {
+    data: data || null,
+    error,
+  };
+};
+
+export const getAdminResource = async (accessToken) => {
+  const config = {
+    url: `${apiServerUrl}/api/messages/admin`,
+    method: "GET",
+    headers: {
+      "content-type": "application/json",
+      Authorization: `Bearer ${accessToken}`,
+    },
+  };
+
+  const { data, error } = await callExternalApi({ config });
+
+  return {
+    data: data || null,
+    error,
+  };
+};
+
