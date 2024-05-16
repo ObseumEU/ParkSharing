@@ -1,6 +1,6 @@
 This is application ASP.NET with frontend React with Vite \ 
 This app need have authentication used with Auth0\ 
-After user login, or sign up. He used for parking spod owners to share theus parking space for others. Every owner has abilise set times when parking space is free and when is not. Every space possible set by hours, days, weeks, months. Similar how set recuring event is googel evet. Possible set recuring event for parking space. For example every monday, wednesday, friday from 8:00 to 12:00. 
+After user login, or sign up. He used for parking spod owners to share theus parking space for others. Every owner has abilise set times when parking space is free and when is not. Every space avaliability possible set by hours, days, weeks, months. Similar how set recuring event is googel evet. Possible set recuring event for parking space. For example every monday, wednesday, friday from 8:00 to 12:00. 
 --------------------------------------------------
 File: ./src/ParkSharing.Admin/ParkSharing.Admin.Client/src/app.js
 --------------------------------------------------
@@ -9,11 +9,11 @@ import React from "react";
 import { Route, Routes } from "react-router-dom";
 import { PageLoader } from "./components/page-loader";
 import { AuthenticationGuard } from "./components/authentication-guard";
-import { AdminPage } from "./pages/admin-page";
+// import { AdminPage } from "./pages/admin-page";
 import { CallbackPage } from "./pages/callback-page";
 import { HomePage } from "./pages/home-page";
 import { NotFoundPage } from "./pages/not-found-page";
-import { ProfilePage } from "./pages/profile-page";
+// import { ProfilePage } from "./pages/profile-page";
 import { ProtectedPage } from "./pages/protected-page";
 import { PublicPage } from "./pages/public-page";
 
@@ -31,19 +31,19 @@ export const App = () => {
   return (
     <Routes>
       <Route path="/" element={<HomePage />} />
-      <Route
+      {/* <Route
         path="/profile"
         element={<AuthenticationGuard component={ProfilePage} />}
-      />
+      /> */}
       <Route path="/public" element={<PublicPage />} />
       <Route
         path="/protected"
         element={<AuthenticationGuard component={ProtectedPage} />}
       />
-      <Route
+      {/* <Route
         path="/admin"
         element={<AuthenticationGuard component={AdminPage} />}
-      />
+      /> */}
       <Route path="/callback" element={<CallbackPage />} />
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
@@ -199,7 +199,7 @@ export const LoginButton = () => {
   const handleLogin = async () => {
     await loginWithRedirect({
       appState: {
-        returnTo: "/profile",
+        returnTo: "/protected",
       },
       authorizationParams: {
         prompt: "login",
@@ -250,7 +250,7 @@ export const SignupButton = () => {
   const handleSignUp = async () => {
     await loginWithRedirect({
       appState: {
-        returnTo: "/profile",
+        returnTo: "/admin",
       },
       authorizationParams: {
         prompt: "login",
@@ -285,7 +285,11 @@ export const CodeSnippet = ({ title, code = "" }) => (
 --------------------------------------------------
 File: ./src/ParkSharing.Admin/ParkSharing.Admin.Client/src/components/hero-banner.js
 --------------------------------------------------
+// File: ./src/ParkSharing.Admin/ParkSharing.Admin.Client/src/components/hero-banner.js
+
 import React from "react";
+import { SignupButton } from "./buttons/signup-button";
+import { LoginButton } from "./buttons/login-button";
 
 export const HeroBanner = () => {
   const logo = "https://cdn.auth0.com/blog/developer-hub/react-logo.svg";
@@ -295,20 +299,14 @@ export const HeroBanner = () => {
       <div className="hero-banner__logo">
         <img className="hero-banner__image" src={logo} alt="React logo" />
       </div>
-      <h1 className="hero-banner__headline">Hello, React World!</h1>
+      <h1 className="hero-banner__headline">Sdílej svoje parkovací místo!</h1>
       <p className="hero-banner__description">
-        This is a sample application that demonstrates the authentication flow
-        for React apps using <strong>Auth0</strong>.
+        Když nepotřebuješ, tak sdíles voje parkovací <strong>místo</strong>.
       </p>
-      <a
-        id="code-sample-link"
-        target="_blank"
-        rel="noopener noreferrer"
-        href="https://developer.auth0.com/resources/code-samples/spa/react/basic-authentication"
-        className="button button--secondary"
-      >
-        Check out the React code sample →
-      </a>
+      <div className="hero-banner__buttons">
+        <SignupButton />
+        <LoginButton />
+      </div>
     </div>
   );
 };
@@ -396,12 +394,12 @@ export const NavBarTabs = () => {
 
   return (
     <div className="nav-bar__tabs">
-      <NavBarTab path="/profile" label="Profile" />
-      <NavBarTab path="/public" label="Public" />
+      {/* <NavBarTab path="/profile" label="Profile" /> */}
+      {/* <NavBarTab path="/public" label="Public" /> */}
       {isAuthenticated && (
         <>
-          <NavBarTab path="/protected" label="Protected" />
-          <NavBarTab path="/admin" label="Admin" />
+          <NavBarTab path="/protected" label="Parkování" />
+          {/* <NavBarTab path="/admin" label="Admin" /> */}
         </>
       )}
     </div>
@@ -529,16 +527,16 @@ export const MobileNavBarTabs = ({ handleClick }) => {
 
   return (
     <div className="mobile-nav-bar__tabs">
-      <MobileNavBarTab
+      {/* <MobileNavBarTab
         path="/profile"
         label="Profile"
         handleClick={handleClick}
-      />
-      <MobileNavBarTab
+      /> */}
+      {/* <MobileNavBarTab
         path="/public"
         label="Public"
         handleClick={handleClick}
-      />
+      /> */}
       {isAuthenticated && (
         <>
           <MobileNavBarTab
@@ -546,11 +544,11 @@ export const MobileNavBarTabs = ({ handleClick }) => {
             label="Protected"
             handleClick={handleClick}
           />
-          <MobileNavBarTab
+          {/* <MobileNavBarTab
             path="/admin"
             label="Admin"
             handleClick={handleClick}
-          />
+          /> */}
         </>
       )}
     </div>
@@ -629,120 +627,12 @@ export const MobileNavBar = () => {
 };
 
 --------------------------------------------------
-File: ./src/ParkSharing.Admin/ParkSharing.Admin.Client/src/components/page-footer-hyperlink.js
---------------------------------------------------
-import React from "react";
-
-export const PageFooterHyperlink = ({ children, path }) => {
-  return (
-    <a
-      className="page-footer__hyperlink"
-      href={path}
-      target="_blank"
-      rel="noopener noreferrer"
-    >
-      {children}
-    </a>
-  );
-};
-
---------------------------------------------------
-File: ./src/ParkSharing.Admin/ParkSharing.Admin.Client/src/components/page-footer.js
---------------------------------------------------
-import React from "react";
-import { PageFooterHyperlink } from "./page-footer-hyperlink";
-
-export const PageFooter = () => {
-  const resourceList = [
-    {
-      path: "https://auth0.com/why-auth0/",
-      label: "Why Auth0",
-    },
-    {
-      path: "https://auth0.com/docs/get-started",
-      label: "How It Works",
-    },
-    {
-      path: "https://auth0.com/blog/developers/",
-      label: "Developer Blog",
-    },
-    {
-      path: "https://auth0.com/contact-us",
-      label: "Contact an Expert",
-    },
-  ];
-
-  return (
-    <footer className="page-footer">
-      <div className="page-footer-grid">
-        <div className="page-footer-grid__info">
-          <div className="page-footer-info__message">
-            <p className="page-footer-message__headline">
-              <span>This sample application is brought to you by&nbsp;</span>
-              <PageFooterHyperlink path="https://auth0.com/">
-                Auth0
-              </PageFooterHyperlink>
-            </p>
-            <p className="page-footer-message__description">
-              <PageFooterHyperlink path="https://auth0.com/docs/quickstarts/">
-                <span>
-                  Securely implement authentication using Auth0 on any stack and
-                  any device&nbsp;
-                </span>
-                <u>in less than 10 minutes</u>
-              </PageFooterHyperlink>
-            </p>
-          </div>
-          <div className="page-footer-info__button">
-            <a
-              id="create-account-button"
-              className="button button--secondary"
-              href="https://auth0.com/signup"
-              target="_blank"
-              rel="noreferrer noopener"
-            >
-              Create Free Auth0 Account
-            </a>
-          </div>
-          <div className="page-footer-info__resource-list">
-            {resourceList.map((resource) => (
-              <div
-                key={resource.path}
-                className="page-footer-info__resource-list-item"
-              >
-                <PageFooterHyperlink path={resource.path}>
-                  {resource.label}
-                </PageFooterHyperlink>
-              </div>
-            ))}
-          </div>
-        </div>
-        <div className="page-footer-grid__brand">
-          <div className="page-footer-brand">
-            <img
-              className="page-footer-brand__logo"
-              src="https://cdn.auth0.com/blog/hello-auth0/auth0-shield.svg"
-              alt="Auth0"
-              width="20"
-              height="22.22"
-            />
-            <PageFooterHyperlink path="https://auth0.com/">
-              Auth0 Inc
-            </PageFooterHyperlink>
-          </div>
-        </div>
-      </div>
-    </footer>
-  );
-};
-
---------------------------------------------------
 File: ./src/ParkSharing.Admin/ParkSharing.Admin.Client/src/components/page-layout.js
 --------------------------------------------------
 import React from "react";
 import { NavBar } from "./navigation/desktop/nav-bar";
 import { MobileNavBar } from "./navigation/mobile/mobile-nav-bar";
-import { PageFooter } from "./page-footer";
+// import { PageFooter } from "./page-footer";
 
 export const PageLayout = ({ children }) => {
   return (
@@ -750,7 +640,7 @@ export const PageLayout = ({ children }) => {
       <NavBar />
       <MobileNavBar />
       <div className="page-layout__content">{children}</div>
-      <PageFooter />
+      {/* <PageFooter /> */}
     </div>
   );
 };
@@ -792,74 +682,6 @@ root.render(
     </BrowserRouter>
   </React.StrictMode>
 );
-
---------------------------------------------------
-File: ./src/ParkSharing.Admin/ParkSharing.Admin.Client/src/pages/admin-page.js
---------------------------------------------------
-import { useAuth0 } from "@auth0/auth0-react";
-import React, { useEffect, useState } from "react";
-import { CodeSnippet } from "../components/code-snippet";
-import { PageLayout } from "../components/page-layout";
-import { getAdminResource } from "../services/message.service";
-
-export const AdminPage = () => {
-  const [message, setMessage] = useState("");
-
-  const { getAccessTokenSilently } = useAuth0();
-
-  useEffect(() => {
-    let isMounted = true;
-
-    const getMessage = async () => {
-      const accessToken = await getAccessTokenSilently();
-      const { data, error } = await getAdminResource(accessToken);
-
-      if (!isMounted) {
-        return;
-      }
-
-      if (data) {
-        setMessage(JSON.stringify(data, null, 2));
-      }
-
-      if (error) {
-        setMessage(JSON.stringify(error, null, 2));
-      }
-    };
-
-    getMessage();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [getAccessTokenSilently]);
-
-  return (
-    <PageLayout>
-      <div className="content-layout">
-        <h1 id="page-title" className="content__title">
-          Admin Page
-        </h1>
-        <div className="content__body">
-          <p id="page-description">
-            <span>
-              This page retrieves an <strong>admin message</strong> from an
-              external API.
-            </span>
-            <span>
-              <strong>
-                Only authenticated users with the{" "}
-                <code>read:admin-messages</code> permission should access this
-                page.
-              </strong>
-            </span>
-          </p>
-          <CodeSnippet title="Admin Message" code={message} />
-        </div>
-      </div>
-    </PageLayout>
-  );
-};
 
 --------------------------------------------------
 File: ./src/ParkSharing.Admin/ParkSharing.Admin.Client/src/pages/callback-page.js
@@ -910,7 +732,7 @@ import { PageLayout } from "../components/page-layout";
 export const HomePage = () => (
   <PageLayout>
     <HeroBanner />
-    <Auth0Features />
+    {/* <Auth0Features /> */}
   </PageLayout>
 );
 
