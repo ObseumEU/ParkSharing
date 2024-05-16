@@ -3,7 +3,6 @@ import { useAuth0 } from "@auth0/auth0-react";
 import { PageLayout } from "../components/page-layout";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-// import "./styles.css"; // Custom CSS for styling
 
 export const ProtectedPage = () => {
   const { logout } = useAuth0();
@@ -13,6 +12,11 @@ export const ProtectedPage = () => {
   
   const handleAddAvailability = () => {
     setAvailability([...availability, { start: new Date(), end: new Date(), recurrence: "Jednorázově" }]);
+  };
+
+  const handleRemoveAvailability = (index) => {
+    const newAvailability = availability.filter((_, i) => i !== index);
+    setAvailability(newAvailability);
   };
 
   return (
@@ -41,6 +45,8 @@ export const ProtectedPage = () => {
             onChange={(e) => setParkingSpotName(e.target.value)} 
             className="input-field"
           />
+
+          <h2>Dostupná místa</h2>
           {availability.map((slot, index) => (
             <div key={index} className="availability-item">
               <DatePicker 
@@ -79,6 +85,7 @@ export const ProtectedPage = () => {
                 <option>Týdně</option>
                 <option>Měsíčně</option>
               </select>
+              <button onClick={() => handleRemoveAvailability(index)} className="button button-remove">Remove</button>
             </div>
           ))}
           <button onClick={handleAddAvailability} className="button">Add Parking Spot Availability</button>
