@@ -1,0 +1,39 @@
+// File: src/ParkSharing/client-app/src/OwnerPage.css
+
+.owner-page {
+  padding: 20px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.spot-card {
+  background: white;
+  padding: 20px;
+  margin-bottom: 20px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.availabilities {
+  margin-top: 10px;
+}
+
+.availability {
+  background: #f9f9f9;
+  padding: 10px;
+  margin-bottom: 5px;
+  border-radius: 4px;
+}
+
+.new-availability {
+  margin-top: 20px;
+}
+
+.new-availability label {
+  display: block;
+  margin-bottom: 10px;
+}
+
+.new-availability input, .new-availability select {
+  margin-left: 10px;
+}
