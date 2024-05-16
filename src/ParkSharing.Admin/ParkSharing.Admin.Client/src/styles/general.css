@@ -152,6 +152,7 @@ code {
     overflow: hidden;
   }
 }
+/* Add this to your styles.css */
 
 .content-layout input,
 .content-layout select,
@@ -161,6 +162,15 @@ code {
   padding: 10px;
   width: 100%;
   max-width: 400px;
+}
+
+.availability-inputs {
+  display: flex;
+  flex-direction: column;
+}
+
+.availability-inputs > * {
+  margin: 5px 0;
 }
 
 .content-layout ul {

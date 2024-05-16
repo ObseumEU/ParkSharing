@@ -9,7 +9,7 @@ export const MobileNavBarTabs = ({ handleClick }) => {
     <div className="mobile-nav-bar__tabs">
       {/* <MobileNavBarTab
         path="/profile"
-        label="Profile"
+        label="Parkování"
         handleClick={handleClick}
       /> */}
       {/* <MobileNavBarTab
@@ -25,8 +25,8 @@ export const MobileNavBarTabs = ({ handleClick }) => {
             handleClick={handleClick}
           />
           {/* <MobileNavBarTab
-            path="/admin"
-            label="Admin"
+            path="/protected"
+            label="Správa"
             handleClick={handleClick}
           /> */}
         </>
