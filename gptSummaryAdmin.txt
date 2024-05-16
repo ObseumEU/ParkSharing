@@ -826,11 +826,10 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
 export const ProtectedPage = () => {
-  const { logout } = useAuth0();
   const [bankAccount, setBankAccount] = useState("");
   const [parkingSpotName, setParkingSpotName] = useState("");
   const [availability, setAvailability] = useState([{ start: new Date(), end: new Date(), recurrence: "Jednorázově" }]);
-  
+
   const handleAddAvailability = () => {
     setAvailability([...availability, { start: new Date(), end: new Date(), recurrence: "Jednorázově" }]);
   };
@@ -845,7 +844,7 @@ export const ProtectedPage = () => {
       <div className="protected-page">
         <h1>Protected Page</h1>
         <p>Only authenticated users can access this page.</p>
-        
+
         <div className="section">
           <h2>Číslo bankovního účtu</h2>
           <input 
@@ -909,10 +908,8 @@ export const ProtectedPage = () => {
               <button onClick={() => handleRemoveAvailability(index)} className="button button-remove">Remove</button>
             </div>
           ))}
-          <button onClick={handleAddAvailability} className="button">Add Parking Spot Availability</button>
+          <button onClick={handleAddAvailability} className="button">Přidat </button>
         </div>
-        
-        <button onClick={() => logout({ returnTo: window.location.origin })} className="button button-logout">Log Out</button>
       </div>
     </PageLayout>
   );
