@@ -6,7 +6,7 @@ ASP.NET with frontend React with Vite \
 This app need have authentication used with Auth0\ 
 After user login, or sign up. He used for parking spod owners to share theus parking space for others. \
 Every owner has abilise set times when parking space is free and when is not. \
-Every space possible set by hours, days, weeks, months. \
+Every space avaliability possible set by hours, days, weeks, months. \
 Similar how set recuring event is googel evet. Possible set recuring event for parking space. \
 For example every monday, wednesday, friday from 8:00 to 12:00. "
 

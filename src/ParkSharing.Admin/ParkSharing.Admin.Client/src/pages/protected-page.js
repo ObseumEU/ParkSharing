@@ -1,40 +1,27 @@
 import { useAuth0 } from "@auth0/auth0-react";
-import React, { useEffect, useState } from "react";
-import { CodeSnippet } from "../components/code-snippet";
+import React, { useState } from "react";
 import { PageLayout } from "../components/page-layout";
-import { getProtectedResource } from "../services/message.service";
 
 export const ProtectedPage = () => {
-  const [message, setMessage] = useState("");
+  const { user } = useAuth0();
+  const [bankAccount, setBankAccount] = useState("");
+  const [parkingSpots, setParkingSpots] = useState([]);
+  const [spotName, setSpotName] = useState("");
+  const [availability, setAvailability] = useState({
+    from: "",
+    to: "",
+    repeat: "none",
+  });
 
-  const { getAccessTokenSilently } = useAuth0();
-
-  useEffect(() => {
-    let isMounted = true;
-
-    const getMessage = async () => {
-      const accessToken = await getAccessTokenSilently();
-      const { data, error } = await getProtectedResource(accessToken);
-
-      if (!isMounted) {
-        return;
-      }
-
-      if (data) {
-        setMessage(JSON.stringify(data, null, 2));
-      }
-
-      if (error) {
-        setMessage(JSON.stringify(error, null, 2));
-      }
+  const handleAddSpot = () => {
+    const newSpot = {
+      name: spotName,
+      availability: { ...availability },
     };
-
-    getMessage();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [getAccessTokenSilently]);
+    setParkingSpots([...parkingSpots, newSpot]);
+    setSpotName("");
+    setAvailability({ from: "", to: "", repeat: "none" });
+  };
 
   return (
     <PageLayout>
@@ -44,15 +31,65 @@ export const ProtectedPage = () => {
         </h1>
         <div className="content__body">
           <p id="page-description">
-            <span>
-              This page retrieves a <strong>protected message</strong> from an
-              external API.
-            </span>
-            <span>
-              <strong>Only authenticated users can access this page.</strong>
-            </span>
+            <strong>Only authenticated users can access this page.</strong>
           </p>
-          <CodeSnippet title="Protected Message" code={message} />
+          <div>
+            <h2>Set Bank Account</h2>
+            <input
+              type="text"
+              value={bankAccount}
+              onChange={(e) => setBankAccount(e.target.value)}
+              placeholder="Bank Account Number"
+            />
+          </div>
+          <div>
+            <h2>Create Parking Spot</h2>
+            <input
+              type="text"
+              value={spotName}
+              onChange={(e) => setSpotName(e.target.value)}
+              placeholder="Parking Spot Name"
+            />
+            <h3>Set Availability</h3>
+            <input
+              type="time"
+              value={availability.from}
+              onChange={(e) =>
+                setAvailability({ ...availability, from: e.target.value })
+              }
+              placeholder="From"
+            />
+            <input
+              type="time"
+              value={availability.to}
+              onChange={(e) =>
+                setAvailability({ ...availability, to: e.target.value })
+              }
+              placeholder="To"
+            />
+            <select
+              value={availability.repeat}
+              onChange={(e) =>
+                setAvailability({ ...availability, repeat: e.target.value })
+              }
+            >
+              <option value="none">One Time</option>
+              <option value="daily">Daily</option>
+              <option value="weekly">Weekly</option>
+              <option value="monthly">Monthly</option>
+            </select>
+            <button onClick={handleAddSpot}>Add Parking Spot</button>
+          </div>
+          <div>
+            <h2>My Parking Spots</h2>
+            <ul>
+              {parkingSpots.map((spot, index) => (
+                <li key={index}>
+                  {spot.name}: {spot.availability.from} - {spot.availability.to} ({spot.availability.repeat})
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
       </div>
     </PageLayout>
