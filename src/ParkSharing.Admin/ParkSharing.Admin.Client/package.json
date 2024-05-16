@@ -6,9 +6,11 @@
     "@auth0/auth0-react": "^2.0.0",
     "axios": "^0.27.2",
     "react": "^18.2.0",
+    "react-datepicker": "^6.9.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.3.0",
-    "react-scripts": "5.0.1"
+    "react-scripts": "5.0.1",
+    "react-select": "^5.8.0"
   },
   "scripts": {
     "start": "cross-env PORT=4041 react-scripts start",
