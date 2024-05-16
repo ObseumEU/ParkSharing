@@ -5,11 +5,10 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
 export const ProtectedPage = () => {
-  const { logout } = useAuth0();
   const [bankAccount, setBankAccount] = useState("");
   const [parkingSpotName, setParkingSpotName] = useState("");
   const [availability, setAvailability] = useState([{ start: new Date(), end: new Date(), recurrence: "Jednorázově" }]);
-  
+
   const handleAddAvailability = () => {
     setAvailability([...availability, { start: new Date(), end: new Date(), recurrence: "Jednorázově" }]);
   };
@@ -24,7 +23,7 @@ export const ProtectedPage = () => {
       <div className="protected-page">
         <h1>Protected Page</h1>
         <p>Only authenticated users can access this page.</p>
-        
+
         <div className="section">
           <h2>Číslo bankovního účtu</h2>
           <input 
@@ -46,7 +45,7 @@ export const ProtectedPage = () => {
             className="input-field"
           />
 
-          <h2>Dostupná místa</h2>
+          <h2>Dostupnost</h2>
           {availability.map((slot, index) => (
             <div key={index} className="availability-item">
               <DatePicker 
@@ -85,13 +84,11 @@ export const ProtectedPage = () => {
                 <option>Týdně</option>
                 <option>Měsíčně</option>
               </select>
-              <button onClick={() => handleRemoveAvailability(index)} className="button button-remove">Remove</button>
+              <button onClick={() => handleRemoveAvailability(index)} className="button button-remove">Smazat</button>
             </div>
           ))}
-          <button onClick={handleAddAvailability} className="button">Add Parking Spot Availability</button>
+          <button onClick={handleAddAvailability} className="button">Přidat </button>
         </div>
-        
-        <button onClick={() => logout({ returnTo: window.location.origin })} className="button button-logout">Log Out</button>
       </div>
     </PageLayout>
   );
