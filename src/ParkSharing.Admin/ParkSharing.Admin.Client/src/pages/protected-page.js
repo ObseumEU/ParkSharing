@@ -21,8 +21,8 @@ export const ProtectedPage = () => {
   return (
     <PageLayout>
       <div className="protected-page">
-        <h1>Protected Page</h1>
-        <p>Only authenticated users can access this page.</p>
+        <h1>Parkování</h1>
+        <p>Nastavení k vašemu účtu</p>
 
         <div className="section">
           <h2>Číslo bankovního účtu</h2>
