@@ -22,17 +22,33 @@ builder.WebHost.ConfigureKestrel(serverOptions =>
 // Add services to the container.
 builder.Services.AddScoped<IMessageService, MessageService>();
 
+//builder.Services.AddCors(options =>
+//{
+
+//    options.AddDefaultPolicy(policy =>
+//    {
+
+//        policy.WithOrigins(
+//            builder.Configuration.GetValue<string>("CLIENT_ORIGIN_URL"))
+//            .WithHeaders(new string[] {
+//                HeaderNames.ContentType,
+//                HeaderNames.Authorization,
+//            })
+//            .WithMethods("GET")
+//            .SetPreflightMaxAge(TimeSpan.FromSeconds(86400));
+//    });
+//});
+
+
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
     {
-        policy.WithOrigins(
-            builder.Configuration.GetValue<string>("CLIENT_ORIGIN_URL"))
-            .WithHeaders(new string[] {
+        policy.AllowAnyOrigin()
+.WithHeaders(new string[] {
                 HeaderNames.ContentType,
                 HeaderNames.Authorization,
-            })
-            .WithMethods("GET")
+            }).AllowAnyMethod()
             .SetPreflightMaxAge(TimeSpan.FromSeconds(86400));
     });
 });

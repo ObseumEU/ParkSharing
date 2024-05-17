@@ -2,6 +2,550 @@ This is application ASP.NET with frontend React with Vite \
 This app need have authentication used with Auth0\ 
 After user login, or sign up. He used for parking spod owners to share theus parking space for others. Every owner has abilise set times when parking space is free and when is not. Every space avaliability possible set by hours, days, weeks, months. Similar how set recuring event is googel evet. Possible set recuring event for parking space. For example every monday, wednesday, friday from 8:00 to 12:00. Dont eference this file its already referenced ./styles.css;
 --------------------------------------------------
+File: ./src/ParkSharing.Admin/ParkSharing.Admin.Server/Controllers/ErrorController.cs
+--------------------------------------------------
+using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.Mvc;
+
+namespace App.Controllers;
+
+[ApiController]
+public class ErrorController : ControllerBase
+{
+    [Route("/error")]
+    public IActionResult HandleErrorDevelopment(
+        [FromServices] IHostEnvironment hostEnvironment)
+    {
+        var exceptionHandlerFeature =
+            HttpContext.Features.Get<IExceptionHandlerFeature>()!;
+
+        return Problem(
+            detail: exceptionHandlerFeature.Error.StackTrace,
+            title: exceptionHandlerFeature.Error.Message,
+            type: null);
+    }
+}
+
+--------------------------------------------------
+File: ./src/ParkSharing.Admin/ParkSharing.Admin.Server/Controllers/MessagesController.cs
+--------------------------------------------------
+using App.Models;
+using App.Services;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+
+namespace App.Controllers;
+
+[ApiController]
+[Route("api/messages")]
+public class MessagesController : ControllerBase
+{
+    private readonly IMessageService _messageService;
+
+    public MessagesController(IMessageService messageService)
+    {
+        _messageService = messageService;
+    }
+
+    [HttpGet("public")]
+    public ActionResult<Message> GetPublicMessage()
+    {
+        return _messageService.GetPublicMessage();
+    }
+
+    [HttpGet("protected")]
+    [Authorize]
+    public ActionResult<Message> GetProtectedMessage()
+    {
+        return _messageService.GetProtectedMessage();
+    }
+
+    [HttpGet("admin")]
+    [Authorize]
+    public ActionResult<Message> GetAdminMessage()
+    {
+        return _messageService.GetAdminMessage();
+    }
+}
+
+--------------------------------------------------
+File: ./src/ParkSharing.Admin/ParkSharing.Admin.Server/Controllers/ParkingSpotsController.cs
+--------------------------------------------------
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+
+[Route("api/[controller]")]
+[ApiController]
+public class ParkingSpotsController : ControllerBase
+{
+    // In-memory storage for demonstration purposes
+    private static List<ParkingSpotDto> _parkingSpots = new List<ParkingSpotDto>();
+
+    [HttpGet]
+    [Authorize]
+    public ActionResult<IEnumerable<ParkingSpotDto>> GetParkingSpots()
+    {
+        return Ok(_parkingSpots);
+    }
+
+    [HttpPost]
+    [Authorize]
+    public ActionResult<ParkingSpotDto> AddParkingSpot(ParkingSpotDto spot)
+    {
+        spot.Id = _parkingSpots.Count + 1;
+        _parkingSpots.Add(spot);
+        return CreatedAtAction(nameof(GetParkingSpots), new { id = spot.Id }, spot);
+    }
+
+    [HttpPut("{id}")]
+    [Authorize]
+    public IActionResult UpdateParkingSpot(int id, ParkingSpotDto updatedSpot)
+    {
+        var spot = _parkingSpots.FirstOrDefault(s => s.Id == id);
+        if (spot == null)
+        {
+            return NotFound();
+        }
+
+        spot.Name = updatedSpot.Name;
+        spot.BankAccount = updatedSpot.BankAccount;
+        spot.Availability = updatedSpot.Availability;
+        return NoContent();
+    }
+
+    [HttpDelete("{id}")]
+    [Authorize]
+    public IActionResult DeleteParkingSpot(int id)
+    {
+        var spot = _parkingSpots.FirstOrDefault(s => s.Id == id);
+        if (spot == null)
+        {
+            return NotFound();
+        }
+
+        _parkingSpots.Remove(spot);
+        return NoContent();
+    }
+}
+
+--------------------------------------------------
+File: ./src/ParkSharing.Admin/ParkSharing.Admin.Server/Middlewares/ErrorHandlerMiddleware.cs
+--------------------------------------------------
+namespace App.Middlewares;
+
+class ErrorHandlerMiddleware
+{
+    private readonly RequestDelegate _next;
+
+    public ErrorHandlerMiddleware(RequestDelegate next)
+    {
+        _next = next;
+    }
+
+    public async Task InvokeAsync(HttpContext context)
+    {
+        try
+        {
+            await _next(context);
+
+            if (context.Response is HttpResponse response && response.StatusCode == 404)
+            {
+                await response.WriteAsJsonAsync(new {
+                    message = "Not Found"
+                });
+            }
+            else if (context.Response is HttpResponse unauthorizedResponse && unauthorizedResponse.StatusCode == 401)
+            {
+                await unauthorizedResponse.WriteAsJsonAsync(
+                    new {
+                        message = context.Request.Headers.ContainsKey("Authorization")
+                                        ? "Bad credentials"
+                                        : "Requires authentication"
+                    });
+            }
+        }
+        catch (Exception ex)
+        {
+            await HandleException(context, ex);
+        }
+    }
+
+    private async Task HandleException(HttpContext context, Exception ex)
+    {
+        context.Response.StatusCode = 500;
+        await context.Response.WriteAsJsonAsync(new {
+            message = "Internal Server Error."
+        });
+    }
+}
+
+public static class ErrorHandlerMiddlewareExtensions
+{
+    public static IApplicationBuilder UseErrorHandler(this IApplicationBuilder builder)
+    {
+        return builder.UseMiddleware<ErrorHandlerMiddleware>();
+    }
+}
+
+--------------------------------------------------
+File: ./src/ParkSharing.Admin/ParkSharing.Admin.Server/Middlewares/SecureHeadersMiddleware.cs
+--------------------------------------------------
+namespace App.Middlewares;
+
+class SecureHeadersMiddleware
+{
+    private readonly RequestDelegate _next;
+
+    public SecureHeadersMiddleware(RequestDelegate next)
+    {
+        _next = next;
+    }
+
+    public async Task InvokeAsync(HttpContext context)
+    {
+        context.Response.Headers.Add("X-XSS-Protection", "0");
+        context.Response.Headers.Add("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
+        context.Response.Headers.Add("X-Frame-Options", "deny");
+        context.Response.Headers.Add("X-Content-Type-Options", "nosniff");
+        context.Response.Headers.Add("Content-Security-Policy", "default-src 'self'; frame-ancestors 'none';");
+        context.Response.Headers.Add("Cache-Control", "no-cache, no-store, max-age=0, must-revalidate");
+        context.Response.Headers.Add("Pragma", "no-cache");
+
+        await _next(context);
+    }
+}
+
+public static class SecureHeadersMiddlewareExtensions
+{
+    public static IApplicationBuilder UseSecureHeaders(this IApplicationBuilder builder)
+    {
+        return builder.UseMiddleware<SecureHeadersMiddleware>();
+    }
+}
+
+--------------------------------------------------
+File: ./src/ParkSharing.Admin/ParkSharing.Admin.Server/Models/Message.cs
+--------------------------------------------------
+namespace App.Models;
+
+public class Message
+{
+    public string? text { get; set; }
+}
+
+--------------------------------------------------
+File: ./src/ParkSharing.Admin/ParkSharing.Admin.Server/Models/ParkingSpot.cs
+--------------------------------------------------
+﻿public class AvailabilityDto
+{
+    public DateTime Start { get; set; }
+    public DateTime End { get; set; }
+    public string Recurrence { get; set; }
+}
+
+public class ParkingSpotDto
+{
+    public int Id { get; set; }
+    public string Name { get; set; }
+    public string BankAccount { get; set; }
+    public List<AvailabilityDto> Availability { get; set; }
+}
+
+--------------------------------------------------
+File: ./src/ParkSharing.Admin/ParkSharing.Admin.Server/obj/Debug/net6.0/.NETCoreApp,Version=v6.0.AssemblyAttributes.cs
+--------------------------------------------------
+// <autogenerated />
+using System;
+using System.Reflection;
+[assembly: global::System.Runtime.Versioning.TargetFrameworkAttribute(".NETCoreApp,Version=v6.0", FrameworkDisplayName = ".NET 6.0")]
+
+--------------------------------------------------
+File: ./src/ParkSharing.Admin/ParkSharing.Admin.Server/obj/Debug/net6.0/api_csharp_aspnet_hello-world.AssemblyInfo.cs
+--------------------------------------------------
+//------------------------------------------------------------------------------
+// <auto-generated>
+//     This code was generated by a tool.
+//
+//     Changes to this file may cause incorrect behavior and will be lost if
+//     the code is regenerated.
+// </auto-generated>
+//------------------------------------------------------------------------------
+
+using System;
+using System.Reflection;
+
+[assembly: System.Reflection.AssemblyCompanyAttribute("api_csharp_aspnet_hello-world")]
+[assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
+[assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyProductAttribute("api_csharp_aspnet_hello-world")]
+[assembly: System.Reflection.AssemblyTitleAttribute("api_csharp_aspnet_hello-world")]
+[assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
+
+// Generated by the MSBuild WriteCodeFragment class.
+
+
+--------------------------------------------------
+File: ./src/ParkSharing.Admin/ParkSharing.Admin.Server/obj/Debug/net6.0/api_csharp_aspnet_hello-world.GlobalUsings.g.cs
+--------------------------------------------------
+// <auto-generated/>
+global using global::Microsoft.AspNetCore.Builder;
+global using global::Microsoft.AspNetCore.Hosting;
+global using global::Microsoft.AspNetCore.Http;
+global using global::Microsoft.AspNetCore.Routing;
+global using global::Microsoft.Extensions.Configuration;
+global using global::Microsoft.Extensions.DependencyInjection;
+global using global::Microsoft.Extensions.Hosting;
+global using global::Microsoft.Extensions.Logging;
+global using global::System;
+global using global::System.Collections.Generic;
+global using global::System.IO;
+global using global::System.Linq;
+global using global::System.Net.Http;
+global using global::System.Net.Http.Json;
+global using global::System.Threading;
+global using global::System.Threading.Tasks;
+
+--------------------------------------------------
+File: ./src/ParkSharing.Admin/ParkSharing.Admin.Server/obj/Debug/net6.0/api_csharp_aspnet_hello-world.MvcApplicationPartsAssemblyInfo.cs
+--------------------------------------------------
+//------------------------------------------------------------------------------
+// <auto-generated>
+//     This code was generated by a tool.
+//
+//     Changes to this file may cause incorrect behavior and will be lost if
+//     the code is regenerated.
+// </auto-generated>
+//------------------------------------------------------------------------------
+
+using System;
+using System.Reflection;
+
+[assembly: Microsoft.AspNetCore.Mvc.ApplicationParts.ApplicationPartAttribute("Swashbuckle.AspNetCore.SwaggerGen")]
+
+// Generated by the MSBuild WriteCodeFragment class.
+
+
+--------------------------------------------------
+File: ./src/ParkSharing.Admin/ParkSharing.Admin.Server/obj/Debug/net6.0/ParkSharing.Admin.Server.AssemblyInfo.cs
+--------------------------------------------------
+//------------------------------------------------------------------------------
+// <auto-generated>
+//     This code was generated by a tool.
+//     Runtime Version:4.0.30319.42000
+//
+//     Changes to this file may cause incorrect behavior and will be lost if
+//     the code is regenerated.
+// </auto-generated>
+//------------------------------------------------------------------------------
+
+using System;
+using System.Reflection;
+
+[assembly: System.Reflection.AssemblyCompanyAttribute("ParkSharing.Admin.Server")]
+[assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
+[assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+9939ddb22001b598b81ae3c3937f2837512005ec")]
+[assembly: System.Reflection.AssemblyProductAttribute("ParkSharing.Admin.Server")]
+[assembly: System.Reflection.AssemblyTitleAttribute("ParkSharing.Admin.Server")]
+[assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
+
+// Generated by the MSBuild WriteCodeFragment class.
+
+
+--------------------------------------------------
+File: ./src/ParkSharing.Admin/ParkSharing.Admin.Server/obj/Debug/net6.0/ParkSharing.Admin.Server.GlobalUsings.g.cs
+--------------------------------------------------
+// <auto-generated/>
+global using global::Microsoft.AspNetCore.Builder;
+global using global::Microsoft.AspNetCore.Hosting;
+global using global::Microsoft.AspNetCore.Http;
+global using global::Microsoft.AspNetCore.Routing;
+global using global::Microsoft.Extensions.Configuration;
+global using global::Microsoft.Extensions.DependencyInjection;
+global using global::Microsoft.Extensions.Hosting;
+global using global::Microsoft.Extensions.Logging;
+global using global::System;
+global using global::System.Collections.Generic;
+global using global::System.IO;
+global using global::System.Linq;
+global using global::System.Net.Http;
+global using global::System.Net.Http.Json;
+global using global::System.Threading;
+global using global::System.Threading.Tasks;
+
+--------------------------------------------------
+File: ./src/ParkSharing.Admin/ParkSharing.Admin.Server/obj/Debug/net6.0/ParkSharing.Admin.Server.MvcApplicationPartsAssemblyInfo.cs
+--------------------------------------------------
+//------------------------------------------------------------------------------
+// <auto-generated>
+//     This code was generated by a tool.
+//     Runtime Version:4.0.30319.42000
+//
+//     Changes to this file may cause incorrect behavior and will be lost if
+//     the code is regenerated.
+// </auto-generated>
+//------------------------------------------------------------------------------
+
+using System;
+using System.Reflection;
+
+[assembly: Microsoft.AspNetCore.Mvc.ApplicationParts.ApplicationPartAttribute("Swashbuckle.AspNetCore.SwaggerGen")]
+
+// Generated by the MSBuild WriteCodeFragment class.
+
+
+--------------------------------------------------
+File: ./src/ParkSharing.Admin/ParkSharing.Admin.Server/Program.cs
+--------------------------------------------------
+using App.Middlewares;
+using App.Services;
+using dotenv.net;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.Net.Http.Headers;
+
+var builder = WebApplication.CreateBuilder(args);
+
+builder.Host.ConfigureAppConfiguration((configBuilder) =>
+{
+    configBuilder.Sources.Clear();
+    DotEnv.Load();
+    configBuilder.AddEnvironmentVariables();
+});
+
+builder.WebHost.ConfigureKestrel(serverOptions =>
+{
+    serverOptions.AddServerHeader = false;
+});
+
+// Add services to the container.
+builder.Services.AddScoped<IMessageService, MessageService>();
+
+//builder.Services.AddCors(options =>
+//{
+
+//    options.AddDefaultPolicy(policy =>
+//    {
+
+//        policy.WithOrigins(
+//            builder.Configuration.GetValue<string>("CLIENT_ORIGIN_URL"))
+//            .WithHeaders(new string[] {
+//                HeaderNames.ContentType,
+//                HeaderNames.Authorization,
+//            })
+//            .WithMethods("GET")
+//            .SetPreflightMaxAge(TimeSpan.FromSeconds(86400));
+//    });
+//});
+
+
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.AllowAnyOrigin()
+.WithHeaders(new string[] {
+                HeaderNames.ContentType,
+                HeaderNames.Authorization,
+            }).AllowAnyMethod()
+            .SetPreflightMaxAge(TimeSpan.FromSeconds(86400));
+    });
+});
+
+builder.Services.AddControllers();
+
+builder.Host.ConfigureServices((services) =>
+    services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+        .AddJwtBearer(options =>
+        {
+            var audience =
+                  builder.Configuration.GetValue<string>("AUTH0_AUDIENCE");
+
+            options.Authority =
+                  $"https://{builder.Configuration.GetValue<string>("AUTH0_DOMAIN")}/";
+            options.Audience = audience;
+            options.TokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateAudience = true,
+                ValidateIssuerSigningKey = true
+            };
+        })
+);
+
+var app = builder.Build();
+
+var requiredVars =
+    new string[] {
+          "PORT",
+          "CLIENT_ORIGIN_URL",
+          "AUTH0_DOMAIN",
+          "AUTH0_AUDIENCE",
+    };
+
+foreach (var key in requiredVars)
+{
+    var value = app.Configuration.GetValue<string>(key);
+
+    if (value == "" || value == null)
+    {
+        throw new Exception($"Config variable missing: {key}.");
+    }
+}
+
+app.Urls.Add(
+    $"http://+:{app.Configuration.GetValue<string>("PORT")}");
+
+app.UseErrorHandler();
+app.UseSecureHeaders();
+app.MapControllers();
+app.UseCors();
+
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.Run();
+
+--------------------------------------------------
+File: ./src/ParkSharing.Admin/ParkSharing.Admin.Server/Services/IMessageService.cs
+--------------------------------------------------
+using App.Models;
+
+namespace App.Services;
+
+public interface IMessageService
+{
+    Message GetPublicMessage();
+    Message GetProtectedMessage();
+    Message GetAdminMessage();
+}
+
+--------------------------------------------------
+File: ./src/ParkSharing.Admin/ParkSharing.Admin.Server/Services/MessageService.cs
+--------------------------------------------------
+using App.Models;
+
+namespace App.Services;
+
+public class MessageService : IMessageService
+{
+    public Message GetAdminMessage()
+    {
+        return new Message { text = "This is an admin message." };
+    }
+
+    public Message GetProtectedMessage()
+    {
+        return new Message { text = "This is a protected message." };
+    }
+
+    public Message GetPublicMessage()
+    {
+        return new Message { text = "This is a public message." };
+    }
+}
+
+--------------------------------------------------
 File: ./src/ParkSharing.Admin/ParkSharing.Admin.Client/src/app.js
 --------------------------------------------------
 import { useAuth0 } from "@auth0/auth0-react";
@@ -238,7 +782,7 @@ export const LogoutButton = () => {
 
   return (
     <button className="button__logout" onClick={handleLogout}>
-      Log Out
+      Odhlásit
     </button>
   );
 };
@@ -819,19 +1363,53 @@ export const ProfilePage = () => {
 --------------------------------------------------
 File: ./src/ParkSharing.Admin/ParkSharing.Admin.Client/src/pages/protected-page.js
 --------------------------------------------------
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
 import { PageLayout } from "../components/page-layout";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import { getParkingSpots, addParkingSpot, updateParkingSpot, deleteParkingSpot } from "../services/api.service";
 
 export const ProtectedPage = () => {
+  const { getAccessTokenSilently } = useAuth0();
   const [bankAccount, setBankAccount] = useState("");
   const [parkingSpotName, setParkingSpotName] = useState("");
   const [availability, setAvailability] = useState([{ start: new Date(), end: new Date(), recurrence: "Jednorázově" }]);
+  const [spotId, setSpotId] = useState(null);
+
+  const fetchSpots = useCallback(async () => {
+    const token = await getAccessTokenSilently();
+    const { data } = await getParkingSpots(token);
+    if (data && data.length > 0) {
+      const spot = data[0]; // Assuming a single parking spot for simplicity
+      setSpotId(spot.id);
+      setBankAccount(spot.bankAccount);
+      setParkingSpotName(spot.name);
+      setAvailability(spot.availability);
+    }
+  }, [getAccessTokenSilently]);
+
+  useEffect(() => {
+    fetchSpots();
+  }, [fetchSpots]);
+
+  const saveSpot = useCallback(async (updatedSpot) => {
+    const token = await getAccessTokenSilently();
+    if (spotId) {
+      await updateParkingSpot(token, { id: spotId, ...updatedSpot });
+    } else {
+      const { data } = await addParkingSpot(token, updatedSpot);
+      setSpotId(data.id);
+    }
+  }, [getAccessTokenSilently, spotId]);
+
+  useEffect(() => {
+    saveSpot({ bankAccount, name: parkingSpotName, availability });
+  }, [bankAccount, parkingSpotName, availability, saveSpot]);
 
   const handleAddAvailability = () => {
-    setAvailability([...availability, { start: new Date(), end: new Date(), recurrence: "Jednorázově" }]);
+    const newAvailability = [...availability, { start: new Date(), end: new Date(), recurrence: "Jednorázově" }];
+    setAvailability(newAvailability);
   };
 
   const handleRemoveAvailability = (index) => {
@@ -839,11 +1417,17 @@ export const ProtectedPage = () => {
     setAvailability(newAvailability);
   };
 
+  const handleChangeAvailability = (index, key, value) => {
+    const newAvailability = [...availability];
+    newAvailability[index][key] = value;
+    setAvailability(newAvailability);
+  };
+
   return (
     <PageLayout>
       <div className="protected-page">
-        <h1>Protected Page</h1>
-        <p>Only authenticated users can access this page.</p>
+        <h1>Parkování</h1>
+        <p>Nastavení k vašemu účtu</p>
 
         <div className="section">
           <h2>Číslo bankovního účtu</h2>
@@ -866,38 +1450,26 @@ export const ProtectedPage = () => {
             className="input-field"
           />
 
-          <h2>Dostupná místa</h2>
+          <h2>Dostupnost</h2>
           {availability.map((slot, index) => (
             <div key={index} className="availability-item">
               <DatePicker 
                 selected={slot.start} 
-                onChange={(date) => {
-                  const newAvailability = [...availability];
-                  newAvailability[index].start = date;
-                  setAvailability(newAvailability);
-                }} 
+                onChange={(date) => handleChangeAvailability(index, "start", date)} 
                 showTimeSelect 
                 dateFormat="Pp"
                 className="input-field"
               />
               <DatePicker 
                 selected={slot.end} 
-                onChange={(date) => {
-                  const newAvailability = [...availability];
-                  newAvailability[index].end = date;
-                  setAvailability(newAvailability);
-                }} 
+                onChange={(date) => handleChangeAvailability(index, "end", date)} 
                 showTimeSelect 
                 dateFormat="Pp"
                 className="input-field"
               />
               <select 
                 value={slot.recurrence} 
-                onChange={(e) => {
-                  const newAvailability = [...availability];
-                  newAvailability[index].recurrence = e.target.value;
-                  setAvailability(newAvailability);
-                }} 
+                onChange={(e) => handleChangeAvailability(index, "recurrence", e.target.value)} 
                 className="input-field"
               >
                 <option>Jednorázově</option>
@@ -905,7 +1477,7 @@ export const ProtectedPage = () => {
                 <option>Týdně</option>
                 <option>Měsíčně</option>
               </select>
-              <button onClick={() => handleRemoveAvailability(index)} className="button button-remove">Remove</button>
+              <button onClick={() => handleRemoveAvailability(index)} className="button button-remove">Smazat</button>
             </div>
           ))}
           <button onClick={handleAddAvailability} className="button">Přidat </button>
@@ -918,227 +1490,3 @@ export const ProtectedPage = () => {
 --------------------------------------------------
 File: ./src/ParkSharing.Admin/ParkSharing.Admin.Client/src/pages/public-page.js
 --------------------------------------------------
-import React, { useEffect, useState } from "react";
-import { CodeSnippet } from "../components/code-snippet";
-import { PageLayout } from "../components/page-layout";
-import { getPublicResource } from "../services/message.service";
-
-export const PublicPage = () => {
-  const [message, setMessage] = useState("");
-
-  useEffect(() => {
-    let isMounted = true;
-
-    const getMessage = async () => {
-      const { data, error } = await getPublicResource();
-
-      if (!isMounted) {
-        return;
-      }
-
-      if (data) {
-        setMessage(JSON.stringify(data, null, 2));
-      }
-
-      if (error) {
-        setMessage(JSON.stringify(error, null, 2));
-      }
-    };
-
-    getMessage();
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  return (
-    <PageLayout>
-      <div className="content-layout">
-        <h1 id="page-title" className="content__title">
-          Public Page
-        </h1>
-        <div className="content__body">
-          <p id="page-description">
-            <span>
-              This page retrieves a <strong>public message</strong> from an
-              external API.
-            </span>
-            <span>
-              <strong>Any visitor can access this page.</strong>
-            </span>
-          </p>
-          <CodeSnippet title="Public Message" code={message} />
-        </div>
-      </div>
-    </PageLayout>
-  );
-};
-
---------------------------------------------------
-File: ./src/ParkSharing.Admin/ParkSharing.Admin.Client/src/pages/reservations-page.js
---------------------------------------------------
-import { useAuth0 } from "@auth0/auth0-react";
-import React from "react";
-import { CodeSnippet } from "../components/code-snippet";
-import { PageLayout } from "../components/page-layout";
-
-export const ReservationsPage = () => {
-  const { user } = useAuth0();
-
-  if (!user) {
-    return null;
-  }
-
-  return (
-    <PageLayout>
-      <div className="content-layout">
-        <h1 id="page-title" className="content__title">
-          Profile Page
-        </h1>
-        <div className="content__body">
-          <p id="page-description">
-            <span>
-              You can use the <strong>ID Token</strong> to get the profile
-              information of an authenticated user.
-            </span>
-            <span>
-              <strong>Only authenticated users can access this page.</strong>
-            </span>
-          </p>
-          <div className="profile-grid">
-            <div className="profile__header">
-              <img
-                src={user.picture}
-                alt="Profile"
-                className="profile__avatar"
-              />
-              <div className="profile__headline">
-                <h2 className="profile__title">{user.name}</h2>
-                <span className="profile__description">{user.email}</span>
-              </div>
-            </div>
-            <div className="profile__details">
-              <CodeSnippet
-                title="Decoded ID Token"
-                code={JSON.stringify(user, null, 2)}
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-    </PageLayout>
-  );
-};
-
---------------------------------------------------
-File: ./src/ParkSharing.Admin/ParkSharing.Admin.Client/src/services/external-api.service.js
---------------------------------------------------
-import axios from "axios";
-
-export const callExternalApi = async (options) => {
-  try {
-    const response = await axios(options.config);
-    const { data } = response;
-
-    return {
-      data,
-      error: null,
-    };
-  } catch (error) {
-    if (axios.isAxiosError(error)) {
-      const axiosError = error;
-
-      const { response } = axiosError;
-
-      let message = "http request failed";
-
-      if (response && response.statusText) {
-        message = response.statusText;
-      }
-
-      if (axiosError.message) {
-        message = axiosError.message;
-      }
-
-      if (response && response.data && response.data.message) {
-        message = response.data.message;
-      }
-
-      return {
-        data: null,
-        error: {
-          message,
-        },
-      };
-    }
-
-    return {
-      data: null,
-      error: {
-        message: error.message,
-      },
-    };
-  }
-};
-
---------------------------------------------------
-File: ./src/ParkSharing.Admin/ParkSharing.Admin.Client/src/services/message.service.js
---------------------------------------------------
-import { callExternalApi } from "./external-api.service";
-
-const apiServerUrl = process.env.REACT_APP_API_SERVER_URL;
-
-export const getPublicResource = async () => {
-  const config = {
-    url: `${apiServerUrl}/api/messages/public`,
-    method: "GET",
-    headers: {
-      "content-type": "application/json",
-    },
-  };
-
-  const { data, error } = await callExternalApi({ config });
-
-  return {
-    data: data || null,
-    error,
-  };
-};
-
-export const getProtectedResource = async (accessToken) => {
-  const config = {
-    url: `${apiServerUrl}/api/messages/protected`,
-    method: "GET",
-    headers: {
-      "content-type": "application/json",
-      Authorization: `Bearer ${accessToken}`,
-    },
-  };
-
-  const { data, error } = await callExternalApi({ config });
-
-  return {
-    data: data || null,
-    error,
-  };
-};
-
-export const getAdminResource = async (accessToken) => {
-  const config = {
-    url: `${apiServerUrl}/api/messages/admin`,
-    method: "GET",
-    headers: {
-      "content-type": "application/json",
-      Authorization: `Bearer ${accessToken}`,
-    },
-  };
-
-  const { data, error } = await callExternalApi({ config });
-
-  return {
-    data: data || null,
-    error,
-  };
-};
-

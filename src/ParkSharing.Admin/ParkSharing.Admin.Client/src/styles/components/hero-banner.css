@@ -112,3 +112,35 @@
     line-height: 2.4rem;
   }
 }
+
+
+.hero-banner {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100vh; /* Full viewport height */
+  text-align: center;
+}
+
+.hero-banner__logo img {
+  max-width: 100px; /* Adjust as needed */
+  height: auto;
+  margin-bottom: 20px; /* Space between logo and text */
+}
+
+.hero-banner__headline {
+  font-size: 2rem;
+  margin-bottom: 10px;
+}
+
+.hero-banner__description {
+  font-size: 1.2rem;
+  margin-bottom: 20px;
+}
+
+.hero-banner__buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
