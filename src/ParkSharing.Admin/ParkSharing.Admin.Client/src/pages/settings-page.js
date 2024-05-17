@@ -5,7 +5,7 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { getParkingSpots, addParkingSpot, updateParkingSpot, deleteParkingSpot } from "../services/api.service";
 
-export const ProtectedPage = () => {
+export const SettingsPage = () => {
   const { getAccessTokenSilently } = useAuth0();
   const [bankAccount, setBankAccount] = useState("");
   const [parkingSpotName, setParkingSpotName] = useState("");
@@ -67,46 +67,39 @@ export const ProtectedPage = () => {
   return (
     <PageLayout>
       <div className="protected-page">
+        <h1>Nastavení</h1>
+
         <div className="section">
-          <h2>Dostupnost</h2>
-          {availability.map((slot, index) => (
-            <div key={index} className="availability-item">
-              <div className="availability-item__header">
-                <h3>Dostupnost {index + 1}</h3>
-              </div>
-              <div className="availability-item__body">
-                <label>Začátek:</label>
-                <DatePicker 
-                  selected={slot.start} 
-                  onChange={(date) => handleChangeAvailability(index, "start", date)} 
-                  showTimeSelect 
-                  dateFormat="Pp"
-                  className="input-field"
-                />
-                <label>Konec:</label>
-                <DatePicker 
-                  selected={slot.end} 
-                  onChange={(date) => handleChangeAvailability(index, "end", date)} 
-                  showTimeSelect 
-                  dateFormat="Pp"
-                  className="input-field"
-                />
-                <label>Opakování:</label>
-                <select 
-                  value={slot.recurrence} 
-                  onChange={(e) => handleChangeAvailability(index, "recurrence", e.target.value)} 
-                  className="input-field"
-                >
-                  <option>Jednorázově</option>
-                  <option>Denně</option>
-                  <option>Týdně</option>
-                  <option>Měsíčně</option>
-                </select>
-                <button onClick={() => handleRemoveAvailability(index)} className="button button-remove">Smazat</button>
-              </div>
-            </div>
-          ))}
-          <button onClick={handleAddAvailability} className="button">Přidat dostupnost</button>
+          <h2>Číslo bankovního účtu</h2>
+          <input 
+            type="text" 
+            placeholder="Číslo bankovního účtu" 
+            value={bankAccount} 
+            onChange={(e) => setBankAccount(e.target.value)} 
+            className="input-field"
+          />
+        </div>
+
+        <div className="section">
+          <h2>Parkovací místo</h2>
+          <input 
+            type="text" 
+            placeholder="Např. CS453" 
+            value={parkingSpotName} 
+            onChange={(e) => setParkingSpotName(e.target.value)} 
+            className="input-field"
+          />
+        </div>
+
+        <div className="section">
+          <h2>Cena / hod.</h2>
+          <input 
+            type="text" 
+            placeholder="Např. 20 Kč" 
+            value={parkingSpotName} 
+            onChange={(e) => setParkingSpotName(e.target.value)} 
+            className="input-field"
+          />
         </div>
       </div>
     </PageLayout>

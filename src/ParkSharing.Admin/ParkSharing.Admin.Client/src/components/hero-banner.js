@@ -10,15 +10,12 @@ export const HeroBanner = () => {
   return (
     <div className="hero-banner hero-banner--pink-yellow">
       <div className="hero-banner__logo">
-        <img className="hero-banner__image" src={logo} alt="React logo" />
+        <img className="hero-banner__image" src={logo} alt="Logo" />
       </div>
       <h1 className="hero-banner__headline">Sdílej svoje parkovací místo!</h1>
-      <p className="hero-banner__description">
-        Když nepotřebuješ, tak sdíles voje parkovací <strong>místo</strong>.
-      </p>
       <div className="hero-banner__buttons">
-        <SignupButton />
-        <LoginButton />
+        {/* <SignupButton /> */}
+        {/* <LoginButton /> */}
       </div>
     </div>
   );

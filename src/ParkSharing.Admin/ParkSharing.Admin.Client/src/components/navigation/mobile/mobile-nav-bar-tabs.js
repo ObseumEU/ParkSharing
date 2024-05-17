@@ -20,8 +20,18 @@ export const MobileNavBarTabs = ({ handleClick }) => {
       {isAuthenticated && (
         <>
           <MobileNavBarTab
+            path="/reservations"
+            label="Rezervace"
+            handleClick={handleClick}
+          />
+          <MobileNavBarTab
             path="/protected"
-            label="Protected"
+            label="Dostupnost"
+            handleClick={handleClick}
+          />
+          <MobileNavBarTab
+            path="/settings"
+            label="Nastavení"
             handleClick={handleClick}
           />
           {/* <MobileNavBarTab

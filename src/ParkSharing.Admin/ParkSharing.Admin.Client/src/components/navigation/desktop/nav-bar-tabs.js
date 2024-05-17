@@ -12,7 +12,9 @@ export const NavBarTabs = () => {
       {isAuthenticated && (
         <>
           <NavBarTab path="/reservations" label="Rezervace" />
-          <NavBarTab path="/protected" label="Parkování" />
+          <NavBarTab path="/protected" label="Dostupnost" />
+          <NavBarTab path="/settings" label="Nastavení" />
+
           {/* <NavBarTab path="/admin" label="Admin" /> */}
         </>
       )}
