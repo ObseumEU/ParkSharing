@@ -69,6 +69,7 @@ export const ProtectedPage = () => {
       <div className="protected-page">
         <div className="section">
           <h2>Dostupnost</h2>
+          <p>Kdy je parkovací stání možné půjčit. </p>
           {availability.map((slot, index) => (
             <div key={index} className="availability-item">
               <div className="availability-item__header">
