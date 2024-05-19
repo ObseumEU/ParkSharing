@@ -3,107 +3,163 @@ import { useAuth0 } from "@auth0/auth0-react";
 import { PageLayout } from "../components/page-layout";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import { getParkingSpots, addParkingSpot, updateParkingSpot, deleteParkingSpot } from "../services/api.service";
+import { getParkingSpot, updateParkingSpot } from "../services/api.service";
 
 export const ProtectedPage = () => {
   const { getAccessTokenSilently } = useAuth0();
-  const [bankAccount, setBankAccount] = useState("");
-  const [parkingSpotName, setParkingSpotName] = useState("");
-  const [availability, setAvailability] = useState([{ start: new Date(), end: new Date(), recurrence: "Jednorázově" }]);
-  const [spotId, setSpotId] = useState(null);
+  const [availability, setAvailability] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const fetchSpots = useCallback(async () => {
-    const token = await getAccessTokenSilently();
-    const { data } = await getParkingSpots(token);
-    if (data && data.length > 0) {
-      const spot = data[0]; // Assuming a single parking spot for simplicity
-      setSpotId(spot.id);
-      setBankAccount(spot.bankAccount);
-      setParkingSpotName(spot.name);
-      // Ensure dates are parsed as Date objects
-      const parsedAvailability = spot.availability.map(slot => ({
-        ...slot,
-        start: new Date(slot.start),
-        end: new Date(slot.end)
-      }));
-      setAvailability(parsedAvailability);
+  const fetchSpot = useCallback(async () => {
+    try {
+      const token = await getAccessTokenSilently();
+      const { data } = await getParkingSpot(token);
+      if (data) {
+        const parsedAvailability = data.availability.map(slot => ({
+          ...slot,
+          start: new Date(slot.start),
+          end: new Date(slot.end),
+          dayOfWeek: slot.dayOfWeek || null,
+        }));
+        setAvailability(parsedAvailability);
+      }
+    } catch (error) {
+      console.error("Failed to fetch parking spot:", error);
+    } finally {
+      setLoading(false);
     }
   }, [getAccessTokenSilently]);
 
   useEffect(() => {
-    fetchSpots();
-  }, [fetchSpots]);
+    fetchSpot();
+  }, [fetchSpot]);
 
-  const saveSpot = useCallback(async (updatedSpot) => {
-    const token = await getAccessTokenSilently();
-    if (spotId) {
-      await updateParkingSpot(token, { id: spotId, ...updatedSpot });
-    } else {
-      const { data } = await addParkingSpot(token, updatedSpot);
-      setSpotId(data.id);
+  const saveAvailability = useCallback(async (newAvailability) => {
+    try {
+      const token = await getAccessTokenSilently();
+      await updateParkingSpot(token, { availability: newAvailability });
+    } catch (error) {
+      console.error("Failed to update parking spot:", error);
     }
-  }, [getAccessTokenSilently, spotId]);
+  }, [getAccessTokenSilently]);
 
-  useEffect(() => {
-    saveSpot({ bankAccount, name: parkingSpotName, availability });
-  }, [bankAccount, parkingSpotName, availability, saveSpot]);
-
-  const handleAddAvailability = () => {
-    const newAvailability = [...availability, { start: new Date(), end: new Date(), recurrence: "Jednorázově" }];
+  const handleAddAvailability = async () => {
+    const newAvailability = [...availability, { start: new Date(), end: new Date(), recurrence: "Jednorázové" }];
     setAvailability(newAvailability);
+    await saveAvailability(newAvailability);
   };
 
-  const handleRemoveAvailability = (index) => {
+  const handleRemoveAvailability = async (index) => {
     const newAvailability = availability.filter((_, i) => i !== index);
     setAvailability(newAvailability);
+    await saveAvailability(newAvailability);
   };
 
-  const handleChangeAvailability = (index, key, value) => {
+  const handleChangeAvailability = async (index, key, value) => {
     const newAvailability = [...availability];
     newAvailability[index][key] = value;
     setAvailability(newAvailability);
+    await saveAvailability(newAvailability);
   };
+
+  if (loading) {
+    return (
+      <PageLayout>
+        <div className="protected-page">
+          <p>Načítání...</p>
+        </div>
+      </PageLayout>
+    );
+  }
 
   return (
     <PageLayout>
       <div className="protected-page">
         <div className="section">
-          <h2>Dostupnost</h2>
-          <p>Kdy je parkovací stání možné půjčit. </p>
+          <h2>Dostupnost parkovacího místa</h2>
+          <p>Nastavte, kdy je vaše parkovací místo k dispozici pro ostatní.</p>
           {availability.map((slot, index) => (
             <div key={index} className="availability-item">
               <div className="availability-item__header">
                 <h3>Dostupnost {index + 1}</h3>
               </div>
               <div className="availability-item__body">
-                <label>Začátek:</label>
-                <DatePicker 
-                  selected={slot.start} 
-                  onChange={(date) => handleChangeAvailability(index, "start", date)} 
-                  showTimeSelect 
-                  dateFormat="Pp"
-                  className="input-field"
-                />
-                <label>Konec:</label>
-                <DatePicker 
-                  selected={slot.end} 
-                  onChange={(date) => handleChangeAvailability(index, "end", date)} 
-                  showTimeSelect 
-                  dateFormat="Pp"
-                  className="input-field"
-                />
                 <label>Opakování:</label>
                 <select 
                   value={slot.recurrence} 
                   onChange={(e) => handleChangeAvailability(index, "recurrence", e.target.value)} 
                   className="input-field"
                 >
-                  <option>Jednorázově</option>
+                  <option>Jednorázové</option>
                   <option>Denně</option>
                   <option>Týdně</option>
-                  <option>Měsíčně</option>
+                  <option>Pracovní dny (Po-Pá)</option>
                 </select>
-                <button onClick={() => handleRemoveAvailability(index)} className="button button-remove">Smazat</button>
+                {slot.recurrence === "Týdně" && (
+                  <>
+                    <label>Den v týdnu:</label>
+                    <select 
+                      value={slot.dayOfWeek || ""} 
+                      onChange={(e) => handleChangeAvailability(index, "dayOfWeek", e.target.value)} 
+                      className="input-field"
+                    >
+                      <option value="">Vyberte den</option>
+                      <option value="Sunday">Neděle</option>
+                      <option value="Monday">Pondělí</option>
+                      <option value="Tuesday">Úterý</option>
+                      <option value="Wednesday">Středa</option>
+                      <option value="Thursday">Čtvrtek</option>
+                      <option value="Friday">Pátek</option>
+                      <option value="Saturday">Sobota</option>
+                    </select>
+                  </>
+                )}
+                {slot.recurrence === "Jednorázové" ? (
+                  <>
+                    <label>Začátek:</label>
+                    <DatePicker 
+                      selected={slot.start} 
+                      onChange={(date) => handleChangeAvailability(index, "start", date)} 
+                      showTimeSelect 
+                      dateFormat="Pp"
+                      className="input-field"
+                    />
+                    <label>Konec:</label>
+                    <DatePicker 
+                      selected={slot.end} 
+                      onChange={(date) => handleChangeAvailability(index, "end", date)} 
+                      showTimeSelect 
+                      dateFormat="Pp"
+                      className="input-field"
+                    />
+                  </>
+                ) : (
+                  <>
+                    <label>Od:</label>
+                    <DatePicker 
+                      selected={slot.start} 
+                      onChange={(date) => handleChangeAvailability(index, "start", date)} 
+                      showTimeSelect 
+                      showTimeSelectOnly
+                      timeIntervals={15}
+                      timeCaption="Čas"
+                      dateFormat="hh:mm"
+                      className="input-field"
+                    />
+                    <label>Do:</label>
+                    <DatePicker 
+                      selected={slot.end} 
+                      onChange={(date) => handleChangeAvailability(index, "end", date)} 
+                      showTimeSelect 
+                      showTimeSelectOnly
+                      timeIntervals={15}
+                      timeCaption="Čas"
+                      dateFormat="hh:mm"
+                      className="input-field"
+                    />
+                  </>
+                )}
+                <button onClick={() => handleRemoveAvailability(index)} className="button button-remove">Odstranit</button>
               </div>
             </div>
           ))}

@@ -1,56 +1,63 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using App.Context.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Nelibur.ObjectMapper;
+using System;
 
 [Route("api/[controller]")]
 [ApiController]
-public class ParkingSpotsController : ControllerBase
+public class ParkingSpotController : ControllerBase
 {
-    // In-memory storage for demonstration purposes
-    private static List<ParkingSpotDto> _parkingSpots = new List<ParkingSpotDto>();
+    private static List<ParkingSpot> _parkingSpots = new List<ParkingSpot>()
+    {
+        new ParkingSpot()
+        {
+            Id = 4,
+            UserId = "google-oauth2|106383545592871849353"
+        }
+    };
 
     [HttpGet]
     [Authorize]
-    public ActionResult<IEnumerable<ParkingSpotDto>> GetParkingSpots()
+    public ActionResult<ParkingSpotDto> GetParkingSpot()
     {
-        return Ok(_parkingSpots);
+        var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (userId == null)
+        {
+            return Unauthorized();
+        }
+
+        var spot = _parkingSpots.FirstOrDefault(p => p.UserId == userId);
+        var result = TinyMapper.Map<ParkingSpotDto>(spot);
+        return result;
     }
 
-    [HttpPost]
     [Authorize]
-    public ActionResult<ParkingSpotDto> AddParkingSpot(ParkingSpotDto spot)
+    [HttpPut]
+    public IActionResult UpdateAvaliability(PutAvaliabilityDto dto)
     {
-        spot.Id = _parkingSpots.Count + 1;
-        _parkingSpots.Add(spot);
-        return CreatedAtAction(nameof(GetParkingSpots), new { id = spot.Id }, spot);
-    }
+        var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (userId == null)
+        {
+            return Unauthorized();
+        }
 
-    [HttpPut("{id}")]
-    [Authorize]
-    public IActionResult UpdateParkingSpot(int id, ParkingSpotDto updatedSpot)
-    {
-        var spot = _parkingSpots.FirstOrDefault(s => s.Id == id);
+        var spot = _parkingSpots.FirstOrDefault(p => p.UserId == userId);
         if (spot == null)
         {
             return NotFound();
         }
 
-        spot.Name = updatedSpot.Name;
-        spot.BankAccount = updatedSpot.BankAccount;
-        spot.Availability = updatedSpot.Availability;
-        return NoContent();
-    }
+        var updatedSpot = dto.Availability;
 
-    [HttpDelete("{id}")]
-    [Authorize]
-    public IActionResult DeleteParkingSpot(int id)
-    {
-        var spot = _parkingSpots.FirstOrDefault(s => s.Id == id);
-        if (spot == null)
+        //spot.Name = updatedSpot.Name;
+        //spot.BankAccount = updatedSpot.BankAccount;
+        spot.Availability = new List<Availability>();
+        foreach (var av in updatedSpot)
         {
-            return NotFound();
+            spot.Availability.Add(TinyMapper.Map<Availability>(av));
         }
-
-        _parkingSpots.Remove(spot);
+        //TODO SAVE
         return NoContent();
     }
 }

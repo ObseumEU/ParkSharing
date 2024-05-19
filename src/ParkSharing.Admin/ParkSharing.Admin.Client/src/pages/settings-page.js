@@ -3,25 +3,23 @@ import { useAuth0 } from "@auth0/auth0-react";
 import { PageLayout } from "../components/page-layout";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import { getParkingSpots, addParkingSpot, updateParkingSpot, deleteParkingSpot } from "../services/api.service";
+import { getParkingSpot, addParkingSpot, updateParkingSpot } from "../services/api.service";
 
 export const SettingsPage = () => {
   const { getAccessTokenSilently } = useAuth0();
   const [bankAccount, setBankAccount] = useState("");
   const [parkingSpotName, setParkingSpotName] = useState("");
-  const [availability, setAvailability] = useState([{ start: new Date(), end: new Date(), recurrence: "Jednorázově" }]);
+  const [availability, setAvailability] = useState([{ start: new Date(), end: new Date(), recurrence: "One-time" }]);
   const [spotId, setSpotId] = useState(null);
 
-  const fetchSpots = useCallback(async () => {
+  const fetchSpot = useCallback(async () => {
     const token = await getAccessTokenSilently();
-    const { data } = await getParkingSpots(token);
-    if (data && data.length > 0) {
-      const spot = data[0]; // Assuming a single parking spot for simplicity
-      setSpotId(spot.id);
-      setBankAccount(spot.bankAccount);
-      setParkingSpotName(spot.name);
-      // Ensure dates are parsed as Date objects
-      const parsedAvailability = spot.availability.map(slot => ({
+    const { data } = await getParkingSpot(token);
+    if (data) {
+      setSpotId(data.id);
+      setBankAccount(data.bankAccount);
+      setParkingSpotName(data.name);
+      const parsedAvailability = data.availability.map(slot => ({
         ...slot,
         start: new Date(slot.start),
         end: new Date(slot.end)
@@ -31,8 +29,8 @@ export const SettingsPage = () => {
   }, [getAccessTokenSilently]);
 
   useEffect(() => {
-    fetchSpots();
-  }, [fetchSpots]);
+    fetchSpot();
+  }, [fetchSpot]);
 
   const saveSpot = useCallback(async (updatedSpot) => {
     const token = await getAccessTokenSilently();
@@ -49,7 +47,7 @@ export const SettingsPage = () => {
   }, [bankAccount, parkingSpotName, availability, saveSpot]);
 
   const handleAddAvailability = () => {
-    const newAvailability = [...availability, { start: new Date(), end: new Date(), recurrence: "Jednorázově" }];
+    const newAvailability = [...availability, { start: new Date(), end: new Date(), recurrence: "One-time" }];
     setAvailability(newAvailability);
   };
 
@@ -67,13 +65,13 @@ export const SettingsPage = () => {
   return (
     <PageLayout>
       <div className="protected-page">
-        <h1>Nastavení</h1>
+        <h1>Settings</h1>
 
         <div className="section">
-          <h2>Číslo bankovního účtu</h2>
+          <h2>Bank Account</h2>
           <input 
             type="text" 
-            placeholder="Číslo bankovního účtu" 
+            placeholder="Bank Account Number" 
             value={bankAccount} 
             onChange={(e) => setBankAccount(e.target.value)} 
             className="input-field"
@@ -81,21 +79,10 @@ export const SettingsPage = () => {
         </div>
 
         <div className="section">
-          <h2>Parkovací místo</h2>
+          <h2>Parking Spot Name</h2>
           <input 
             type="text" 
-            placeholder="Např. CS453" 
-            value={parkingSpotName} 
-            onChange={(e) => setParkingSpotName(e.target.value)} 
-            className="input-field"
-          />
-        </div>
-
-        <div className="section">
-          <h2>Cena / hod.</h2>
-          <input 
-            type="text" 
-            placeholder="Např. 20 Kč" 
+            placeholder="e.g., CS453" 
             value={parkingSpotName} 
             onChange={(e) => setParkingSpotName(e.target.value)} 
             className="input-field"

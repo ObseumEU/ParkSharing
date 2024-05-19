@@ -1,11 +1,19 @@
+using App.Context.Models;
 using App.Middlewares;
 using App.Services;
 using dotenv.net;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.Net.Http.Headers;
+using Nelibur.ObjectMapper;
+using System;
 
 var builder = WebApplication.CreateBuilder(args);
+
+TinyMapper.Bind<ParkingSpot, ParkingSpotDto>();
+TinyMapper.Bind<Availability, AvailabilityDto>();
+TinyMapper.Bind<AvailabilityDto,Availability>();
+
 
 builder.Host.ConfigureAppConfiguration((configBuilder) =>
 {
