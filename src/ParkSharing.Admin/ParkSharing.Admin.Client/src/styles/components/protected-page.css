@@ -1,5 +1,6 @@
 .protected-page .section {
   margin-bottom: 20px;
+  max-width: 350px;
 }
 
 .protected-page .availability-item {

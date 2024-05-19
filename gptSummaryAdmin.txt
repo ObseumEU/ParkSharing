@@ -561,6 +561,8 @@ import { NotFoundPage } from "./pages/not-found-page";
 import { ProtectedPage } from "./pages/protected-page";
 import { PublicPage } from "./pages/public-page";
 import { ReservationsPage } from "./pages/reservations-page";
+import { SettingsPage } from "./pages/settings-page";
+
 
 export const App = () => {
   const { isLoading } = useAuth0();
@@ -588,6 +590,10 @@ export const App = () => {
         <Route
         path="/reservations"
         element={<AuthenticationGuard component={ReservationsPage} />}
+      />
+         <Route
+        path="/settings"
+        element={<AuthenticationGuard component={SettingsPage} />}
       />
       {/* <Route
         path="/admin"
@@ -799,7 +805,7 @@ export const SignupButton = () => {
   const handleSignUp = async () => {
     await loginWithRedirect({
       appState: {
-        returnTo: "/admin",
+        returnTo: "/settings",
       },
       authorizationParams: {
         prompt: "login",
@@ -846,15 +852,12 @@ export const HeroBanner = () => {
   return (
     <div className="hero-banner hero-banner--pink-yellow">
       <div className="hero-banner__logo">
-        <img className="hero-banner__image" src={logo} alt="React logo" />
+        <img className="hero-banner__image" src={logo} alt="Logo" />
       </div>
       <h1 className="hero-banner__headline">Sdílej svoje parkovací místo!</h1>
-      <p className="hero-banner__description">
-        Když nepotřebuješ, tak sdíles voje parkovací <strong>místo</strong>.
-      </p>
       <div className="hero-banner__buttons">
-        <SignupButton />
-        <LoginButton />
+        {/* <SignupButton /> */}
+        {/* <LoginButton /> */}
       </div>
     </div>
   );
@@ -948,7 +951,9 @@ export const NavBarTabs = () => {
       {isAuthenticated && (
         <>
           <NavBarTab path="/reservations" label="Rezervace" />
-          <NavBarTab path="/protected" label="Parkování" />
+          <NavBarTab path="/protected" label="Dostupnost" />
+          <NavBarTab path="/settings" label="Nastavení" />
+
           {/* <NavBarTab path="/admin" label="Admin" /> */}
         </>
       )}
@@ -1006,7 +1011,7 @@ export const MobileNavBarBrand = ({ handleClick }) => {
         <img
           className="mobile-nav-bar__logo"
           src="https://cdn.auth0.com/blog/hub/code-samples/hello-world/auth0-logo.svg"
-          alt="Auth0 shield logo"
+          alt="Logo"
           width="82"
           height="24"
         />
@@ -1090,8 +1095,18 @@ export const MobileNavBarTabs = ({ handleClick }) => {
       {isAuthenticated && (
         <>
           <MobileNavBarTab
+            path="/reservations"
+            label="Rezervace"
+            handleClick={handleClick}
+          />
+          <MobileNavBarTab
             path="/protected"
-            label="Protected"
+            label="Dostupnost"
+            handleClick={handleClick}
+          />
+          <MobileNavBarTab
+            path="/settings"
+            label="Nastavení"
             handleClick={handleClick}
           />
           {/* <MobileNavBarTab
@@ -1385,7 +1400,13 @@ export const ProtectedPage = () => {
       setSpotId(spot.id);
       setBankAccount(spot.bankAccount);
       setParkingSpotName(spot.name);
-      setAvailability(spot.availability);
+      // Ensure dates are parsed as Date objects
+      const parsedAvailability = spot.availability.map(slot => ({
+        ...slot,
+        start: new Date(slot.start),
+        end: new Date(slot.end)
+      }));
+      setAvailability(parsedAvailability);
     }
   }, [getAccessTokenSilently]);
 
@@ -1426,8 +1447,241 @@ export const ProtectedPage = () => {
   return (
     <PageLayout>
       <div className="protected-page">
-        <h1>Parkování</h1>
-        <p>Nastavení k vašemu účtu</p>
+        <div className="section">
+          <h2>Dostupnost</h2>
+          {availability.map((slot, index) => (
+            <div key={index} className="availability-item">
+              <div className="availability-item__header">
+                <h3>Dostupnost {index + 1}</h3>
+              </div>
+              <div className="availability-item__body">
+                <label>Začátek:</label>
+                <DatePicker 
+                  selected={slot.start} 
+                  onChange={(date) => handleChangeAvailability(index, "start", date)} 
+                  showTimeSelect 
+                  dateFormat="Pp"
+                  className="input-field"
+                />
+                <label>Konec:</label>
+                <DatePicker 
+                  selected={slot.end} 
+                  onChange={(date) => handleChangeAvailability(index, "end", date)} 
+                  showTimeSelect 
+                  dateFormat="Pp"
+                  className="input-field"
+                />
+                <label>Opakování:</label>
+                <select 
+                  value={slot.recurrence} 
+                  onChange={(e) => handleChangeAvailability(index, "recurrence", e.target.value)} 
+                  className="input-field"
+                >
+                  <option>Jednorázově</option>
+                  <option>Denně</option>
+                  <option>Týdně</option>
+                  <option>Měsíčně</option>
+                </select>
+                <button onClick={() => handleRemoveAvailability(index)} className="button button-remove">Smazat</button>
+              </div>
+            </div>
+          ))}
+          <button onClick={handleAddAvailability} className="button">Přidat dostupnost</button>
+        </div>
+      </div>
+    </PageLayout>
+  );
+};
+
+--------------------------------------------------
+File: ./src/ParkSharing.Admin/ParkSharing.Admin.Client/src/pages/public-page.js
+--------------------------------------------------
+import React, { useEffect, useState } from "react";
+import { CodeSnippet } from "../components/code-snippet";
+import { PageLayout } from "../components/page-layout";
+import { getPublicResource } from "../services/message.service";
+
+export const PublicPage = () => {
+  const [message, setMessage] = useState("");
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const getMessage = async () => {
+      const { data, error } = await getPublicResource();
+
+      if (!isMounted) {
+        return;
+      }
+
+      if (data) {
+        setMessage(JSON.stringify(data, null, 2));
+      }
+
+      if (error) {
+        setMessage(JSON.stringify(error, null, 2));
+      }
+    };
+
+    getMessage();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  return (
+    <PageLayout>
+      <div className="content-layout">
+        <h1 id="page-title" className="content__title">
+          Public Page
+        </h1>
+        <div className="content__body">
+          <p id="page-description">
+            <span>
+              This page retrieves a <strong>public message</strong> from an
+              external API.
+            </span>
+            <span>
+              <strong>Any visitor can access this page.</strong>
+            </span>
+          </p>
+          <CodeSnippet title="Public Message" code={message} />
+        </div>
+      </div>
+    </PageLayout>
+  );
+};
+
+--------------------------------------------------
+File: ./src/ParkSharing.Admin/ParkSharing.Admin.Client/src/pages/reservations-page.js
+--------------------------------------------------
+import { useAuth0 } from "@auth0/auth0-react";
+import React from "react";
+import { CodeSnippet } from "../components/code-snippet";
+import { PageLayout } from "../components/page-layout";
+
+export const ReservationsPage = () => {
+  const { user } = useAuth0();
+
+  if (!user) {
+    return null;
+  }
+
+  return (
+    <PageLayout>
+      <div className="content-layout">
+        <h1 id="page-title" className="content__title">
+          Profile Page
+        </h1>
+        <div className="content__body">
+          <p id="page-description">
+            <span>
+              You can use the <strong>ID Token</strong> to get the profile
+              information of an authenticated user.
+            </span>
+            <span>
+              <strong>Only authenticated users can access this page.</strong>
+            </span>
+          </p>
+          <div className="profile-grid">
+            <div className="profile__header">
+              <img
+                src={user.picture}
+                alt="Profile"
+                className="profile__avatar"
+              />
+              <div className="profile__headline">
+                <h2 className="profile__title">{user.name}</h2>
+                <span className="profile__description">{user.email}</span>
+              </div>
+            </div>
+            <div className="profile__details">
+              <CodeSnippet
+                title="Decoded ID Token"
+                code={JSON.stringify(user, null, 2)}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </PageLayout>
+  );
+};
+
+--------------------------------------------------
+File: ./src/ParkSharing.Admin/ParkSharing.Admin.Client/src/pages/settings-page.js
+--------------------------------------------------
+import React, { useState, useEffect, useCallback } from "react";
+import { useAuth0 } from "@auth0/auth0-react";
+import { PageLayout } from "../components/page-layout";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import { getParkingSpots, addParkingSpot, updateParkingSpot, deleteParkingSpot } from "../services/api.service";
+
+export const SettingsPage = () => {
+  const { getAccessTokenSilently } = useAuth0();
+  const [bankAccount, setBankAccount] = useState("");
+  const [parkingSpotName, setParkingSpotName] = useState("");
+  const [availability, setAvailability] = useState([{ start: new Date(), end: new Date(), recurrence: "Jednorázově" }]);
+  const [spotId, setSpotId] = useState(null);
+
+  const fetchSpots = useCallback(async () => {
+    const token = await getAccessTokenSilently();
+    const { data } = await getParkingSpots(token);
+    if (data && data.length > 0) {
+      const spot = data[0]; // Assuming a single parking spot for simplicity
+      setSpotId(spot.id);
+      setBankAccount(spot.bankAccount);
+      setParkingSpotName(spot.name);
+      // Ensure dates are parsed as Date objects
+      const parsedAvailability = spot.availability.map(slot => ({
+        ...slot,
+        start: new Date(slot.start),
+        end: new Date(slot.end)
+      }));
+      setAvailability(parsedAvailability);
+    }
+  }, [getAccessTokenSilently]);
+
+  useEffect(() => {
+    fetchSpots();
+  }, [fetchSpots]);
+
+  const saveSpot = useCallback(async (updatedSpot) => {
+    const token = await getAccessTokenSilently();
+    if (spotId) {
+      await updateParkingSpot(token, { id: spotId, ...updatedSpot });
+    } else {
+      const { data } = await addParkingSpot(token, updatedSpot);
+      setSpotId(data.id);
+    }
+  }, [getAccessTokenSilently, spotId]);
+
+  useEffect(() => {
+    saveSpot({ bankAccount, name: parkingSpotName, availability });
+  }, [bankAccount, parkingSpotName, availability, saveSpot]);
+
+  const handleAddAvailability = () => {
+    const newAvailability = [...availability, { start: new Date(), end: new Date(), recurrence: "Jednorázově" }];
+    setAvailability(newAvailability);
+  };
+
+  const handleRemoveAvailability = (index) => {
+    const newAvailability = availability.filter((_, i) => i !== index);
+    setAvailability(newAvailability);
+  };
+
+  const handleChangeAvailability = (index, key, value) => {
+    const newAvailability = [...availability];
+    newAvailability[index][key] = value;
+    setAvailability(newAvailability);
+  };
+
+  return (
+    <PageLayout>
+      <div className="protected-page">
+        <h1>Nastavení</h1>
 
         <div className="section">
           <h2>Číslo bankovního účtu</h2>
@@ -1449,38 +1703,17 @@ export const ProtectedPage = () => {
             onChange={(e) => setParkingSpotName(e.target.value)} 
             className="input-field"
           />
+        </div>
 
-          <h2>Dostupnost</h2>
-          {availability.map((slot, index) => (
-            <div key={index} className="availability-item">
-              <DatePicker 
-                selected={slot.start} 
-                onChange={(date) => handleChangeAvailability(index, "start", date)} 
-                showTimeSelect 
-                dateFormat="Pp"
-                className="input-field"
-              />
-              <DatePicker 
-                selected={slot.end} 
-                onChange={(date) => handleChangeAvailability(index, "end", date)} 
-                showTimeSelect 
-                dateFormat="Pp"
-                className="input-field"
-              />
-              <select 
-                value={slot.recurrence} 
-                onChange={(e) => handleChangeAvailability(index, "recurrence", e.target.value)} 
-                className="input-field"
-              >
-                <option>Jednorázově</option>
-                <option>Denně</option>
-                <option>Týdně</option>
-                <option>Měsíčně</option>
-              </select>
-              <button onClick={() => handleRemoveAvailability(index)} className="button button-remove">Smazat</button>
-            </div>
-          ))}
-          <button onClick={handleAddAvailability} className="button">Přidat </button>
+        <div className="section">
+          <h2>Cena / hod.</h2>
+          <input 
+            type="text" 
+            placeholder="Např. 20 Kč" 
+            value={parkingSpotName} 
+            onChange={(e) => setParkingSpotName(e.target.value)} 
+            className="input-field"
+          />
         </div>
       </div>
     </PageLayout>
@@ -1488,5 +1721,194 @@ export const ProtectedPage = () => {
 };
 
 --------------------------------------------------
-File: ./src/ParkSharing.Admin/ParkSharing.Admin.Client/src/pages/public-page.js
+File: ./src/ParkSharing.Admin/ParkSharing.Admin.Client/src/services/api.service.js
 --------------------------------------------------
+import axios from 'axios';
+
+const apiServerUrl = process.env.REACT_APP_API_SERVER_URL;
+
+export const getParkingSpots = async (accessToken) => {
+  const config = {
+    url: `${apiServerUrl}/api/parkingspots`,
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${accessToken}`,
+    },
+  };
+
+  try {
+    const response = await axios(config);
+    return { data: response.data, error: null };
+  } catch (error) {
+    return { data: null, error };
+  }
+};
+
+export const addParkingSpot = async (accessToken, spot) => {
+  const config = {
+    url: `${apiServerUrl}/api/parkingspots`,
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${accessToken}`,
+    },
+    data: spot,
+  };
+
+  try {
+    const response = await axios(config);
+    return { data: response.data, error: null };
+  } catch (error) {
+    return { data: null, error };
+  }
+};
+
+export const updateParkingSpot = async (accessToken, spot) => {
+  const config = {
+    url: `${apiServerUrl}/api/parkingspots/${spot.id}`,
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${accessToken}`,
+    },
+    data: spot,
+  };
+
+  try {
+    const response = await axios(config);
+    return { data: response.data, error: null };
+  } catch (error) {
+    return { data: null, error };
+  }
+};
+
+export const deleteParkingSpot = async (accessToken, id) => {
+  const config = {
+    url: `${apiServerUrl}/api/parkingspots/${id}`,
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${accessToken}`,
+    },
+  };
+
+  try {
+    const response = await axios(config);
+    return { data: response.data, error: null };
+  } catch (error) {
+    return { data: null, error };
+  }
+};
+
+--------------------------------------------------
+File: ./src/ParkSharing.Admin/ParkSharing.Admin.Client/src/services/external-api.service.js
+--------------------------------------------------
+import axios from "axios";
+
+export const callExternalApi = async (options) => {
+  try {
+    const response = await axios(options.config);
+    const { data } = response;
+
+    return {
+      data,
+      error: null,
+    };
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      const axiosError = error;
+
+      const { response } = axiosError;
+
+      let message = "http request failed";
+
+      if (response && response.statusText) {
+        message = response.statusText;
+      }
+
+      if (axiosError.message) {
+        message = axiosError.message;
+      }
+
+      if (response && response.data && response.data.message) {
+        message = response.data.message;
+      }
+
+      return {
+        data: null,
+        error: {
+          message,
+        },
+      };
+    }
+
+    return {
+      data: null,
+      error: {
+        message: error.message,
+      },
+    };
+  }
+};
+
+--------------------------------------------------
+File: ./src/ParkSharing.Admin/ParkSharing.Admin.Client/src/services/message.service.js
+--------------------------------------------------
+import { callExternalApi } from "./external-api.service";
+
+const apiServerUrl = process.env.REACT_APP_API_SERVER_URL;
+
+export const getPublicResource = async () => {
+  const config = {
+    url: `${apiServerUrl}/api/messages/public`,
+    method: "GET",
+    headers: {
+      "content-type": "application/json",
+    },
+  };
+
+  const { data, error } = await callExternalApi({ config });
+
+  return {
+    data: data || null,
+    error,
+  };
+};
+
+export const getProtectedResource = async (accessToken) => {
+  const config = {
+    url: `${apiServerUrl}/api/messages/protected`,
+    method: "GET",
+    headers: {
+      "content-type": "application/json",
+      Authorization: `Bearer ${accessToken}`,
+    },
+  };
+
+  const { data, error } = await callExternalApi({ config });
+
+  return {
+    data: data || null,
+    error,
+  };
+};
+
+export const getAdminResource = async (accessToken) => {
+  const config = {
+    url: `${apiServerUrl}/api/messages/admin`,
+    method: "GET",
+    headers: {
+      "content-type": "application/json",
+      Authorization: `Bearer ${accessToken}`,
+    },
+  };
+
+  const { data, error } = await callExternalApi({ config });
+
+  return {
+    data: data || null,
+    error,
+  };
+};
+
