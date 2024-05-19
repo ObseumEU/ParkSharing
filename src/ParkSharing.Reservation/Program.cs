@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Http;
 using OpenAI.Extensions;
 using ParkSharing.Services.ChatGPT;
+using System;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,7 +10,6 @@ builder.Services.AddHttpClient();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddSingleton<IReservationService, ReservationService>();
-
 builder.Services.AddSingleton<SessionService>();
 builder.Services.AddSingleton<ChatGPTService>();
 builder.Services.AddSingleton<ChatGPTCapabilities>();

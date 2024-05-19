@@ -27,3 +27,11 @@
   font-size: 16px;
   margin-top: 20px;
 }
+
+.custom-datepicker {
+  width: 100%; /* Ensures the input fields take up the full width of their container */
+}
+
+.custom-datepicker input {
+  width: 100%; /* Ensures the input fields take up the full width of their container */
+}
