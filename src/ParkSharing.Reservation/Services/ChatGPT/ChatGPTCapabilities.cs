@@ -6,8 +6,11 @@ namespace ParkSharing.Services.ChatGPT
     public class ChatGPTCapabilities
     {
 
-        [FunctionDescription("Rezervace parkovacího místa. Neni dovoleno rezervova na delsi dobu nez 3 dny. Argumenty pouzivej v formatu yyyy-mm-dd HH:00. Navratova hodnota je Nazev parkovaciho mista. Rezervovat lze jen volna mista ziskane funkci AvaliableSpots. Sam vyber nahodne nektere misto")]
-        public string ReserveSpot(string from, string to, string spot)
+        [FunctionDescription("Rezervace parkovacího místa. Neni dovoleno rezervova na delsi dobu nez 3 dny. Navratova hodnota je Nazev parkovaciho mista. Rezervovat lze jen volna mista ziskane funkci AvaliableSpots. Sam vyber nahodne nektere misto")]
+        public string ReserveSpot(
+            [ParameterDescription("Datetime format yyyy-mm-dd HH:00")] string from,
+            [ParameterDescription("Datetime format yyyy-mm-dd HH:00")] string to, 
+            string spot)
         {
             Console.WriteLine("Reserved spot from {0} to {1}, price 0 Kč/hod", from, to);
             return $"CS{Random.Shared.Next(1,100)}";
@@ -16,8 +19,12 @@ namespace ParkSharing.Services.ChatGPT
         [FunctionDescription("Vrací seznam volných parkovacích míst pro dané datum. Navratova hodnota je seznam volnych parkovacich mist.")]
         public string AvaliableSpots(string from, string to)
         {
-            return $"CS222;20 Kč/hod\n;CS452,0 Kč/hod\n;CS26,0 Kč/hod\n;CS122,250 Kč/hod\n";
+            return $"CS222;20 Kč/hod\n;" +
+                   $"CS452,0 Kč/hod\n;" +
+                   $"CS26,0 Kč/hod\n;" +
+                   $"CS122,250 Kč/hod\n";
         }
+
 
         [FunctionDescription("Detail o parkovacim miste")]
         public string SpotDetail(string spot)
@@ -29,6 +36,7 @@ namespace ParkSharing.Services.ChatGPT
                 PricePerHour = "asdsad"
             });
         }
+
 
         [FunctionDescription("Registrovat parkovaci misto pro sdileni. Vlastnik musi pouzit svuj unikatni kod. Email je identifikator uzivatele co pozadavek zpracovava. Po vytvoreni je misto plne dostupne.")]
         public string CreateParkingSpot(string email, string securityCode, string spotId, string pricePerHour)
