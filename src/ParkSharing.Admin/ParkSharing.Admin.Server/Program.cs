@@ -1,19 +1,14 @@
-using App.Context.Models;
+using App;
 using App.Middlewares;
 using App.Services;
 using dotenv.net;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.Net.Http.Headers;
-using Nelibur.ObjectMapper;
-using System;
 
 var builder = WebApplication.CreateBuilder(args);
 
-TinyMapper.Bind<ParkingSpot, ParkingSpotDto>();
-TinyMapper.Bind<Availability, AvailabilityDto>();
-TinyMapper.Bind<AvailabilityDto,Availability>();
-
+Mapper.BindMaps();
 
 builder.Host.ConfigureAppConfiguration((configBuilder) =>
 {
@@ -29,7 +24,7 @@ builder.WebHost.ConfigureKestrel(serverOptions =>
 
 // Add services to the container.
 builder.Services.AddScoped<IMessageService, MessageService>();
-
+builder.Services.AddScoped<IParkingSpotService, ParkingSpotServiceMemory>();
 //builder.Services.AddCors(options =>
 //{
 

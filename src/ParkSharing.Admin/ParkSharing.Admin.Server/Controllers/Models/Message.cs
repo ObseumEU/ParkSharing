@@ -1,4 +1,4 @@
-namespace App.Models;
+namespace App.Controllers.Models;
 
 public class Message
 {

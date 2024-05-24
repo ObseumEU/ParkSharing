@@ -1,4 +1,4 @@
-using App.Models;
+using App.Controllers.Models;
 
 namespace App.Services;
 
