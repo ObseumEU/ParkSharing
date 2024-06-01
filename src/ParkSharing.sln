@@ -5,15 +5,31 @@ VisualStudioVersion = 17.5.002.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{DAF453F5-601C-4A4F-A30C-285FCBD59152}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ParkSharing.Tests", "ParkSharing.Tests\ParkSharing.Tests.csproj", "{AD3D81D1-6460-45C7-8F3D-E8FF6CF01F85}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ParkSharing.Contracts", "ParkSharing.Shared\ParkSharing.Contracts.csproj", "{BD9D1DEF-007C-4A74-86E9-C07A41BD299F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ParkSharing.Admin.Server", "ParkSharing.Admin\ParkSharing.Admin.Server\ParkSharing.Admin.Server.csproj", "{97758592-0C31-400B-86B1-2D102C5B241E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ParkSharing.AppHost", "ParkSharing.AppHost\ParkSharing.AppHost.csproj", "{AA2ED413-9521-43F6-91D8-9D83370D74C9}"
 EndProject
-Project("{54A90642-561A-4BB1-A94E-469ADEE60C69}") = "parksharing.admin.client", "ParkSharing.Admin\parksharing.admin.client\parksharing.admin.client.esproj", "{815A94AB-FD4B-453B-84E1-4DE0C9C1AFB5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ParkSharing.ServiceDefaults", "ParkSharing.ServiceDefaults\ParkSharing.ServiceDefaults.csproj", "{47520E78-E689-4E38-AF7D-E5A35ABC4BD7}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ParkSharing.Reservation.Server", "ParkSharing.Reservation\ParkSharing.Reservation.Server.csproj", "{0A05F57B-60F1-494F-9274-2BBB3A94A170}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Backend", "Backend", "{CF448F23-4D0C-4E54-AB89-49AE2D3BB765}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ParkSharing.Shared", "ParkSharing.Shared\ParkSharing.Shared.csproj", "{BD9D1DEF-007C-4A74-86E9-C07A41BD299F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ParkSharing.Integration.Tests", "ParkSharing.Integration.Tests\ParkSharing.Integration.Tests.csproj", "{A92D6493-DA48-4198-B676-A913C83AB186}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{E4251208-5E0E-4EC5-A83F-0B407D663B57}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ParkSharing.Reservation.Server", "ParkSharing.Reservation.Server\ParkSharing.Reservation.Server.csproj", "{F092EF94-FDD1-4ACE-ADBA-F2E77352C573}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ParkSharing.Admin.Server", "ParkSharing.Admin.Server\ParkSharing.Admin.Server.csproj", "{FBBFD862-7D07-4B10-99A8-F8A3CF82F26D}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Orchestration", "Orchestration", "{A20E7D85-B60D-47AF-8C57-E948FF904E5B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DevOps", "DevOps", "{4AE60263-854B-4910-B233-7C2EE31BA5E9}"
+	ProjectSection(SolutionItems) = preProject
+		..\.github\workflows\admin-client.yml = ..\.github\workflows\admin-client.yml
+		..\.github\workflows\admin-server.yml = ..\.github\workflows\admin-server.yml
+		..\.github\workflows\reservation-client.yml = ..\.github\workflows\reservation-client.yml
+		..\.github\workflows\reservation-server.yml = ..\.github\workflows\reservation-server.yml
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,38 +37,44 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{AD3D81D1-6460-45C7-8F3D-E8FF6CF01F85}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{AD3D81D1-6460-45C7-8F3D-E8FF6CF01F85}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{AD3D81D1-6460-45C7-8F3D-E8FF6CF01F85}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{AD3D81D1-6460-45C7-8F3D-E8FF6CF01F85}.Release|Any CPU.Build.0 = Release|Any CPU
-		{97758592-0C31-400B-86B1-2D102C5B241E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{97758592-0C31-400B-86B1-2D102C5B241E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{97758592-0C31-400B-86B1-2D102C5B241E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{97758592-0C31-400B-86B1-2D102C5B241E}.Release|Any CPU.Build.0 = Release|Any CPU
-		{815A94AB-FD4B-453B-84E1-4DE0C9C1AFB5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{815A94AB-FD4B-453B-84E1-4DE0C9C1AFB5}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{815A94AB-FD4B-453B-84E1-4DE0C9C1AFB5}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
-		{815A94AB-FD4B-453B-84E1-4DE0C9C1AFB5}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{815A94AB-FD4B-453B-84E1-4DE0C9C1AFB5}.Release|Any CPU.Build.0 = Release|Any CPU
-		{815A94AB-FD4B-453B-84E1-4DE0C9C1AFB5}.Release|Any CPU.Deploy.0 = Release|Any CPU
-		{0A05F57B-60F1-494F-9274-2BBB3A94A170}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0A05F57B-60F1-494F-9274-2BBB3A94A170}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0A05F57B-60F1-494F-9274-2BBB3A94A170}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0A05F57B-60F1-494F-9274-2BBB3A94A170}.Release|Any CPU.Build.0 = Release|Any CPU
 		{BD9D1DEF-007C-4A74-86E9-C07A41BD299F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{BD9D1DEF-007C-4A74-86E9-C07A41BD299F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BD9D1DEF-007C-4A74-86E9-C07A41BD299F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BD9D1DEF-007C-4A74-86E9-C07A41BD299F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AA2ED413-9521-43F6-91D8-9D83370D74C9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AA2ED413-9521-43F6-91D8-9D83370D74C9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AA2ED413-9521-43F6-91D8-9D83370D74C9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AA2ED413-9521-43F6-91D8-9D83370D74C9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{47520E78-E689-4E38-AF7D-E5A35ABC4BD7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{47520E78-E689-4E38-AF7D-E5A35ABC4BD7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{47520E78-E689-4E38-AF7D-E5A35ABC4BD7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{47520E78-E689-4E38-AF7D-E5A35ABC4BD7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A92D6493-DA48-4198-B676-A913C83AB186}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A92D6493-DA48-4198-B676-A913C83AB186}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A92D6493-DA48-4198-B676-A913C83AB186}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A92D6493-DA48-4198-B676-A913C83AB186}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F092EF94-FDD1-4ACE-ADBA-F2E77352C573}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F092EF94-FDD1-4ACE-ADBA-F2E77352C573}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F092EF94-FDD1-4ACE-ADBA-F2E77352C573}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F092EF94-FDD1-4ACE-ADBA-F2E77352C573}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FBBFD862-7D07-4B10-99A8-F8A3CF82F26D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FBBFD862-7D07-4B10-99A8-F8A3CF82F26D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FBBFD862-7D07-4B10-99A8-F8A3CF82F26D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FBBFD862-7D07-4B10-99A8-F8A3CF82F26D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{AD3D81D1-6460-45C7-8F3D-E8FF6CF01F85} = {DAF453F5-601C-4A4F-A30C-285FCBD59152}
-		{97758592-0C31-400B-86B1-2D102C5B241E} = {DAF453F5-601C-4A4F-A30C-285FCBD59152}
-		{815A94AB-FD4B-453B-84E1-4DE0C9C1AFB5} = {DAF453F5-601C-4A4F-A30C-285FCBD59152}
-		{0A05F57B-60F1-494F-9274-2BBB3A94A170} = {DAF453F5-601C-4A4F-A30C-285FCBD59152}
-		{BD9D1DEF-007C-4A74-86E9-C07A41BD299F} = {DAF453F5-601C-4A4F-A30C-285FCBD59152}
+		{BD9D1DEF-007C-4A74-86E9-C07A41BD299F} = {A20E7D85-B60D-47AF-8C57-E948FF904E5B}
+		{AA2ED413-9521-43F6-91D8-9D83370D74C9} = {A20E7D85-B60D-47AF-8C57-E948FF904E5B}
+		{47520E78-E689-4E38-AF7D-E5A35ABC4BD7} = {A20E7D85-B60D-47AF-8C57-E948FF904E5B}
+		{CF448F23-4D0C-4E54-AB89-49AE2D3BB765} = {DAF453F5-601C-4A4F-A30C-285FCBD59152}
+		{A92D6493-DA48-4198-B676-A913C83AB186} = {E4251208-5E0E-4EC5-A83F-0B407D663B57}
+		{E4251208-5E0E-4EC5-A83F-0B407D663B57} = {DAF453F5-601C-4A4F-A30C-285FCBD59152}
+		{F092EF94-FDD1-4ACE-ADBA-F2E77352C573} = {CF448F23-4D0C-4E54-AB89-49AE2D3BB765}
+		{FBBFD862-7D07-4B10-99A8-F8A3CF82F26D} = {CF448F23-4D0C-4E54-AB89-49AE2D3BB765}
+		{A20E7D85-B60D-47AF-8C57-E948FF904E5B} = {DAF453F5-601C-4A4F-A30C-285FCBD59152}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {E8F57FA2-6280-4867-9E5B-0496548C34AB}
