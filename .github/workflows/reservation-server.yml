@@ -16,8 +16,8 @@ jobs:
     uses: ObseumEU/github-workflows/.github/workflows/build-and-push.yml@master
     with:
       image: "davidrosko/parksharing-reservation-server"
-      dockerfile: ./src/Dockerfile
-      context: ./src
+      dockerfile: ./src/ParkSharing.Reservation.Server/Dockerfile
+      context: ./src/ParkSharing.Reservation.Server/
       tests: true
     secrets:
       ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
