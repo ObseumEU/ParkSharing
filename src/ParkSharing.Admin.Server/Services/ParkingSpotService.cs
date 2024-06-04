@@ -1,8 +1,8 @@
 ﻿using App.Context.Models;
+using MassTransit;
 using MongoDB.Driver;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using Nelibur.ObjectMapper;
+using ParkSharing.Contracts;
 
 namespace App.Services
 {
@@ -12,16 +12,19 @@ namespace App.Services
         Task<List<Availability>> GetAvailabilityByUser(string userId);
         Task UpdateSpot(ParkingSpot spot);
         Task<List<Availability>> UpdateAvailabilityByUser(string userId, List<Availability> availability);
+        Task InsertSpot(ParkingSpot spot);
     }
 
     public class ParkingSpotServiceMongo : IParkingSpotService
     {
         private readonly IMongoCollection<ParkingSpot> _parkingSpots;
+        IBus _messageBroker;
 
-        public ParkingSpotServiceMongo(IMongoClient mongoClient)
+        public ParkingSpotServiceMongo(IMongoClient mongoClient, IBus messageBroker )
         {
-            var database = mongoClient.GetDatabase("ParkingDB");
+            var database = mongoClient.GetDatabase("AdminParkSharing");
             _parkingSpots = database.GetCollection<ParkingSpot>("ParkingSpots");
+            _messageBroker = messageBroker;
         }
 
         public async Task<ParkingSpot> GetSpotByUser(string userId)
@@ -41,6 +44,19 @@ namespace App.Services
             var filter = Builders<ParkingSpot>.Filter.Eq(s => s.Id, spot.Id);
             var options = new ReplaceOptions { IsUpsert = true };
             await _parkingSpots.ReplaceOneAsync(filter, spot, options);
+        }
+
+        public async Task InsertSpot(ParkingSpot spot)
+        {
+            if (string.IsNullOrEmpty(spot.PublicId))
+            {
+                spot.PublicId = Guid.NewGuid().ToString();
+            }
+
+            await _parkingSpots.InsertOneAsync(spot);
+
+            //Emit event
+            await _messageBroker.Publish(TinyMapper.Map<ParkSpotCreatedOrUpdatedEvent>(spot));
         }
 
         public async Task<List<Availability>> UpdateAvailabilityByUser(string userId, List<Availability> availability)

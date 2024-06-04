@@ -1,93 +1,119 @@
-﻿using OpenAI.Utilities.FunctionCalling;
+﻿using App.Context.Models;
+using MassTransit;
+using OpenAI.Utilities.FunctionCalling;
+using System.Globalization;
 using System.Text.Json;
 
 namespace ParkSharing.Services.ChatGPT
 {
     public class ChatGPTCapabilities
     {
+        IReservationService _reservation;
+        IBus _messageBroker;
+        public ChatGPTCapabilities(IReservationService reservation, IBus messageBroker)
+        {
+            _reservation = reservation;
+            _messageBroker = messageBroker;
+        }
 
         [FunctionDescription("Rezervace parkovacího místa. Neni dovoleno rezervova na delsi dobu nez 3 dny. Navratova hodnota je Nazev parkovaciho mista. Rezervovat lze jen volna mista ziskane funkci AvaliableSpots. Sam vyber nahodne nektere misto")]
-        public string ReserveSpot(
+        public async Task<string> ReserveSpot(
             [ParameterDescription("Datetime format yyyy-mm-dd HH:00")] string from,
             [ParameterDescription("Datetime format yyyy-mm-dd HH:00")] string to, 
-            string spot)
+            string spotName,
+            [ParameterDescription("Telefon pro kontakt")] string phone)
         {
-            Console.WriteLine("Reserved spot from {0} to {1}, price 0 Kč/hod", from, to);
-            return $"CS{Random.Shared.Next(1,100)}";
+            if (!TryParseDateTime(from, out DateTime fromDateTime))
+            {
+                return "Invalid 'from' date format.";
+            }
+
+            if (!TryParseDateTime(to, out DateTime toDateTime))
+            {
+                return "Invalid 'to' date format.";
+            }
+
+            var spot = await _reservation.GetParkingSpotByNameAsync(spotName);
+
+            var totalPrice = spot.PricePerHour * (toDateTime - fromDateTime).Hours;
+
+            var id = Guid.NewGuid().ToString();
+            var result = await _reservation.ReserveAsync(spot.Name, new ReservationSpot()
+            {
+                Phone = phone,
+                End = toDateTime,
+                Start = fromDateTime,
+                Price = (int)totalPrice,
+                PublicId = id
+            });
+
+            if(result == false)
+            {
+                return $"Reservation not created, spot is already reserved for this time.";
+            }
+
+            return $"Reservation created ID:{id}";
         }
 
         [FunctionDescription("Vrací seznam volných parkovacích míst pro dané datum. Navratova hodnota je seznam volnych parkovacich mist.")]
-        public string AvaliableSpots(string from, string to)
+        public async Task<string> AvaliableSpots(
+            [ParameterDescription("Datetime format yyyy-mm-dd HH:00")] string from,
+            [ParameterDescription("Datetime format yyyy-mm-dd HH:00")] string to)
         {
-            return $"CS222;20 Kč/hod\n;" +
-                   $"CS452,0 Kč/hod\n;" +
-                   $"CS26,0 Kč/hod\n;" +
-                   $"CS122,250 Kč/hod\n";
+            if (!TryParseDateTime(from, out DateTime fromDateTime))
+            {
+                return "Invalid 'from' date format.";
+            }
+
+            if (!TryParseDateTime(to, out DateTime toDateTime))
+            {
+                return "Invalid 'to' date format.";
+            }
+            var freeSpots = await _reservation.GetAvailableSpotsAsync(fromDateTime, toDateTime);
+            var result = new
+            {
+                spots = freeSpots.Select(s => new
+                {
+                    s.Name,
+                    s.PricePerHour,
+                    totalPrice = s.PricePerHour * (toDateTime - fromDateTime).Hours
+                })
+            };
+            return JsonSerializer.Serialize(result);
+        }
+
+        private bool TryParseDateTime(string input, out DateTime dateTime)
+        {
+            string[] formats = { "yyyy-MM-dd HH:00" };
+            return DateTime.TryParseExact(input, formats, CultureInfo.InvariantCulture, DateTimeStyles.None, out dateTime);
         }
 
 
-        [FunctionDescription("Detail o parkovacim miste")]
-        public string SpotDetail(string spot)
+        [FunctionDescription("Detail o parkovacim miste. Zobrazit vzdy pri potvrzeni rezervace")]
+        public async Task<string> SpotDetail(string spot)
         {
-            return JsonSerializer.Serialize(new SpotDetails()
+            // Sanitize the input
+            if (!Guid.TryParse(spot, out Guid spotGuid))
             {
-                BankAccount = "asdsad",
-                Name = "asdsad",
-                PricePerHour = "asdsad"
-            });
-        }
+                return JsonSerializer.Serialize(new { error = "Invalid spot identifier." });
+            }
 
+            // Get the parking spot details
+            var parkingSpot = await _reservation.GetParkingSpotAsync(spotGuid);
+            if (parkingSpot == null)
+            {
+                return JsonSerializer.Serialize(new { error = "Parking spot not found." });
+            }
 
-        [FunctionDescription("Registrovat parkovaci misto pro sdileni. Vlastnik musi pouzit svuj unikatni kod. Email je identifikator uzivatele co pozadavek zpracovava. Po vytvoreni je misto plne dostupne.")]
-        public string CreateParkingSpot(string email, string securityCode, string spotId, string pricePerHour)
-        {
-            if(securityCode == "1234")
+            // Prepare the result
+            var result = new
             {
-                return "Created";
-            }
-            else
-            {
-                return "Not authorized. Wrong code.";
-            }
-        }
+                Name = parkingSpot.Name,
+                PricePerHour = parkingSpot.PricePerHour
+            };
 
-        [FunctionDescription("Odstranit parkovaci misto. Email je identifikator uzivatele co pozadavek zpracovava. Email je identifikator uzivatele co pozadavek zpracovava.")]
-        public string DeleteParkingPlace(string email, string securityCode, string spotId)
-        {
-            if (securityCode == "1234")
-            {
-                return "Created";
-            }
-            else
-            {
-                return "Not authorized. Wrong code.";
-            }
-        }
-
-        [FunctionDescription("Upravit dostupnost parkovaciho mista. Uzivatel musi zadat security code a ownerId. Email je identifikator uzivatele co pozadavek zpracovava.")]
-        public string ChangeAvaliabilityOdParkingSpot(string email, string securityCode, string spotId)
-        {
-            if (securityCode == "1234")
-            {
-                return "Created";
-            }
-            else
-            {
-                return "Not authorized. Wrong code.";
-            }
-        }
-
-        [FunctionDescription("Overit credential uzivatele. ")]
-        public string AuthenticateUser(string email, string securityCode)
-        {
-            if (securityCode == "1234")
-            {
-                return "Authorized";
-            }
-            else
-            {
-                return "Not authorized. Wrong code.";
-            }
+            // Serialize the result to JSON
+            return JsonSerializer.Serialize(result);
         }
     }
 
