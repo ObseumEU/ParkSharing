@@ -24,14 +24,20 @@ Write code, not text. \
 Used xUnit test for test" \
  My code must be secure POST method Parking.  I need to be able anyone from internet use application, but i need to be sure nobody misuse the endpoint and fake different conversation of someone else. Everyone must be able handle and comunicate only with theis session conversation. Use Sessions for this
 
-# Specify the directory to search in. Default is current directory if not provided.
-search_directory="${1:-.}"
+# search_directory="./src/ParkSharing.Reservation.Server"
+# exclude_path="./src/ParkSharing.Reservation.Server/node_modules"
+# find "$search_directory" -type d -name "node_modules" -prune -o -type f -name "*.cs" -print | while read -r file_path
+# do
+#     echo "--------------------------------------------------"
+#     echo "File: $file_path"
+#     echo "--------------------------------------------------"
+#     cat "$file_path"  # Use cat to print the file content
+#     echo  # Adds a newline for better readability between files
+# done
 
-# Define the path to exclude from search
-exclude_path="src/ParkSharing/client/node_modules"
-
-# Find all .cs files while excluding the specified path and print their paths and contents
-find "$search_directory" -type d -path "./$exclude_path" -prune -o -type f -name "*.cs" -print | while read -r file_path
+search_directory="./src/ParkSharing.Reservation.Client"
+exclude_path="./src/ParkSharing.Reservation.Client/node_modules"
+find "$search_directory" -type d -name "node_modules" -prune -o -type f -name "*.js" -print | while read -r file_path
 do
     echo "--------------------------------------------------"
     echo "File: $file_path"
@@ -40,40 +46,15 @@ do
     echo  # Adds a newline for better readability between files
 done
 
-echo "--------------------------------------------------"
-echo "File: ./src/ParkSharing/client/src/App.js"
-echo "--------------------------------------------------"
-cat "./src/ParkSharing/client/src/App.js"
+echo "----------------------------"
+echo "File: src\ParkSharing.Reservation.Client\webpack.config.js"
+echo "----------------------------"
+cat ./src/ParkSharing.Reservation.Client/webpack.config.js
+echo
 
 
-
-echo "--------------------------------------------------"
-echo "File: ./src/ParkSharing/client/package.json"
-echo "--------------------------------------------------"
-cat "./src/ParkSharing/client/package.json"
-
-
-echo "--------------------------------------------------"
-echo "File: src/ParkSharing/client/src/CustomChatbot.js"
-echo "--------------------------------------------------"
-cat "src/ParkSharing/client/src/CustomChatbot.js"
-
-echo "--------------------------------------------------"
-echo "File: src/ParkSharing/client/src/MessageParser.jsx"
-echo "--------------------------------------------------"
-cat "src/ParkSharing/client/src/MessageParser.jsx"
-
-echo "--------------------------------------------------"
-echo "File: src/ParkSharing/client/src/config.js"
-echo "--------------------------------------------------"
-cat "src/ParkSharing/client/src/config.js"
-
-echo "--------------------------------------------------"
-echo "File: src/ParkSharing/client/src/ActionProvider.jsx"
-echo "--------------------------------------------------"
-cat "src/ParkSharing/client/src/ActionProvider.jsx"
-
-echo "--------------------------------------------------"
-echo "File: src/ParkSharing/client/src/index.css"
-echo "--------------------------------------------------"
-cat "src/ParkSharing/client/src/index.css"
+echo "----------------------------"
+echo "File: src/ParkSharing.Reservation.Client/package.json"
+echo "----------------------------"
+cat ./src/ParkSharing.Reservation.Client/package.json
+echo

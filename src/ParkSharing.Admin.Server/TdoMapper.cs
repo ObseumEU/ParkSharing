@@ -1,5 +1,6 @@
 ﻿using App.Context.Models;
 using Nelibur.ObjectMapper;
+using ParkSharing.Contracts;
 
 namespace App
 {
@@ -11,6 +12,8 @@ namespace App
             TinyMapper.Bind<Availability, AvailabilityDto>();
             TinyMapper.Bind<AvailabilityDto, Availability>();
             TinyMapper.Bind<Reservation, ReservationDto>();
+            TinyMapper.Bind<ParkingSpot, ParkSpotCreatedOrUpdatedEvent>();
+            TinyMapper.Bind<Availability, AvailabilityCreatedOrUpdatedEvent>();
             TinyMapper.Bind<State, StateDto>();
         }
     }

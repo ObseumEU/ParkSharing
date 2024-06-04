@@ -9,13 +9,16 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<PackageReference Include="Aspire.Hosting" Version="8.0.1" />
 		<PackageReference Include="Aspire.Hosting.AppHost" Version="8.0.1" />
 		<PackageReference Include="Aspire.Hosting.MongoDB" Version="8.0.1" />
 		<PackageReference Include="Aspire.Hosting.NodeJs" Version="8.0.1" />
+		<PackageReference Include="Aspire.Hosting.RabbitMQ" Version="8.0.1" />
 	</ItemGroup>
 
 	<ItemGroup>
 	  <ProjectReference Include="..\ParkSharing.Admin.Server\ParkSharing.Admin.Server.csproj" />
+	  <ProjectReference Include="..\ParkSharing.DebugSeed\ParkSharing.DebugSeed.csproj" />
 	  <ProjectReference Include="..\ParkSharing.Reservation.Server\ParkSharing.Reservation.Server.csproj" />
 	</ItemGroup>
 

@@ -1,15 +1,35 @@
+using App;
+using App.Consumers;
+using App.Context.Models;
 using App.Middlewares;
 using App.Services;
 using dotenv.net;
+using MassTransit;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.Net.Http.Headers;
+using MongoDB.Driver;
 
 var builder = WebApplication.CreateBuilder(args);
-
+var config = builder.Configuration;
+Mapper.BindMaps();
 // Add Service Defaults
 builder.AddServiceDefaults();
 builder.AddMongoDBClient("mongodb");
+
+// Register custom services
+builder.Services.AddScoped<IMongoDbContext, MongoDbContext>(sp =>
+{
+    var client = sp.GetRequiredService<IMongoClient>();
+    var databaseName = "AdminParkSharing"; // Ensure this is configured in your settings
+    return new MongoDbContext(client, databaseName);
+});
+
+builder.Services.AddScoped<DebugSeedData>(); // Register SeedData service
+
+builder.ConfigureMassTransit(config.GetConnectionString("rabbitmq"), 
+    typeof(ReservationConsumer)
+    );
 
 // Add Configuration
 builder.Host.ConfigureAppConfiguration((configBuilder) =>
@@ -62,6 +82,19 @@ builder.Host.ConfigureServices((services) =>
 );
 
 var app = builder.Build();
+
+#if DEBUG
+#if DEBUG
+using (var scope = app.Services.CreateScope())
+{
+    var seedData = scope.ServiceProvider.GetRequiredService<DebugSeedData>();
+    var bus = scope.ServiceProvider.GetRequiredService<IBusControl>();
+    await bus.StartAsync();
+    await bus.StopAsync();
+    await seedData.InitializeAsync();
+}
+#endif
+#endif
 
 // Validate Configuration Variables
 var requiredVars = new string[] {

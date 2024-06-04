@@ -1,3 +1,4 @@
+using MassTransit;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.DependencyInjection;
@@ -38,6 +39,28 @@ namespace Microsoft.Extensions.Hosting
             //     options.AllowedSchemes = ["https"];
             // });
 
+            return builder;
+        }
+
+        public static IHostApplicationBuilder ConfigureMassTransit(this IHostApplicationBuilder builder, string host, params Type[] consumers)
+        {
+            builder.Services.AddMassTransit(x =>
+            {
+                foreach(var consumer in consumers)
+                {
+                    x.AddConsumer(consumer);
+                }
+                x.SetKebabCaseEndpointNameFormatter();
+                x.UsingRabbitMq((context, cfg) =>
+                {
+                    cfg.Host(host);
+                    cfg.ConfigureEndpoints(context);
+                    cfg.UseMessageRetry(retryConfig =>
+                    {
+                        retryConfig.Interval(20, TimeSpan.FromSeconds(5));
+                    });
+                });
+            });
             return builder;
         }
 

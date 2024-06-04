@@ -53,6 +53,27 @@ namespace ParkSharing.Services.ChatGPT
 
         public async Task<List<ChatMessage>> Send(List<ChatMessage> messages)
         {
+            if (messages.LastOrDefault().Content.Contains("debug"))
+            {
+                var msgContent = messages.LastOrDefault().Content;
+                if (msgContent.Contains("reservation"))
+                {
+                    var newMsg = await _capabilities.ReserveSpot("2024-03-21 11:00", "2024-03-21 14:00", "GS22", "123123123");
+                    messages.Add(ChatMessage.FromAssistant(newMsg));
+                }
+                else if (msgContent.Contains("avaliable"))
+                {
+                    var newMsg = await _capabilities.AvaliableSpots("2024-03-21 11:00", "2024-03-21 14:00");
+                    messages.Add(ChatMessage.FromAssistant(newMsg));
+                }
+                else
+                {
+                    messages.Add(ChatMessage.FromAssistant("Unknown command"));
+                }
+                return messages;
+            }
+
+
             var toolDefinitions = FunctionCallingHelper.GetToolDefinitions(_capabilities);
 
             messages.Insert(0, ChatMessage.FromSystem("Pouzivas v odpovedich markdown. Český chatbot pro sdílení a rezervaci parkovacích míst. Umožňuje majitelům nabízet místa když je nepoužívají a ostatním je rezervovat a platit přes bankovní účet. Uživatelé mohou registrovat místa, nastavovat dostupnost a spravovat nabídky, rezervace omezeny na dvě denně. Komunikace v češtině, pokud uživatel mluvi jinou reci mluvi jinou reci. Nevyplňuj nejasné funkce bez dotazu. Pokud uzivatel zadal email, pouzij jej pro kazdej dotaz. Pokud uzivatel zadal platny kod, pouzij jej pro kazdy dotaz. Pokud chce uzivatel pridavat, menit, mazat svoje parkovaci misto musi se nejdrive identifikovat."));
@@ -83,11 +104,13 @@ namespace ParkSharing.Services.ChatGPT
             ChatMessage response = reply.Choices.First().Message;
             req.Messages.Add(response);
 
+
+
             if (response.ToolCalls?.Count > 0 && !string.IsNullOrEmpty(response.ToolCalls[0].FunctionCall.Name))
             {
                 do
                 {
-                    string stringResponse = ExecuteFunction(response);
+                    string stringResponse = await ExecuteFunction(response);
                     req.Messages.Add(ChatMessage.FromTool(stringResponse, response.ToolCalls[0].Id));
                     reply = await _openAI.ChatCompletion.CreateCompletion(req, "gpt-4o");
                     response = reply.Choices.First().Message;
@@ -105,11 +128,20 @@ namespace ParkSharing.Services.ChatGPT
             return req.Messages.ToList();
         }
 
-        private string ExecuteFunction(ChatMessage response)
+        private async Task<string> ExecuteDebugFunction(ChatMessage response)
         {
             Console.WriteLine($"Invoking {response.ToolCalls[0].FunctionCall.Name}");
             var functionCall = response.ToolCalls[0].FunctionCall;
-            var result = FunctionCallingHelper.CallFunction<string>(functionCall, _capabilities);
+            var result = await FunctionCallingHelper.CallFunction<Task<string>>(functionCall, _capabilities);
+            var stringResponse = result.ToString(CultureInfo.CurrentCulture);
+            return stringResponse;
+        }
+
+        private async Task<string> ExecuteFunction(ChatMessage response)
+        {
+            Console.WriteLine($"Invoking {response.ToolCalls[0].FunctionCall.Name}");
+            var functionCall = response.ToolCalls[0].FunctionCall;
+            var result = await FunctionCallingHelper.CallFunction<Task<string>>(functionCall, _capabilities);
             var stringResponse = result.ToString(CultureInfo.CurrentCulture);
             return stringResponse;
         }

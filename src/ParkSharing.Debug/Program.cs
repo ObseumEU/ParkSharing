@@ -1,32 +1,20 @@
 using MassTransit;
-using MongoDB.Driver;
-using OpenAI.Extensions;
-using ParkSharing.Services.ChatGPT;
+using Polly;
 
 var builder = WebApplication.CreateBuilder(args);
-ParkSharing.Reservation.Server.Mapper.BindMaps();
+
 // Add Service Defaults
 builder.AddServiceDefaults();
-builder.AddMongoDBClient("mongodb");
 var config = builder.Configuration;
-
-// Register custom services
-builder.Services.AddScoped<IMongoDbContext, MongoDbContext>(sp =>
-{
-    var client = sp.GetRequiredService<IMongoClient>();
-    var databaseName = "ReservationParkSharing"; // Ensure this is configured in your settings
-    return new MongoDbContext(client, databaseName);
-});
-
-builder.Services.AddScoped<DebugSeedData>(); // Register SeedData service
-
-builder.ConfigureMassTransit(config.GetConnectionString("rabbitmq"), typeof(AdminConsumer));
+builder.ConfigureMassTransit(config.GetConnectionString("RabbitMQConnection"));
 
 // Add Configuration
 builder.Host.ConfigureAppConfiguration((configBuilder) =>
 {
     configBuilder.AddEnvironmentVariables();
 });
+
+builder.Services.AddScoped<DebugSeedData>(); // Register SeedData service
 
 // Configure Kestrel
 builder.WebHost.ConfigureKestrel(serverOptions =>
@@ -39,13 +27,7 @@ builder.Services.AddHttpClient();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddScoped<IReservationService, ReservationService>();
-builder.Services.AddScoped<SessionService>();
-builder.Services.AddScoped<ChatGPTService>();
-builder.Services.AddScoped<ChatGPTCapabilities>();
 
-
-builder.Services.AddOpenAIService();
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddControllers();
 
@@ -77,12 +59,8 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var seedData = scope.ServiceProvider.GetRequiredService<DebugSeedData>();
-    var bus = scope.ServiceProvider.GetRequiredService<IBusControl>();
-    await bus.StartAsync();
-    await bus.StopAsync();
     await seedData.InitializeAsync();
 }
-
 #endif
 
 // Middleware Configuration
