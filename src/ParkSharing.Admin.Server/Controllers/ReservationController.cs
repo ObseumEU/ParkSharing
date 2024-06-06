@@ -3,6 +3,7 @@ using App.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Nelibur.ObjectMapper;
+using ParkSharing.Contracts;
 
 [Route("api/[controller]")]
 [ApiController]
@@ -54,7 +55,7 @@ public class ReservationController : ControllerBase
             return NotFound();
         }
 
-        reservation.State = State.Rejected; // Assuming 1 is the state for rejected
+        reservation.State = ReservationState.Rejected; // Assuming 1 is the state for rejected
                                             //TODO SAVE in db
         return NoContent();
     }
@@ -82,7 +83,7 @@ public class ReservationController : ControllerBase
             return NotFound();
         }
 
-        reservation.State = State.Created; // Assuming 0 is the state for allowed
+        reservation.State = ReservationState.Created; // Assuming 0 is the state for allowed
                                            //TODO SAVE in db
         return NoContent();
     }

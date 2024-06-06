@@ -1,16 +1,17 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
+using ParkSharing.Contracts;
 
 namespace App.Context.Models
 {
     public class Availability
     {
-        [BsonId]
-        [BsonRepresentation(BsonType.ObjectId)]
         public string Id { get; set; }
-        public TimeSpan Start { get; set; }
-        public TimeSpan End { get; set; }
-        public Recurrence? Recurrence { get; set; }
+        public TimeSpan StartTime { get; set; }
+        public TimeSpan EndTime { get; set; }
+        public DateTime? StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
+        public AvailabilityRecurrence? Recurrence { get; set; }
         public DayOfWeek? DayOfWeek { get; set; }
     }
 
@@ -37,19 +38,7 @@ namespace App.Context.Models
         public string Phone { get; set; }
         public DateTime? Start { get; set; }
         public DateTime? End { get; set; }
-        public int Price { get; set; }
-        public State State { get; set; }
-    }
-    public enum State
-    {
-        Created,
-        Rejected
-    }
-
-    public enum Recurrence
-    {
-        Daily,
-        Weekly,
-        Monthly
+        public decimal Price { get; set; }
+        public ReservationState State { get; set; }
     }
 }

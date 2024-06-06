@@ -10,7 +10,6 @@ namespace ParkSharing.Reservation.Server
         {
             TinyMapper.Bind<ParkSpotCreatedOrUpdatedEvent, ParkingSpot>();
             TinyMapper.Bind<Availability, AvailabilityCreatedOrUpdatedEvent>();
-            TinyMapper.Bind<Recurrence, RecurrenceCreatedOrUpdatedEvent>();
             TinyMapper.Bind<ReservationCreatedEvent, ReservationSpot>();
             TinyMapper.Bind<ReservationSpot, ReservationCreatedEvent>();
         }

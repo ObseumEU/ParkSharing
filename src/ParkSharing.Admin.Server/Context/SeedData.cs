@@ -18,7 +18,7 @@ public class DebugSeedData
 
     public async Task InitializeAsync()
     {
-        Task.Run(async () =>
+        _ = Task.Run(async () =>
         {
             await Task.Delay(5000);
             ParkingSpot newParkSpot = new ParkingSpot()
@@ -29,13 +29,30 @@ public class DebugSeedData
                     {
                         new Availability
                         {
-                            Start = new TimeSpan(8, 0, 0),
-                            End = new TimeSpan(18, 0, 0),
-                            Recurrence= Recurrence.Daily
+                            Id = Guid.NewGuid().ToString(),
+                            StartTime = new TimeSpan(8, 1, 33),
+                            EndTime = new TimeSpan(18, 4, 11),
+                            Recurrence= AvailabilityRecurrence.Daily
+                        },
+                        new Availability
+                        {
+                            Id = Guid.NewGuid().ToString(),
+                            StartTime = new TimeSpan(1, 4, 0),
+                            EndTime = new TimeSpan(2, 2, 0),
+                            Recurrence = AvailabilityRecurrence.Weekly,
+                            DayOfWeek = DayOfWeek.Tuesday
+                        },
+                        new Availability
+                        {
+                            Id = Guid.NewGuid().ToString(),
+                            StartDate = DateTime.UtcNow.AddDays(1).AddHours(2),
+                            EndDate = DateTime.UtcNow.AddDays(2).AddHours(4),
+                            Recurrence= AvailabilityRecurrence.Once
                         }
                     },
                 Name = "GS22",
-                PricePerHour = 5
+                PricePerHour = 5,
+                UserId = "google-oauth2|106383545592871849353"
             };
 
             await _context.InsertSpot(newParkSpot);
