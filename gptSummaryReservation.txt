@@ -4,1084 +4,7 @@ On backend is used chatgpt for undertund commands and handle converstion.\ http:
 Frontend must use already existing chat solution modul/framework for example react-simple-chatbot.Write first how connect react fe to backendConversation logic is on backendWrite code, not text. \ In React command line I use powershell
 Used xUnit test for test My code must be secure POST method Parking. I need to be able anyone from internet use application, but i need to be sure nobody misuse the endpoint and fake different conversation of someone else. Everyone must be able handle and comunicate only with theis session conversation. Use Sessions for this
 --------------------------------------------------
-File: ./src/ParkSharing/Controllers/OwnerController.cs
---------------------------------------------------
-﻿// File: src/ParkSharing/Controllers/OwnerController.cs
-
-using Microsoft.AspNetCore.Mvc;
-using System.Linq;
-
-[ApiController]
-[Route("[controller]")]
-public class OwnerController : ControllerBase
-{
-    private readonly IReservationService _reservationService;
-
-    public OwnerController(IReservationService reservationService)
-    {
-        _reservationService = reservationService;
-    }
-
-    [HttpGet("spots")]
-    public IActionResult GetParkingSpots()
-    {
-        //var ownerId = HttpContext.Session.GetString("SessionId");
-        //if (string.IsNullOrEmpty(ownerId))
-        //{
-        //    return Unauthorized();
-        //}
-
-        //var owner = _reservationService.GetOwnerById(ownerId);
-        //if (owner == null)
-        //{
-        //    return NotFound();
-        //}
-        var owner = new Owner()
-        {
-            Email = "sadsa",
-            OwnerId = "OwnerId",
-            Phone = "723556222",
-            Password = "Passwd",
-            ParkingSpots = new List<ParkingSpot>()
-            {
-                new ParkingSpot()
-                {
-                    Name = "asds",
-                    Availabilities = new List<Availability>()
-                    {
-                        new Availability()
-                        {
-                            AvailabilityId = Guid.NewGuid(),
-                            DayOfWeek = DayOfWeek.Monday,
-                            IsRecurring = true,
-                            StartTime = new TimeSpan(10, 0, 0),
-                            EndTime = new TimeSpan(12,0,0)
-                        }
-                    }
-                }
-            }
-        };
-        return Ok(owner.ParkingSpots);
-    }
-
-    [HttpPost("spots/{spotId}/availability")]
-    public IActionResult AddAvailability(Guid spotId, [FromBody] AvailabilityModel model)
-    {
-        var ownerId = HttpContext.Session.GetString("SessionId");
-        if (string.IsNullOrEmpty(ownerId))
-        {
-            return Unauthorized();
-        }
-
-        var success = _reservationService.AddAvailability(ownerId, spotId, model.StartTime, model.EndTime, model.DayOfWeek, model.SpecificDate, model.IsRecurring);
-        if (!success)
-        {
-            return BadRequest();
-        }
-
-        var owner = _reservationService.GetOwnerById(ownerId);
-        return Ok(owner.ParkingSpots.FirstOrDefault(ps => ps.ParkingSpotId == spotId));
-    }
-}
-
-public class AvailabilityModel
-{
-    public TimeSpan StartTime { get; set; }
-    public TimeSpan EndTime { get; set; }
-    public DayOfWeek? DayOfWeek { get; set; }
-    public DateTime? SpecificDate { get; set; }
-    public bool IsRecurring { get; set; }
-}
-
---------------------------------------------------
-File: ./src/ParkSharing/Controllers/ParkingController.cs
---------------------------------------------------
-using Microsoft.AspNetCore.Mvc;
-using OpenAI.ObjectModels.RequestModels;
-using ParkSharing.Services.ChatGPT;
-using ParkSharing.Services.ChatGPT.Helpers;
-using System.Security.Cryptography;
-
-[ApiController]
-[Route("[controller]")]
-public class ParkingController : ControllerBase
-{
-    private readonly HttpClient _httpClient;
-    ChatGPTService _gpt;
-    static List<ChatMessage> messages = new List<ChatMessage>();
-
-    public ParkingController(HttpClient httpClient, ChatGPTService gpt)
-    {
-        _httpClient = httpClient;
-        _gpt = gpt;
-    }
-
-    [HttpPost]
-    public async Task<IActionResult> Post([FromBody] UserInputModel input)
-    {
-        var sessionId = GetOrCreateSessionId();
-        try
-        {
-            messages.Add(ChatMessage.FromUser(input.Input));
-            messages = await _gpt.Send(messages);
-            return Ok(new { reply = messages.LastOrDefault().Content });
-        }
-        catch (Exception ex)
-        {
-            return BadRequest($"Error processing your request: {ex.Message}");
-        }
-    }
-
-    private string GetOrCreateSessionId()
-    {
-        var sessionId = HttpContext.Session.GetString("SessionId");
-
-        // If not present, generate a new one and set it in the session
-        if (string.IsNullOrEmpty(sessionId))
-        {
-            sessionId = GenerateSecureSessionId();
-            HttpContext.Session.SetString("SessionId", sessionId);
-        }
-
-        return sessionId;
-    }
-
-    private string GenerateSecureSessionId()
-    {
-        using (var randomNumberGenerator = new RNGCryptoServiceProvider())
-        {
-            var randomBytes = new byte[32]; // 256 bits
-            randomNumberGenerator.GetBytes(randomBytes);
-            return Convert.ToBase64String(randomBytes);
-        }
-    }
-}
-
-public class UserInputModel
-{
-    public string Input { get; set; }
-}
-
---------------------------------------------------
-File: ./src/ParkSharing/obj/Debug/net8.0/.NETCoreApp,Version=v8.0.AssemblyAttributes.cs
---------------------------------------------------
-// <autogenerated />
-using System;
-using System.Reflection;
-[assembly: global::System.Runtime.Versioning.TargetFrameworkAttribute(".NETCoreApp,Version=v8.0", FrameworkDisplayName = ".NET 8.0")]
-
---------------------------------------------------
-File: ./src/ParkSharing/obj/Debug/net8.0/ParkingReservationApp.AssemblyInfo.cs
---------------------------------------------------
-//------------------------------------------------------------------------------
-// <auto-generated>
-//     This code was generated by a tool.
-//     Runtime Version:4.0.30319.42000
-//
-//     Changes to this file may cause incorrect behavior and will be lost if
-//     the code is regenerated.
-// </auto-generated>
-//------------------------------------------------------------------------------
-
-using System;
-using System.Reflection;
-
-[assembly: System.Reflection.AssemblyCompanyAttribute("ParkingReservationApp")]
-[assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
-[assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
-[assembly: System.Reflection.AssemblyProductAttribute("ParkingReservationApp")]
-[assembly: System.Reflection.AssemblyTitleAttribute("ParkingReservationApp")]
-[assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
-
-// Generated by the MSBuild WriteCodeFragment class.
-
-
---------------------------------------------------
-File: ./src/ParkSharing/obj/Debug/net8.0/ParkingReservationApp.GlobalUsings.g.cs
---------------------------------------------------
-// <auto-generated/>
-global using global::Microsoft.AspNetCore.Builder;
-global using global::Microsoft.AspNetCore.Hosting;
-global using global::Microsoft.AspNetCore.Http;
-global using global::Microsoft.AspNetCore.Routing;
-global using global::Microsoft.Extensions.Configuration;
-global using global::Microsoft.Extensions.DependencyInjection;
-global using global::Microsoft.Extensions.Hosting;
-global using global::Microsoft.Extensions.Logging;
-global using global::System;
-global using global::System.Collections.Generic;
-global using global::System.IO;
-global using global::System.Linq;
-global using global::System.Net.Http;
-global using global::System.Net.Http.Json;
-global using global::System.Threading;
-global using global::System.Threading.Tasks;
-
---------------------------------------------------
-File: ./src/ParkSharing/obj/Debug/net8.0/ParkingReservationApp.MvcApplicationPartsAssemblyInfo.cs
---------------------------------------------------
-//------------------------------------------------------------------------------
-// <auto-generated>
-//     This code was generated by a tool.
-//
-//     Changes to this file may cause incorrect behavior and will be lost if
-//     the code is regenerated.
-// </auto-generated>
-//------------------------------------------------------------------------------
-
-using System;
-using System.Reflection;
-
-[assembly: Microsoft.AspNetCore.Mvc.ApplicationParts.ApplicationPartAttribute("Microsoft.AspNetCore.OpenApi")]
-[assembly: Microsoft.AspNetCore.Mvc.ApplicationParts.ApplicationPartAttribute("Swashbuckle.AspNetCore.SwaggerGen")]
-
-// Generated by the MSBuild WriteCodeFragment class.
-
-
---------------------------------------------------
-File: ./src/ParkSharing/obj/Debug/net8.0/ParkSharing.AssemblyInfo.cs
---------------------------------------------------
-//------------------------------------------------------------------------------
-// <auto-generated>
-//     This code was generated by a tool.
-//     Runtime Version:4.0.30319.42000
-//
-//     Changes to this file may cause incorrect behavior and will be lost if
-//     the code is regenerated.
-// </auto-generated>
-//------------------------------------------------------------------------------
-
-using System;
-using System.Reflection;
-
-[assembly: System.Reflection.AssemblyCompanyAttribute("ParkSharing")]
-[assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
-[assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+31e70b14bbbd3d560eac41a00432f22f1adc5226")]
-[assembly: System.Reflection.AssemblyProductAttribute("ParkSharing")]
-[assembly: System.Reflection.AssemblyTitleAttribute("ParkSharing")]
-[assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
-
-// Generated by the MSBuild WriteCodeFragment class.
-
-
---------------------------------------------------
-File: ./src/ParkSharing/obj/Debug/net8.0/ParkSharing.GlobalUsings.g.cs
---------------------------------------------------
-// <auto-generated/>
-global using global::Microsoft.AspNetCore.Builder;
-global using global::Microsoft.AspNetCore.Hosting;
-global using global::Microsoft.AspNetCore.Http;
-global using global::Microsoft.AspNetCore.Routing;
-global using global::Microsoft.Extensions.Configuration;
-global using global::Microsoft.Extensions.DependencyInjection;
-global using global::Microsoft.Extensions.Hosting;
-global using global::Microsoft.Extensions.Logging;
-global using global::System;
-global using global::System.Collections.Generic;
-global using global::System.IO;
-global using global::System.Linq;
-global using global::System.Net.Http;
-global using global::System.Net.Http.Json;
-global using global::System.Threading;
-global using global::System.Threading.Tasks;
-
---------------------------------------------------
-File: ./src/ParkSharing/obj/Debug/net8.0/ParkSharing.MvcApplicationPartsAssemblyInfo.cs
---------------------------------------------------
-//------------------------------------------------------------------------------
-// <auto-generated>
-//     This code was generated by a tool.
-//     Runtime Version:4.0.30319.42000
-//
-//     Changes to this file may cause incorrect behavior and will be lost if
-//     the code is regenerated.
-// </auto-generated>
-//------------------------------------------------------------------------------
-
-using System;
-using System.Reflection;
-
-[assembly: Microsoft.AspNetCore.Mvc.ApplicationParts.ApplicationPartAttribute("Microsoft.AspNetCore.OpenApi")]
-[assembly: Microsoft.AspNetCore.Mvc.ApplicationParts.ApplicationPartAttribute("Swashbuckle.AspNetCore.SwaggerGen")]
-
-// Generated by the MSBuild WriteCodeFragment class.
-
-
---------------------------------------------------
-File: ./src/ParkSharing/Program.cs
---------------------------------------------------
-using Microsoft.AspNetCore.Http;
-using OpenAI.Extensions;
-using ParkSharing.Services.ChatGPT;
-
-var builder = WebApplication.CreateBuilder(args);
-
-// Add services to the container.
-builder.Services.AddHttpClient();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-builder.Services.AddSingleton<IReservationService, ReservationService>();
-
-builder.Services.AddSingleton<SessionService>();
-builder.Services.AddSingleton<ChatGPTService>();
-builder.Services.AddSingleton<ChatGPTCapabilities>();
-builder.Services.AddOpenAIService();
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("CustomCorsPolicy", policy =>
-        policy.WithOrigins("http://localhost:3000", "http://localhost:5239", "https://parking.obseum.cloud")
-               .AllowAnyHeader()
-               .AllowAnyMethod()
-               .AllowCredentials());
-});
-builder.Services.AddDistributedMemoryCache();
-
-builder.Services.AddSession(options =>
-{
-    options.Cookie.Name = "WhyAreYouLookingAtThat";
-    options.IdleTimeout = TimeSpan.FromMinutes(30);
-    options.Cookie.HttpOnly = true;
-    options.Cookie.IsEssential = true;
-    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
-});
-
-builder.Services.AddControllers();
-
-var app = builder.Build();
-
-//I dont wnat to say whole worl its ASP.NET
-app.Use(async (context, next) =>
-{
-    context.Response.OnStarting(() =>
-    {
-        context.Response.Headers.Remove("Server");  // Remove the Server header
-        context.Response.Headers.Remove("X-Powered-By");  // Remove the X-Powered-By header
-        return Task.CompletedTask;
-    });
-
-    await next();
-});
-app.UseExceptionHandler("/Error");  // Redirect to usless error page.
-
-
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
-
-app.UseHttpsRedirection(); // Ensure requests are redirected to HTTPS
-
-app.UseCors("CustomCorsPolicy");
-app.UseStaticFiles();
-
-app.UseRouting(); // Explicitly define UseRouting
-
-app.UseSession(); // Must be after UseRouting but before UseEndpoints
-
-app.UseAuthorization();
-
-app.MapControllers();
-
-app.MapFallbackToFile("index.html");
-
-app.Run();
-
---------------------------------------------------
-File: ./src/ParkSharing/Reservation/Models/Owner.cs
---------------------------------------------------
-﻿public class Owner
-{
-    public string OwnerId { get; set; }
-    public string Phone { get; set; }
-    public string Email { get; set; }
-    public List<ParkingSpot> ParkingSpots { get; set; } = new List<ParkingSpot>();
-    public string Password { get; set; }
-}
-
---------------------------------------------------
-File: ./src/ParkSharing/Reservation/Models/ParkingSpot.cs
---------------------------------------------------
-﻿public class ParkingSpot
-{
-    public Guid ParkingSpotId { get; set; }
-    public string Name { get; set; }
-    public decimal PricePerHour { get; set; }
-    public List<Availability> Availabilities { get; set; } = new List<Availability>();
-}
-
-public class Availability
-{
-    public Guid AvailabilityId { get; set; }
-    public DayOfWeek? DayOfWeek { get; set; }
-    public DateTime? SpecificDate { get; set; }
-    public TimeSpan StartTime { get; set; }
-    public TimeSpan EndTime { get; set; }
-    public bool IsRecurring { get; set; }
-}
---------------------------------------------------
-File: ./src/ParkSharing/Services/ChatGPT/ChatGPTCapabilities.cs
---------------------------------------------------
-﻿using OpenAI.Utilities.FunctionCalling;
-using System.Text.Json;
-
-namespace ParkSharing.Services.ChatGPT
-{
-    public class ChatGPTCapabilities
-    {
-        [FunctionDescription("Rezervace parkovacího místa. Neni dovoleno rezervova na delsi dobu nez 3 dny. Argumenty pouzivej v formatu yyyy-mm-dd HH:00. Navratova hodnota je Nazev parkovaciho mista. Rezervovat lze jen volna mista ziskane funkci AvaliableSpots. Sam vyber nahodne nektere misto")]
-        public string ReserveSpot(string from, string to, string spot)
-        {
-            Console.WriteLine("Reserved spot from {0} to {1}", from, to);
-            return $"CS{Random.Shared.Next(1,100)}";
-        }
-
-        [FunctionDescription("Vrací seznam volných parkovacích míst pro dané datum. Navratova hodnota je seznam volnych parkovacich mist.")]
-        public string AvaliableSpots(string from, string to)
-        {
-            return $"CS222;CS452;CS26;CS122";
-        }
-
-        [FunctionDescription("Detail o parkovacim miste")]
-        public string SpotDetail(string spot)
-        {
-            return JsonSerializer.Serialize(new SpotDetails()
-            {
-                BankAccount = "asdsad",
-                Name = "asdsad",
-                PricePerHour = "asdsad"
-            });
-        }
-
-        [FunctionDescription("Registrovat parkovaci misto pro sdileni. Vlastnik musi pouzit svuj unikatni kod. Email je identifikator uzivatele co pozadavek zpracovava. Po vytvoreni je misto plne dostupne.")]
-        public string CreateParkingSpot(string email, string securityCode, string spotId, string pricePerHour)
-        {
-            if(securityCode == "1234")
-            {
-                return "Created";
-            }
-            else
-            {
-                return "Not authorized. Wrong code.";
-            }
-        }
-
-        [FunctionDescription("Odstranit parkovaci misto. Email je identifikator uzivatele co pozadavek zpracovava. Email je identifikator uzivatele co pozadavek zpracovava.")]
-        public string DeleteParkingPlace(string email, string securityCode, string spotId)
-        {
-            if (securityCode == "1234")
-            {
-                return "Created";
-            }
-            else
-            {
-                return "Not authorized. Wrong code.";
-            }
-        }
-
-        [FunctionDescription("Upravit dostupnost parkovaciho mista. Uzivatel musi zadat security code a ownerId. Email je identifikator uzivatele co pozadavek zpracovava.")]
-        public string ChangeAvaliabilityOdParkingSpot(string email, string securityCode, string spotId)
-        {
-            if (securityCode == "1234")
-            {
-                return "Created";
-            }
-            else
-            {
-                return "Not authorized. Wrong code.";
-            }
-        }
-
-        [FunctionDescription("Overit credential uzivatele. ")]
-        public string AuthenticateUser(string email, string securityCode)
-        {
-            if (securityCode == "1234")
-            {
-                return "Authorized";
-            }
-            else
-            {
-                return "Not authorized. Wrong code.";
-            }
-        }
-    }
-
-    public class SpotDetails
-    {
-        public string Name { get; set; }
-        public string BankAccount { get; set; }
-        public string PricePerHour { get; set; }
-    }
-}
-
---------------------------------------------------
-File: ./src/ParkSharing/Services/ChatGPT/ChatGPTChatClient.cs
---------------------------------------------------
-﻿using Azure;
-using Microsoft.Extensions.Options;
-using ParkSharing.Services.ChatGPT.Helpers;
-using System.Net.Http.Headers;
-using System.Text;
-using System.Text.Json;
-
-namespace ParkSharing.Services.ChatGPT
-{
-    public partial class ChatGPTChatClient : IChatGPTClient
-    {
-        private readonly IOptions<ChatGPTClientOptions> _options;
-        private readonly IHttpClientFactory _httpClientFactory;
-        private readonly ILogger<ChatGPTChatClient> _log;
-
-        public ChatGPTChatClient(IOptions<ChatGPTClientOptions> options, IHttpClientFactory httpClientFactory, ILogger<ChatGPTChatClient> log)
-        {
-            _options = options;
-            _httpClientFactory = httpClientFactory;
-            _log = log;
-        }
-
-        public async Task<string> CallChatGpt(string text)
-        {
-            try
-            {
-                using var client = _httpClientFactory.CreateClient("Gpt");
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _options.Value.ApiKey);
-
-                var messages = new List<Message>
-            {
-                new Message
-                {
-                    Role = "user",
-                    Content = text
-                }
-            };
-
-                var requestBody = new GptModel
-                {
-                    MaxTokens = _options.Value.MaxTokens,
-                    TopP = _options.Value.TopP,
-                    PresencePenalty = _options.Value.PresencePenalty,
-                    Stream = false,
-                    Temperature = _options.Value.Temperature,
-                    Messages = messages.ToArray(),
-                    Model = "gpt-4"
-                };
-
-                var jsonRequest = JsonSerializer.Serialize(requestBody);
-                _log.LogInformation("Call chatgpt with body: {jsonRequest}", jsonRequest);
-
-                var response = await client.PostAsync(_options.Value.ApiUrl, new StringContent(jsonRequest, Encoding.UTF8, "application/json"));
-                var jsonResponse = await response.Content.ReadAsStringAsync();
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    throw new Exception($"{response.StatusCode} {response.Content}");
-                }
-
-                Console.WriteLine(jsonResponse);
-
-                var responseObject = JsonSerializer.Deserialize<Helpers.Response>(jsonResponse);
-
-                if (jsonResponse.Contains("exceeded your current quota"))
-                {
-                    throw new ExceededCurrentQuotaException();
-                }
-                var documentation = responseObject?.Choices[0]?.ResponseMessage?.Content?.ToString();
-
-                return documentation;
-            }
-            catch (Exception ex)
-            {
-                _log.LogError(ex, "Error call GPT Client");
-                throw;
-            }
-        }
-    }
-}
---------------------------------------------------
-File: ./src/ParkSharing/Services/ChatGPT/ChatGPTService.cs
---------------------------------------------------
-﻿using Microsoft.AspNetCore.Http;
-using OpenAI;
-using OpenAI.Builders;
-using OpenAI.Interfaces;
-using OpenAI.Managers;
-using OpenAI.ObjectModels;
-using OpenAI.ObjectModels.RequestModels;
-using OpenAI.ObjectModels.SharedModels;
-using System.Collections.Concurrent;
-using System.Threading.Tasks;
-using OpenAI.Utilities;
-using OpenAI.Utilities.FunctionCalling;
-using System.Globalization;
-using System.Reflection;
-using System.Text.Json;
-namespace ParkSharing.Services.ChatGPT
-{
-    public class Session
-    {
-        public string SessionId { get; set; }
-        public string ExternalGPTThreadId { get; set; }
-        public string ExternalGPTRunId { get; set; }
-        public List<ChatMessage> Activities { get; set; }
-    }
-
-    public class SessionService
-    {
-        public ConcurrentDictionary<string, Session> Sessions = new ConcurrentDictionary<string, Session>();
-
-        public Task<bool> ExistAsync(string id) => Task.FromResult(Sessions.ContainsKey(id));
-
-        public Task<Session> GetAsync(string id) => Task.FromResult(Sessions.TryGetValue(id, out var session) ? session : null);
-
-        public Task<Session> AddAsync(Session session)
-        {
-            Sessions[session.SessionId] = session;
-            return Task.FromResult(session);
-        }
-    }
-
-    public class ChatGPTService
-    {
-        private readonly IOpenAIService _openAI;
-        private readonly ILogger<ChatGPTService> _logger;
-        private readonly IReservationService _reservationService;
-        private readonly SessionService _sessions;
-        private readonly ChatGPTCapabilities _capabilities;
-
-        public ChatGPTService(ILogger<ChatGPTService> logger, IReservationService reservationService, SessionService sessions, ChatGPTCapabilities capabilities)
-        {
-            _openAI = new OpenAIService(new OpenAiOptions
-            {
-                ApiKey = "sk-proj-roWrNK4agpNuCEu1D76DT3BlbkFJcJSu1NGs8GdB09TcctbV",
-                UseBeta = true
-            });
-            _logger = logger;
-            _reservationService = reservationService;
-            _sessions = sessions;
-            _capabilities = capabilities;
-        }
-
-        public async Task<List<ChatMessage>> Send(List<ChatMessage> messages)
-        {
-            var toolDefinitions = FunctionCallingHelper.GetToolDefinitions(_capabilities);
-
-            messages.Insert(0, ChatMessage.FromSystem("Pouzivas v odpovedich markdown. Český chatbot pro sdílení a rezervaci parkovacích míst. Umožňuje majitelům nabízet místa když je nepoužívají a ostatním je rezervovat a platit přes bankovní účet. Uživatelé mohou registrovat místa, nastavovat dostupnost a spravovat nabídky, rezervace omezeny na dvě denně. Komunikace v češtině, pokud uživatel mluvi jinou reci mluvi jinou reci. Nevyplňuj nejasné funkce bez dotazu. Pokud uzivatel zadal email, pouzij jej pro kazdej dotaz. Pokud uzivatel zadal platny kod, pouzij jej pro kazdy dotaz. Pokud chce uzivatel pridavat, menit, mazat svoje parkovaci misto musi se nejdrive identifikovat."));
-            messages.Insert(0, ChatMessage.FromSystem($"Datum {DateTime.Now.ToString()}"));
-            messages.Insert(0, ChatMessage.FromSystem($"Podpora whatsapp 724 676 829"));
-            messages.Insert(0, ChatMessage.FromSystem($"Jsi assisten co pomaha s parkovanim. S nicim jinym nepomahas."));
-
-
-
-            var req = new ChatCompletionCreateRequest
-            {
-                Tools = toolDefinitions,
-                Messages = messages.ToList(),
-                Model = "gpt_4o",
-                MaxTokens = 200
-            };
-
-            ;
-            var reply = await _openAI.ChatCompletion.CreateCompletion(req, "gpt-4o");
-            if (!reply.Successful)
-            {
-                messages.Add(ChatMessage.FromAssistant("Ups! Něco se pokazilo"));
-                Console.WriteLine(reply.Error?.Message);
-                return req.Messages.ToList();
-            }
-
-            ChatMessage response = reply.Choices.First().Message;
-            req.Messages.Add(response);
-
-            if (response.ToolCalls?.Count > 0 && !string.IsNullOrEmpty(response.ToolCalls[0].FunctionCall.Name))
-            {
-                do
-                {
-                    string stringResponse = ExecuteFunction(response);
-                    req.Messages.Add(ChatMessage.FromTool(stringResponse, response.ToolCalls[0].Id));
-                    reply = await _openAI.ChatCompletion.CreateCompletion(req, "gpt-4o");
-                    response = reply.Choices.First().Message;
-                    req.Messages.Add(response);
-                } while (response.ToolCalls != null);
-                req.Messages.Add(response); //Add answer from assistent
-
-            }
-            else
-            {
-                return req.Messages.ToList();
-            }
-
-
-            return req.Messages.ToList();
-        }
-
-        private string ExecuteFunction(ChatMessage response)
-        {
-            Console.WriteLine($"Invoking {response.ToolCalls[0].FunctionCall.Name}");
-            var functionCall = response.ToolCalls[0].FunctionCall;
-            var result = FunctionCallingHelper.CallFunction<string>(functionCall, _capabilities);
-            var stringResponse = result.ToString(CultureInfo.CurrentCulture);
-            return stringResponse;
-        }
-    }
-
-    public class ChatGPTResponse
-    {
-        public string Content { get; set; }
-        public FunctionCall FunctionCall { get; set; }
-    }
-}
-
---------------------------------------------------
-File: ./src/ParkSharing/Services/ChatGPT/ExceededCurrentQuotaException.cs
---------------------------------------------------
-﻿namespace ParkSharing.Services.ChatGPT
-{
-    public class ExceededCurrentQuotaException : Exception
-    {
-    }
-}
-
---------------------------------------------------
-File: ./src/ParkSharing/Services/ChatGPT/Helpers/ChatGPTClientOptions.cs
---------------------------------------------------
-﻿namespace ParkSharing.Services.ChatGPT.Helpers
-{
-    public class ChatGPTClientOptions
-    {
-        public string ApiKey { get; set; }
-        public string ApiUrl { get; set; }
-        public float Temperature { get; set; }
-        public int MaxTokens { get; set; }
-        public float TopP { get; set; }
-        public float PresencePenalty { get; set; }
-        public string Model { get; set; }
-    }
-}
-
---------------------------------------------------
-File: ./src/ParkSharing/Services/ChatGPT/Helpers/GPTModel.cs
---------------------------------------------------
-﻿namespace ParkSharing.Services.ChatGPT.Helpers
-{
-    public class GptModel
-    {
-        public Message[] Messages { get; set; }
-
-        public float Temperature { get; set; }
-
-        public int MaxTokens { get; set; }
-
-        public float TopP { get; set; }
-
-        public float FrequencyPenalty { get; set; }
-
-        public float PresencePenalty { get; set; }
-
-        public string Model { get; set; }
-
-        public bool Stream { get; set; }
-        public string Assistent { get; set; }
-    }
-
-    public class Message
-    {
-        public string Role { get; set; }
-        public string Content { get; set; }
-    }
-
-    public class Response
-    {
-        public string Id { get; set; }
-        public string Object { get; set; }
-        public int Created { get; set; }
-        public string Model { get; set; }
-        public ResponseUsage ResponseUsage { get; set; }
-        public Choice[] Choices { get; set; }
-    }
-
-    public class ResponseUsage
-    {
-        public int PromptTokens { get; set; }
-        public int CompletionTokens { get; set; }
-        public int TotalTokens { get; set; }
-    }
-
-    public class Choice
-    {
-        public ResponseMessage ResponseMessage { get; set; }
-        public string FinishReason { get; set; }
-        public int Index { get; set; }
-    }
-
-    public class ResponseMessage
-    {
-        public string Role { get; set; }
-        public string Content { get; set; }
-    }
-}
---------------------------------------------------
-File: ./src/ParkSharing/Services/ChatGPT/IChatGPTClient.cs
---------------------------------------------------
-﻿namespace ParkSharing.Services.ChatGPT
-{
-    public interface IChatGPTClient
-    {
-        Task<string> CallChatGpt(string text);
-    }
-}
---------------------------------------------------
-File: ./src/ParkSharing/Services/Reservation/IReservationService.cs
---------------------------------------------------
-﻿
-public interface IReservationService
-{
-    bool AddAvailability(string ownerId, Guid parkingSpotId, TimeSpan startTime, TimeSpan endTime, DayOfWeek? dayOfWeek, DateTime? specificDate, bool isRecurring);
-    Owner GetOwnerById(string ownerId);
-    IEnumerable<Owner> GetOwners();
-    ParkingSpot GetParkingSpotById(string ownerId, Guid parkingSpotId);
-    string RegisterOwner(string phone, string email, List<string> parkingSpots, string password);
-    bool SetPrice(string ownerId, Guid parkingSpotId, decimal pricePerHour);
-}
---------------------------------------------------
-File: ./src/ParkSharing/Services/Reservation/ReservationService.cs
---------------------------------------------------
-﻿public class ReservationService : IReservationService
-{
-    private List<Owner> Owners = new List<Owner>();
-
-    public string RegisterOwner(string phone, string email, List<string> parkingSpots, string password)
-    {
-        var newOwner = new Owner
-        {
-            OwnerId = Guid.NewGuid().ToString(),
-            Phone = phone,
-            Email = email,
-            ParkingSpots = parkingSpots.Select(name => new ParkingSpot { Name = name, ParkingSpotId = Guid.NewGuid() }).ToList(),
-            Password = password
-        };
-
-        Owners.Add(newOwner);
-        return newOwner.OwnerId;
-    }
-
-    public bool AddAvailability(string ownerId, Guid parkingSpotId, TimeSpan startTime, TimeSpan endTime, DayOfWeek? dayOfWeek, DateTime? specificDate, bool isRecurring)
-    {
-        var owner = Owners.FirstOrDefault(o => o.OwnerId == ownerId);
-        if (owner == null) return false;
-
-        var parkingSpot = owner.ParkingSpots.FirstOrDefault(ps => ps.ParkingSpotId == parkingSpotId);
-        if (parkingSpot == null) return false;
-
-        parkingSpot.Availabilities.Add(new Availability
-        {
-            AvailabilityId = Guid.NewGuid(),
-            DayOfWeek = dayOfWeek,
-            SpecificDate = specificDate,
-            StartTime = startTime,
-            EndTime = endTime,
-            IsRecurring = isRecurring
-        });
-
-        return true;
-    }
-
-    public bool SetPrice(string ownerId, Guid parkingSpotId, decimal pricePerHour)
-    {
-        var owner = Owners.FirstOrDefault(o => o.OwnerId == ownerId);
-        if (owner == null) return false;
-
-        var parkingSpot = owner.ParkingSpots.FirstOrDefault(ps => ps.ParkingSpotId == parkingSpotId);
-        if (parkingSpot == null) return false;
-
-        parkingSpot.PricePerHour = pricePerHour;
-        return true;
-    }
-
-    public IEnumerable<Owner> GetOwners() => Owners;
-
-    public Owner GetOwnerById(string ownerId) => Owners.FirstOrDefault(o => o.OwnerId == ownerId);
-
-    public ParkingSpot GetParkingSpotById(string ownerId, Guid parkingSpotId)
-    {
-        return Owners.FirstOrDefault(o => o.OwnerId == ownerId)?.ParkingSpots.FirstOrDefault(ps => ps.ParkingSpotId == parkingSpotId);
-    }
-}
-
---------------------------------------------------
-File: ./src/ParkSharing.Tests/GlobalUsings.cs
---------------------------------------------------
-global using Xunit;
---------------------------------------------------
-File: ./src/ParkSharing.Tests/obj/Debug/net8.0/.NETCoreApp,Version=v8.0.AssemblyAttributes.cs
---------------------------------------------------
-// <autogenerated />
-using System;
-using System.Reflection;
-[assembly: global::System.Runtime.Versioning.TargetFrameworkAttribute(".NETCoreApp,Version=v8.0", FrameworkDisplayName = ".NET 8.0")]
-
---------------------------------------------------
-File: ./src/ParkSharing.Tests/obj/Debug/net8.0/ParkingReservationApp.Tests.AssemblyInfo.cs
---------------------------------------------------
-//------------------------------------------------------------------------------
-// <auto-generated>
-//     This code was generated by a tool.
-//     Runtime Version:4.0.30319.42000
-//
-//     Changes to this file may cause incorrect behavior and will be lost if
-//     the code is regenerated.
-// </auto-generated>
-//------------------------------------------------------------------------------
-
-using System;
-using System.Reflection;
-
-[assembly: System.Reflection.AssemblyCompanyAttribute("ParkingReservationApp.Tests")]
-[assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
-[assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
-[assembly: System.Reflection.AssemblyProductAttribute("ParkingReservationApp.Tests")]
-[assembly: System.Reflection.AssemblyTitleAttribute("ParkingReservationApp.Tests")]
-[assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
-
-// Generated by the MSBuild WriteCodeFragment class.
-
-
---------------------------------------------------
-File: ./src/ParkSharing.Tests/obj/Debug/net8.0/ParkingReservationApp.Tests.GlobalUsings.g.cs
---------------------------------------------------
-// <auto-generated/>
-global using global::System;
-global using global::System.Collections.Generic;
-global using global::System.IO;
-global using global::System.Linq;
-global using global::System.Net.Http;
-global using global::System.Threading;
-global using global::System.Threading.Tasks;
-
---------------------------------------------------
-File: ./src/ParkSharing.Tests/obj/Debug/net8.0/ParkSharing.Tests.AssemblyInfo.cs
---------------------------------------------------
-//------------------------------------------------------------------------------
-// <auto-generated>
-//     This code was generated by a tool.
-//     Runtime Version:4.0.30319.42000
-//
-//     Changes to this file may cause incorrect behavior and will be lost if
-//     the code is regenerated.
-// </auto-generated>
-//------------------------------------------------------------------------------
-
-using System;
-using System.Reflection;
-
-[assembly: System.Reflection.AssemblyCompanyAttribute("ParkSharing.Tests")]
-[assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
-[assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
-[assembly: System.Reflection.AssemblyProductAttribute("ParkSharing.Tests")]
-[assembly: System.Reflection.AssemblyTitleAttribute("ParkSharing.Tests")]
-[assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
-
-// Generated by the MSBuild WriteCodeFragment class.
-
-
---------------------------------------------------
-File: ./src/ParkSharing.Tests/obj/Debug/net8.0/ParkSharing.Tests.GlobalUsings.g.cs
---------------------------------------------------
-// <auto-generated/>
-global using global::System;
-global using global::System.Collections.Generic;
-global using global::System.IO;
-global using global::System.Linq;
-global using global::System.Net.Http;
-global using global::System.Threading;
-global using global::System.Threading.Tasks;
-
---------------------------------------------------
-File: ./src/ParkSharing.Tests/ParkSharingTests.cs
---------------------------------------------------
-public class ReservationServiceTests
-{
-    private ReservationService _reservationService;
-
-    public ReservationServiceTests()
-    {
-        _reservationService = new ReservationService();
-    }
-
-    [Fact]
-    public void RegisterOwner_WithValidInput_ShouldSucceed()
-    {
-        // Arrange
-        var phone = "123-456-7890";
-        var email = "owner@example.com";
-        var parkingSpots = new[] { "Spot 1", "Spot 2" };
-        var password = "Password";
-
-        // Act
-        var ownerId = _reservationService.RegisterOwner(phone, email, parkingSpots.ToList(), password);
-
-        // Assert
-        Assert.NotNull(ownerId);
-        var registeredOwner = _reservationService.GetOwnerById(ownerId);
-        Assert.Equal(phone, registeredOwner.Phone);
-        Assert.Equal(email, registeredOwner.Email);
-        Assert.Equal(2, registeredOwner.ParkingSpots.Count);
-        Assert.Equal(password, registeredOwner.Password);
-    }
-
-    [Fact]
-    public void AddAvailability_WithValidInput_ShouldSucceed()
-    {
-        // Arrange
-        var ownerId = _reservationService.RegisterOwner("123-456-7890", "owner@example.com", new[] { "Spot 1" }.ToList(), "password");
-        var parkingSpot = _reservationService.GetOwnerById(ownerId).ParkingSpots.First();
-
-        // Act
-        var result = _reservationService.AddAvailability(ownerId, parkingSpot.ParkingSpotId, new TimeSpan(10, 0, 0), new TimeSpan(16, 0, 0), DayOfWeek.Monday, null, true);
-
-        // Assert
-        Assert.True(result);
-        var availability = _reservationService.GetParkingSpotById(ownerId, parkingSpot.ParkingSpotId).Availabilities.First();
-        Assert.Equal(new TimeSpan(10, 0, 0), availability.StartTime);
-        Assert.Equal(new TimeSpan(16, 0, 0), availability.EndTime);
-        Assert.True(availability.IsRecurring);
-        Assert.Equal(DayOfWeek.Monday, availability.DayOfWeek);
-        Assert.Null(availability.SpecificDate);
-    }
-
-    [Fact]
-    public void SetPrice_WithValidInput_ShouldUpdatePrice()
-    {
-        // Arrange
-        var ownerId = _reservationService.RegisterOwner("123-456-7890", "owner@example.com", new[] { "Spot 1" }.ToList(), "password");
-        var parkingSpot = _reservationService.GetOwnerById(ownerId).ParkingSpots.First();
-
-        // Act
-        var result = _reservationService.SetPrice(ownerId, parkingSpot.ParkingSpotId, 20m);
-
-        // Assert
-        Assert.True(result);
-        var updatedSpot = _reservationService.GetParkingSpotById(ownerId, parkingSpot.ParkingSpotId);
-        Assert.Equal(20m, updatedSpot.PricePerHour);
-    }
-
-    [Fact]
-    public void AddAvailability_WithNonexistentOwner_ShouldFail()
-    {
-        // Act
-        var result = _reservationService.AddAvailability("nonexistent", Guid.NewGuid(), new TimeSpan(9, 0, 0), new TimeSpan(17, 0, 0), DayOfWeek.Friday, null, false);
-
-        // Assert
-        Assert.False(result);
-    }
-}
-
---------------------------------------------------
-File: ./src/ParkSharing/client/src/App.js
+File: ./src/ParkSharing.Reservation.Client/src/App.js
 --------------------------------------------------
 import React from 'react';
 import CustomChatbot from './CustomChatbot';
@@ -1098,9 +21,222 @@ function App() {
 }
 
 export default App;
+
 --------------------------------------------------
-File: ./src/ParkSharing/client/package.json
+File: ./src/ParkSharing.Reservation.Client/src/App.test.js
 --------------------------------------------------
+import { render, screen } from '@testing-library/react';
+import App from './App';
+
+test('renders learn react link', () => {
+  render(<App />);
+  const linkElement = screen.getByText(/learn react/i);
+  expect(linkElement).toBeInTheDocument();
+});
+
+--------------------------------------------------
+File: ./src/ParkSharing.Reservation.Client/src/config.js
+--------------------------------------------------
+// File: src/ParkSharing/client-app/src/config.js
+
+import { createChatBotMessage } from 'react-chatbot-kit';
+
+const config = {
+  botName: "ParkSharing",
+  initialMessages: [createChatBotMessage(`Sdílení a rezervace parkovacích míst ve Velvarii! 🚗
+  Nabízejte svá parkovací místa, když je nepoužíváte.
+  Rezervujte parkování.
+  
+  Stačí napsat co potřebujete.
+  `)],
+  customStyles: {
+    botMessageBox: {
+      backgroundColor: "#376B7E",
+    },
+    chatButton: {
+      backgroundColor: "#5ccc9d",
+    },
+  },
+  state: {
+    userType: null, // Add a state property to track user type
+  },
+  customComponents: {},
+  widgets: [],
+};
+
+export default config;
+
+--------------------------------------------------
+File: ./src/ParkSharing.Reservation.Client/src/CustomChatbot.js
+--------------------------------------------------
+// src/ParkingReservationApp/client-app/src/CustomChatbot.js
+import React from 'react';
+import config from './config.js';
+import MessageParser from './MessageParser.jsx';
+import ActionProvider from './ActionProvider.jsx';
+import Chatbot from 'react-chatbot-kit';
+import 'react-chatbot-kit/build/main.css';
+
+const CustomChatbot = () => {
+  return (
+    <div style={{ height: '100%', overflow: 'hidden' }}>
+      <Chatbot
+        config={config}
+        messageParser={MessageParser}
+        actionProvider={ActionProvider}
+        customStyles={{
+          botMessageBox: {
+            backgroundColor: "#5ccc9d",
+          },
+          chatButton: {
+            backgroundColor: "#5ccc9d",
+          }
+        }}
+      />
+    </div>
+  );
+};
+
+export default CustomChatbot;
+
+--------------------------------------------------
+File: ./src/ParkSharing.Reservation.Client/src/index.js
+--------------------------------------------------
+// File: src/ParkSharing/client-app/src/index.js
+
+import React from 'react';
+import ReactDOM from 'react-dom';
+import './index.css';
+import App from './App';
+import OwnerPage from './OwnerPage';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom'; // Updated import
+
+ReactDOM.render(
+  <React.StrictMode>
+    <Router>
+      <Routes> {/* Updated from Switch to Routes */}
+        <Route exact path="/" element={<App />} /> {/* Updated from component to element */}
+        <Route path="/owner" element={<OwnerPage />} /> {/* Updated from component to element */}
+      </Routes>
+    </Router>
+  </React.StrictMode>,
+  document.getElementById('root')
+);
+
+--------------------------------------------------
+File: ./src/ParkSharing.Reservation.Client/src/OwnerPage.js
+--------------------------------------------------
+// File: src/ParkSharing/client-app/src/OwnerPage.js
+
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import './OwnerPage.css';
+
+const OwnerPage = () => {
+  const [spots, setSpots] = useState([]);
+  const [newAvailability, setNewAvailability] = useState({ dayOfWeek: '', startTime: '', endTime: '', isRecurring: false });
+
+  useEffect(() => {
+    // Fetch parking spots for the owner
+    axios.get('http://localhost:5239/owner/spots', { withCredentials: true })
+      .then(response => setSpots(response.data))
+      .catch(error => console.error('Error fetching spots:', error));
+  }, []);
+
+  const handleAddAvailability = (spotId) => {
+    axios.post(`http://localhost:5239/owner/spots/${spotId}/availability`, newAvailability, { withCredentials: true })
+      .then(response => {
+        setSpots(spots.map(spot => spot.parkingSpotId === spotId ? { ...spot, availabilities: response.data.availabilities } : spot));
+      })
+      .catch(error => console.error('Error adding availability:', error));
+  };
+
+  const handleInputChange = (event) => {
+    const { name, value, type, checked } = event.target;
+    setNewAvailability(prevState => ({ ...prevState, [name]: type === 'checkbox' ? checked : value }));
+  };
+
+  return (
+    <div className="owner-page">
+      <h1>Manage My Parking Spots</h1>
+      {spots.map(spot => (
+        <div key={spot.parkingSpotId} className="spot-card">
+          <h2>{spot.name}</h2>
+          <p>Price per hour: {spot.pricePerHour}</p>
+          <div className="availabilities">
+            {spot.availabilities.map(avail => (
+              <div key={avail.availabilityId} className="availability">
+                <p>{avail.dayOfWeek || avail.specificDate}: {avail.startTime} - {avail.endTime}</p>
+                <p>Recurring: {avail.isRecurring ? 'Yes' : 'No'}</p>
+              </div>
+            ))}
+          </div>
+          <div className="new-availability">
+            <h3>Add New Availability</h3>
+            <label>
+              Day of Week:
+              <select name="dayOfWeek" value={newAvailability.dayOfWeek} onChange={handleInputChange}>
+                <option value="">Select</option>
+                {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map(day => (
+                  <option key={day} value={day}>{day}</option>
+                ))}
+              </select>
+            </label>
+            <label>
+              Start Time:
+              <input type="time" name="startTime" value={newAvailability.startTime} onChange={handleInputChange} />
+            </label>
+            <label>
+              End Time:
+              <input type="time" name="endTime" value={newAvailability.endTime} onChange={handleInputChange} />
+            </label>
+            <label>
+              Recurring:
+              <input type="checkbox" name="isRecurring" checked={newAvailability.isRecurring} onChange={handleInputChange} />
+            </label>
+            <button onClick={() => handleAddAvailability(spot.parkingSpotId)}>Add Availability</button>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+export default OwnerPage;
+
+--------------------------------------------------
+File: ./src/ParkSharing.Reservation.Client/src/reportWebVitals.js
+--------------------------------------------------
+const reportWebVitals = onPerfEntry => {
+  if (onPerfEntry && onPerfEntry instanceof Function) {
+    import('web-vitals').then(({ getCLS, getFID, getFCP, getLCP, getTTFB }) => {
+      getCLS(onPerfEntry);
+      getFID(onPerfEntry);
+      getFCP(onPerfEntry);
+      getLCP(onPerfEntry);
+      getTTFB(onPerfEntry);
+    });
+  }
+};
+
+export default reportWebVitals;
+
+--------------------------------------------------
+File: ./src/ParkSharing.Reservation.Client/src/setupTests.js
+--------------------------------------------------
+// jest-dom adds custom jest matchers for asserting on DOM nodes.
+// allows you to do things like:
+// expect(element).toHaveTextContent(/react/i)
+// learn more: https://github.com/testing-library/jest-dom
+import '@testing-library/jest-dom';
+
+----------------------------
+File: src\ParkSharing.Reservation.Client\webpack.config.js
+----------------------------
+
+----------------------------
+File: src/ParkSharing.Reservation.Client/package.json
+----------------------------
 {
   "name": "parking-chat-client",
   "version": "0.1.0",
@@ -1155,175 +291,4 @@ File: ./src/ParkSharing/client/package.json
     "@babel/plugin-proposal-nullish-coalescing-operator": "^7.18.6"
   }
 }
---------------------------------------------------
-File: src/ParkSharing/client/src/CustomChatbot.js
---------------------------------------------------
-// src/ParkingReservationApp/client-app/src/CustomChatbot.js
-import React from 'react';
-import config from './config.js';
-import MessageParser from './MessageParser.jsx';
-import ActionProvider from './ActionProvider.jsx';
-import Chatbot from 'react-chatbot-kit';
-import 'react-chatbot-kit/build/main.css';
 
-const CustomChatbot = () => {
-  return (
-    <div style={{ height: '100%', overflow: 'hidden' }}>
-      <Chatbot
-        config={config}
-        messageParser={MessageParser}
-        actionProvider={ActionProvider}
-        customStyles={{
-          botMessageBox: {
-            backgroundColor: "#5ccc9d",
-          },
-          chatButton: {
-            backgroundColor: "#5ccc9d",
-          }
-        }}
-      />
-    </div>
-  );
-};
-
-export default CustomChatbot;
---------------------------------------------------
-File: src/ParkSharing/client/src/MessageParser.jsx
---------------------------------------------------
-// File: src/ParkSharing/client-app/src/MessageParser.jsx
-
-import axios from 'axios'; // Added missing import statement
-
-class MessageParser {
-    constructor(actionProvider) {
-        this.actionProvider = actionProvider;
-    }
-
-    parse(message) {
-        axios.post('http://localhost:5239/parking', { input: message }, {
-            withCredentials: true // This ensures cookies are sent along with the request
-        })
-            .then(response => {
-                this.actionProvider.handleMessage(response.data.reply);
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                this.actionProvider.handleMessage('Sorry, something went wrong with your request.');
-            });
-    }
-}
-
-export default MessageParser;
---------------------------------------------------
-File: src/ParkSharing/client/src/config.js
---------------------------------------------------
-// File: src/ParkSharing/client-app/src/config.js
-
-import { createChatBotMessage } from 'react-chatbot-kit';
-
-const config = {
-  botName: "ParkingBot",
-  initialMessages: [createChatBotMessage(`Sdílení a rezervace parkovacích míst ve Velvarii! 🚗
-  **Nabízejte** svá parkovací místa, když je nepoužíváte.
-  **Rezervujte** parkovací místa od ostatních uživatelů, platba přes bankovní účet.
-  
-  Stačí napsat co potřebujete.
-  `)],
-  customStyles: {
-    botMessageBox: {
-      backgroundColor: "#376B7E",
-    },
-    chatButton: {
-      backgroundColor: "#5ccc9d",
-    },
-  },
-  state: {
-    userType: null, // Add a state property to track user type
-  },
-  customComponents: {},
-  widgets: [],
-};
-
-export default config;
---------------------------------------------------
-File: src/ParkSharing/client/src/ActionProvider.jsx
---------------------------------------------------
-// src/ParkingReservationApp/client-app/src/ActionProvider.jsx
-import React from 'react';
-import ReactMarkdown from 'react-markdown';
-import { createElement } from 'react';
-
-class ActionProvider {
-    constructor(createChatBotMessage, setStateFunc) {
-        this.createChatBotMessage = createChatBotMessage;
-        this.setState = setStateFunc;
-    }
-
-    handleMessage = (markdownMessage) => {
-        const messageComponent = this.createChatBotMessage(
-            <ReactMarkdown 
-                children={markdownMessage}
-                components={{
-                    p: ({ node, ...props }) => createElement('span', props)
-                }}
-            />
-        );
-        this.updateChatbotState(messageComponent);
-    }
-
-    updateChatbotState(message) {
-        this.setState(prevState => ({
-            ...prevState,
-            messages: [...prevState.messages, message]
-        }));
-    }
-}
-
-export default ActionProvider;
---------------------------------------------------
-File: src/ParkSharing/client/src/index.css
---------------------------------------------------
-/* Add this at the top of your CSS file */
-@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap');
-
-
-body, html {
-  height: 100%;
-  margin: 0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background-color: #f0f2f5; /* Lighter background for a modern look */
-}
-
-.App {
-  width: 100%;
-  max-width: 600px; /* Constrain the chat to a reasonable maximum width on desktop */
-  height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Soft shadow for depth */
-  border-radius: 8px; /* Rounded corners */
-  overflow: hidden; /* Ensures no content leaks outside the border */
-}
-
-/* Modern styling for the chat interface itself */
-/* Apply to the entire chat container */
-.chat-container {
-  font-family: 'Roboto', sans-serif; /* This sets the custom font */
-}
-
-/* You can also target specific elements like messages or buttons */
-.react-chatbot-kit-chat-message-container {
-  font-family: 'Roboto', sans-serif;
-}
-
-
-/* Responsive adjustments */
-@media (max-width: 600px) {
-  .App {
-    margin: 10px; /* Small margin on small devices for better edge spacing */
-    height: calc(100% - 20px); /* Adjust height when adding margin */
-  }
-}

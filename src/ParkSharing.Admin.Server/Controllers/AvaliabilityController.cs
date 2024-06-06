@@ -26,8 +26,47 @@ public class AvaliabilityController : ControllerBase
         }
 
         var spot = await _parkingSpotService.GetSpotByUser(userId);
-        var result = TinyMapper.Map<ParkingSpotDto>(spot);
-        return result;
+
+        if(spot == null)
+        {
+            return NotFound();
+        }
+
+        ParkingSpotDto res = new ParkingSpotDto()
+        {
+            BankAccount = spot.BankAccount,
+            Name = spot.Name,
+            PricePerHour = spot.PricePerHour,
+            PublicId = spot.PublicId,
+            Id = spot.Id,
+        };
+
+        if(spot.Availability != null)
+        {
+            res.Availability = new List<AvailabilityDto>();
+            foreach (var a in spot.Availability)
+            {
+                res.Availability.Add(new AvailabilityDto()
+                {
+                    Id = a.Id,
+                    DayOfWeek = a.DayOfWeek,
+                    End = a.EndDate == null ? DateTime.UtcNow.Add(a.EndTime) : a.EndDate.Value.Add(a.EndTime),
+                    Start = a.StartDate == null ? DateTime.UtcNow.Add(a.StartTime) : a.StartDate.Value.Add(a.StartTime),
+                    Recurrence = a.Recurrence
+                });
+            }
+        }
+        return res;
+        //return new ParkingSpotDto()
+        //{
+        //    Availability = spot.Availability.Select(a => new AvailabilityDto()
+        //    {
+        //        DayOfWeek = a.DayOfWeek
+        //    }),
+        //    BankAccount = spot.BankAccount,
+        //    Name = spot.Name,
+        //    Reservations = spot.Reservations.Select()
+        //};
     }
 
     [Authorize]
@@ -55,7 +94,8 @@ public class AvaliabilityController : ControllerBase
         {
             spot.Availability.Add(TinyMapper.Map<Availability>(av));
         }
-        //TODO SAVE
+
+        await _parkingSpotService.UpdateAvailabilityByUser(userId, spot.Availability);
         return NoContent();
     }
 }

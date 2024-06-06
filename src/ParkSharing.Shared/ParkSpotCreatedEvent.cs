@@ -11,16 +11,10 @@
 
     public class AvailabilityCreatedOrUpdatedEvent
     {
-        public TimeSpan Start { get; set; }
-        public TimeSpan End { get; set; }
-        public RecurrenceCreatedOrUpdatedEvent? Recurrence { get; set; }
+        public DateTime Start { get; set; }
+        public DateTime End { get; set; }
+        public AvailabilityRecurrence? Recurrence { get; set; }
         public DayOfWeek? DayOfWeek { get; set; }
     }
 
-    public enum RecurrenceCreatedOrUpdatedEvent
-    {
-        Daily,
-        Weekly,
-        Monthly
-    }
 }

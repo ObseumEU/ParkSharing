@@ -28,7 +28,7 @@ builder.AddNpmApp(ServicesNames.ReservationClient, "../ParkSharing.Reservation.C
 builder.AddNpmApp(ServicesNames.AdminClient, "../ParkSharing.Admin.Client")
     .WithReference(admin)
     .WithEnvironment("BROWSER", "none")
-    .WithHttpEndpoint(env: "PORT")
+    .WithHttpEndpoint(env: "PORT", port: 4041)
     .WithExternalHttpEndpoints()
     .PublishAsDockerFile();
 

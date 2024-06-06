@@ -1,0 +1,23 @@
+
+.availability-item-enter {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  
+  .availability-item-enter-active {
+    opacity: 1;
+    transform: translateY(0);
+    transition: opacity 200ms, transform 200ms;
+  }
+  
+  .availability-item-exit {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  
+  .availability-item-exit-active {
+    opacity: 0;
+    transform: translateY(-20px);
+    transition: opacity 200ms, transform 200ms;
+  }
+  
