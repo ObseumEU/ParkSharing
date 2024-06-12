@@ -17,7 +17,7 @@ jobs:
   docker:
     uses: ObseumEU/github-workflows/.github/workflows/build-and-push-v2.yml@master
     with:
-      context: src/ParkSharing.Admin.Server  # Context directory for the build
+      project_path: src/ParkSharing.Admin.Server/ParkSharing.Admin.Server.csproj  # Context directory for the build
       image-name: davidrosko/parksharing-admin-server
     secrets:
       ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
