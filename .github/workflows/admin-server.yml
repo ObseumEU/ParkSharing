@@ -15,8 +15,8 @@ jobs:
   docker:
     uses: ObseumEU/github-workflows/.github/workflows/build-and-push.yml@master
     with:
-      context: /src/ParkSharing.Admin.Server
-      project_file: /src/ParkSharing.Admin.Server/ParkSharing.Admin.Server.csproj
+      context: src/ParkSharing.Admin.Server
+      project_file: src/ParkSharing.Admin.Server/ParkSharing.Admin.Server.csproj
       tests: false
       build_method: dotnet
     secrets:
