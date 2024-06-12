@@ -55,21 +55,21 @@ namespace ParkSharing.Services.ChatGPT
         {
             if (messages.LastOrDefault().Content.Contains("debug"))
             {
-                var msgContent = messages.LastOrDefault().Content;
-                if (msgContent.Contains("reservation"))
-                {
-                    var newMsg = await _capabilities.ReserveSpot("2024-03-21 11:00", "2024-03-21 14:00", "GS22", "123123123");
-                    messages.Add(ChatMessage.FromAssistant(newMsg));
-                }
-                else if (msgContent.Contains("avaliable"))
-                {
-                    var newMsg = await _capabilities.AvaliableSpots("2024-03-21 11:00", "2024-03-21 14:00");
-                    messages.Add(ChatMessage.FromAssistant(newMsg));
-                }
-                else
-                {
-                    messages.Add(ChatMessage.FromAssistant("Unknown command"));
-                }
+                //var msgContent = messages.LastOrDefault().Content;
+                //if (msgContent.Contains("reservation"))
+                //{
+                //    var newMsg = await _capabilities.ReserveSpot("2024-03-21 11:00", "2024-03-21 14:00", "GS22", "123123123");
+                //    messages.Add(ChatMessage.FromAssistant(newMsg));
+                //}
+                //else if (msgContent.Contains("avaliable"))
+                //{
+                //    var newMsg = await _capabilities.AvaliableSpots("2024-03-21 11:00", "2024-03-21 14:00");
+                //    messages.Add(ChatMessage.FromAssistant(newMsg));
+                //}
+                //else
+                //{
+                //    messages.Add(ChatMessage.FromAssistant("Unknown command"));
+                //}
                 return messages;
             }
 
@@ -77,12 +77,12 @@ namespace ParkSharing.Services.ChatGPT
             var toolDefinitions = FunctionCallingHelper.GetToolDefinitions(_capabilities);
 
             messages.Insert(0, ChatMessage.FromSystem("Pouzivas v odpovedich markdown. Český chatbot pro sdílení a rezervaci parkovacích míst. Umožňuje majitelům nabízet místa když je nepoužívají a ostatním je rezervovat a platit přes bankovní účet. Uživatelé mohou registrovat místa, nastavovat dostupnost a spravovat nabídky, rezervace omezeny na dvě denně. Komunikace v češtině, pokud uživatel mluvi jinou reci mluvi jinou reci. Nevyplňuj nejasné funkce bez dotazu. Pokud uzivatel zadal email, pouzij jej pro kazdej dotaz. Pokud uzivatel zadal platny kod, pouzij jej pro kazdy dotaz. Pokud chce uzivatel pridavat, menit, mazat svoje parkovaci misto musi se nejdrive identifikovat."));
-            messages.Insert(0, ChatMessage.FromSystem($"Datum {DateTime.Now.ToString()}"));
+            messages.Insert(0, ChatMessage.FromSystem($"Aktualni datum {DateTime.Now.ToString("dd. MMMM yyyy")}"));
             messages.Insert(0, ChatMessage.FromSystem($"Pokud chce nekdo rezervovat misto, vyber mu nahodne jedno znich a nech si potvrdit ze to je ok nez ho rezervujes."));
             messages.Insert(0, ChatMessage.FromSystem($"Podpora whatsapp 724 676 829"));
             messages.Insert(0, ChatMessage.FromSystem($"Vsechna parkovani jsou venkovni. Nic neni v garazi"));
             messages.Insert(0, ChatMessage.FromSystem($"FAQ: Penize prijdou na ucet majitele parkovaciho stani"));
-            messages.Insert(0, ChatMessage.FromSystem($"Jsi assisten co pomaha s parkovanim. S nicim jinym nepomahas."));
+            messages.Insert(0, ChatMessage.FromSystem($"Jsi assisten co pomaha s parkovanim. S nicim jinym nepomahas. Pokud neni nic volného, navrhni at vyhledá jiný čas."));
 
             var req = new ChatCompletionCreateRequest
             {

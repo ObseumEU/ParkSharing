@@ -18,7 +18,24 @@ public class AdminConsumer : IConsumer<ParkSpotCreatedOrUpdatedEvent>
     public async Task Consume(ConsumeContext<ParkSpotCreatedOrUpdatedEvent> context)
     {
         Debug.WriteLine($"Received: {System.Text.Json.JsonSerializer.Serialize(context.Message)}");
-        var newParkingSpot = TinyMapper.Map<ParkingSpot>(context.Message);
+        var msg = context.Message;
+        var newParkingSpot = new ParkingSpot()
+        {
+            Availability = msg.Availability.Select(a => new Availability
+            {
+                DayOfWeek = a.DayOfWeek,
+                EndDate = a.EndDate,
+                EndTime = a.EndTime,
+                PublicId = a.PublicId,
+                Recurrence = a.Recurrence,
+                StartDate = a.StartDate,
+                StartTime = a.StartTime
+            }).ToList(),
+            BankAccount = msg.BankAccount,
+            Name = msg.Name,
+            PricePerHour = msg.PricePerHour,
+            PublicId = msg.PublicId
+        };
         await _parkingSpotsCollection.InsertOneAsync(newParkingSpot);
     }
 }

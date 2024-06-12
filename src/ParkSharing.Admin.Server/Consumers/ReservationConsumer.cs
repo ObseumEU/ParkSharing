@@ -27,8 +27,12 @@ namespace App.Consumers
 
             if (parkingSpot != null)
             {
-                parkingSpot.Reservations =
-                [
+                if(parkingSpot.Reservations == null)
+                {
+                    parkingSpot.Reservations = new List<Reservation>();
+                }
+                
+                parkingSpot.Reservations.Add(
                     new Reservation
                     {
                         PublicId = context.Message.PublicId,
@@ -36,8 +40,7 @@ namespace App.Consumers
                         End = context.Message.End,
                         Phone = context.Message.Phone,
                         Price = context.Message.Price,
-                    },
-                ];
+                    });
                 var update = Builders<ParkingSpot>.Update.Set(ps => ps.Reservations, parkingSpot.Reservations);
                 _parkingSpotsCollection.UpdateOne(filter, update);
             }

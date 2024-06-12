@@ -2,11 +2,14 @@ import React, { useEffect, useState, useCallback } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
 import { PageLayout } from "../components/page-layout";
 import { getReservations, rejectReservation, allowReservation } from "../services/api.service";
+import { Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Button } from "@mui/material";
 
 export const ReservationsPage = () => {
   const { getAccessTokenSilently } = useAuth0();
   const [reservations, setReservations] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [open, setOpen] = useState(false);
+  const [selectedReservation, setSelectedReservation] = useState(null);
 
   const fetchReservations = useCallback(async () => {
     try {
@@ -26,11 +29,22 @@ export const ReservationsPage = () => {
     fetchReservations();
   }, [fetchReservations]);
 
-  const handleRejectReservation = async (reservationId) => {
+  const handleOpenDialog = (reservation) => {
+    setSelectedReservation(reservation);
+    setOpen(true);
+  };
+
+  const handleCloseDialog = () => {
+    setOpen(false);
+    setSelectedReservation(null);
+  };
+
+  const handleRejectReservation = async () => {
     try {
       const token = await getAccessTokenSilently();
-      await rejectReservation(token, reservationId);
-      setReservations(reservations.map(r => r.id === reservationId ? { ...r, state: 1 } : r));
+      await rejectReservation(token, selectedReservation.publicId);
+      setReservations(reservations.filter(r => r.publicId !== selectedReservation.publicId));
+      handleCloseDialog();
     } catch (error) {
       console.error("Nepodařilo se zamítnout rezervaci:", error);
     }
@@ -77,7 +91,7 @@ export const ReservationsPage = () => {
         ) : (
           reservations.map((reservation) => (
             <div 
-              key={reservation.id} 
+              key={reservation.publicId} 
               className={`reservation-item ${reservation.state === 1 ? 'reservation-rejected' : ''}`}
             >
               <p><strong>Telefon:</strong> {reservation.phone}</p>
@@ -85,14 +99,36 @@ export const ReservationsPage = () => {
               <p><strong>Celkový čas:</strong> {getTotalHours(reservation.start, reservation.end)} hodin</p>
               <p><strong>Cena:</strong> {reservation.price} Kč</p>
               <button 
-                onClick={() => reservation.state === 0 ? handleRejectReservation(reservation.id) : handleAllowReservation(reservation.id)} 
+                onClick={() => handleOpenDialog(reservation)} 
                 className="button button-reject"
               >
-                {reservation.state === 0 ? 'Zamítnout' : 'Povolit'}
+                Odstranit
               </button>
             </div>
           ))
         )}
+
+        <Dialog
+          open={open}
+          onClose={handleCloseDialog}
+          aria-labelledby="alert-dialog-title"
+          aria-describedby="alert-dialog-description"
+        >
+          <DialogTitle id="alert-dialog-title">Potvrzení odstranění</DialogTitle>
+          <DialogContent>
+            <DialogContentText id="alert-dialog-description">
+              Opravdu chcete odstranit tuto rezervaci?
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCloseDialog} color="primary">
+              Zrušit
+            </Button>
+            <Button onClick={handleRejectReservation} color="primary" autoFocus>
+              Odstranit
+            </Button>
+          </DialogActions>
+        </Dialog>
       </div>
     </PageLayout>
   );

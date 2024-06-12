@@ -2,6 +2,7 @@ using MassTransit;
 using MongoDB.Driver;
 using OpenAI.Extensions;
 using ParkSharing.Services.ChatGPT;
+using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
 ParkSharing.Reservation.Server.Mapper.BindMaps();
@@ -20,7 +21,8 @@ builder.Services.AddScoped<IMongoDbContext, MongoDbContext>(sp =>
 
 builder.Services.AddScoped<DebugSeedData>(); // Register SeedData service
 
-builder.ConfigureMassTransit(config.GetConnectionString("rabbitmq"), typeof(AdminConsumer));
+
+builder.ConfigureMassTransit(config.GetConnectionString("rabbitmq"), Assembly.GetExecutingAssembly());
 
 // Add Configuration
 builder.Host.ConfigureAppConfiguration((configBuilder) =>
@@ -79,8 +81,9 @@ using (var scope = app.Services.CreateScope())
     var seedData = scope.ServiceProvider.GetRequiredService<DebugSeedData>();
     var bus = scope.ServiceProvider.GetRequiredService<IBusControl>();
     await bus.StartAsync();
+    var seed = new DebugSeedData(bus, scope.ServiceProvider.GetRequiredService<IReservationService>());
+    await seed.InitializeAsync();
     await bus.StopAsync();
-    await seedData.InitializeAsync();
 }
 
 #endif

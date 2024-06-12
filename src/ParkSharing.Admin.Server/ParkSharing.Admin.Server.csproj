@@ -6,6 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>App</RootNamespace>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+	<ContainerImageName>obseum-parksharing-admin-server</ContainerImageName>
   </PropertyGroup>
 
   <ItemGroup>

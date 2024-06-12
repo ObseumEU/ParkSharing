@@ -121,7 +121,74 @@
 }
 
 
+.reservations-page {
+  padding: 20px;
+  background-color: #1e1e1e;
+  color: #fff;
+  font-family: Arial, sans-serif;
+}
 
+.reservations-page h1 {
+  font-size: 2em;
+  margin-bottom: 20px;
+  text-align: center;
+  color: #ffffff;
+}
+
+.reservation-item {
+  background-color: #2a2a2a;
+  padding: 15px;
+  margin-bottom: 15px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.5);
+}
+
+.reservation-item p {
+  margin: 5px 0;
+  font-size: 1em;
+}
+
+.reservation-item .button-reject {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  background-color: #dc3545;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  font-size: 1.2em;
+  text-align: center;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.reservation-item .button-reject:hover {
+  background-color: #c82333;
+}
+
+.reservation-item.reservation-rejected {
+  background-color: #894e4e; /* Light red background for rejected reservations */
+}
+
+/* Adjust the Dialog and Button styles */
+.MuiDialog-paper {
+  background-color: #2a2a2a;
+  color: #fff;
+}
+
+.MuiDialogTitle-root, .MuiDialogContentText-root {
+  color: #fff;
+}
+
+.MuiButton-root {
+  color: #fff;
+  border: 1px solid #fff;
+}
+
+.MuiButton-root:hover {
+  background-color: #fff;
+  color: #000;
+}
 
 
 

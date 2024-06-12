@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.Net.Http.Headers;
 using MongoDB.Driver;
+using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
 var config = builder.Configuration;
@@ -27,9 +28,7 @@ builder.Services.AddScoped<IMongoDbContext, MongoDbContext>(sp =>
 
 builder.Services.AddScoped<DebugSeedData>(); // Register SeedData service
 
-builder.ConfigureMassTransit(config.GetConnectionString("rabbitmq"), 
-    typeof(ReservationConsumer)
-    );
+builder.ConfigureMassTransit(config.GetConnectionString("rabbitmq"), Assembly.GetExecutingAssembly());
 
 // Add Configuration
 builder.Host.ConfigureAppConfiguration((configBuilder) =>
@@ -48,8 +47,10 @@ builder.WebHost.ConfigureKestrel(serverOptions =>
 // Add Services to the Container
 builder.Services.AddScoped<IMessageService, MessageService>();
 builder.Services.AddScoped<IParkingSpotService, ParkingSpotServiceMongo>();
-builder.Services.AddControllers();
-
+builder.Services.AddControllers().AddJsonOptions(options =>
+{
+    options.JsonSerializerOptions.Converters.Add(new NullableDayOfWeekConverter());
+});
 // Configure CORS
 builder.Services.AddCors(options =>
 {

@@ -29,7 +29,8 @@ public class SettingsController : ControllerBase
         return new SettingsDto()
         {
             BankAccount = spot.BankAccount,
-            Name = spot.Name
+            Name = spot.Name,
+            PricePerHour = spot.PricePerHour
         };
     }
 
@@ -51,6 +52,8 @@ public class SettingsController : ControllerBase
 
         spot.Name = dto.Name;
         spot.BankAccount = dto.BankAccount;
+        spot.PricePerHour = dto.PricePerHour.Value;
+        await _parkingSpotService.UpdateSpot(spot);
         return NoContent();
     }
 }
