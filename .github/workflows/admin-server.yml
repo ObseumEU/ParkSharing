@@ -21,6 +21,7 @@ jobs:
       project_file: ParkSharing.Admin.Server.csproj  # Project file path relative to the context
       tests: false
       build_method: dotnet
+      image: davidrosko/parksharing-admin-server
     secrets:
       ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
       DOCKER_USER: ${{ secrets.DOCKER_USER }}
