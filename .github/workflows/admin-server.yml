@@ -15,13 +15,10 @@ jobs:
           token: ${{ secrets.ACCESS_TOKEN }}
 
   docker:
-    uses: ObseumEU/github-workflows/.github/workflows/build-and-push.yml@master
+    uses: ObseumEU/github-workflows/.github/workflows/build-and-push-v2.yml@master
     with:
       context: src/ParkSharing.Admin.Server  # Context directory for the build
-      project_file: ParkSharing.Admin.Server.csproj  # Project file path relative to the context
-      tests: false
-      build_method: dotnet
-      image: davidrosko/parksharing-admin-server
+      image-name: davidrosko/parksharing-admin-server
     secrets:
       ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
       DOCKER_USER: ${{ secrets.DOCKER_USER }}
