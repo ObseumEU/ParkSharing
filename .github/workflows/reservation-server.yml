@@ -18,7 +18,7 @@ jobs:
     uses: ObseumEU/github-workflows/.github/workflows/build-and-push-v2.yml@master
     with:
       project_path: src/ParkSharing.Reservation.Server/ParkSharing.Reservation.Server.csproj  # Context directory for the build
-      image-name: davidrosko/parksharing-reservation-server
+      image-name: smixers/parksharing-reservation-server
     secrets:
       ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
       DOCKER_USER: ${{ secrets.DOCKER_USER }}
