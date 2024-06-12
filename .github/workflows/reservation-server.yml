@@ -16,6 +16,7 @@ jobs:
     uses: ObseumEU/github-workflows/.github/workflows/build-and-push.yml@master
     with:
       context: /src/ParkSharing.Reservation.Server
+      project_file: /src/ParkSharing.Reservation.Server/ParkSharing.Reservation.Server.csproj
       tests: false
       build_method: dotnet
     secrets:
