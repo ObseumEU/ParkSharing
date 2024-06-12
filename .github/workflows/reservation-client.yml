@@ -1,4 +1,4 @@
-name: ci
+name: reservation-client
 on:
   push:
     branches:

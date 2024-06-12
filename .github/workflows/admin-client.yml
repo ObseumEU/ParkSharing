@@ -1,4 +1,4 @@
-name: ci
+name: admin-client
 on:
   push:
     branches:
