@@ -1,4 +1,5 @@
 name: ci
+
 on:
   push:
     branches:
@@ -12,11 +13,12 @@ jobs:
         with:
           submodules: recursive
           token: ${{ secrets.ACCESS_TOKEN }}
+
   docker:
     uses: ObseumEU/github-workflows/.github/workflows/build-and-push.yml@master
     with:
-      context: src/ParkSharing.Reservation.Server
-      project_file: src/ParkSharing.Reservation.Server/ParkSharing.Reservation.Server.csproj
+      context: src/ParkSharing.Reservation.Server  # Context directory for the build
+      project_file: ParkSharing.Reservation.Server.csproj  # Project file path relative to the context
       tests: false
       build_method: dotnet
     secrets:

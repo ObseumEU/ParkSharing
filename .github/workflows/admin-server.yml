@@ -1,4 +1,5 @@
 name: ci
+
 on:
   push:
     branches:
@@ -12,11 +13,12 @@ jobs:
         with:
           submodules: recursive
           token: ${{ secrets.ACCESS_TOKEN }}
+
   docker:
     uses: ObseumEU/github-workflows/.github/workflows/build-and-push.yml@master
     with:
-      context: src/ParkSharing.Admin.Server
-      project_file: src/ParkSharing.Admin.Server/ParkSharing.Admin.Server.csproj
+      context: src/ParkSharing.Admin.Server  # Context directory for the build
+      project_file: ParkSharing.Admin.Server.csproj  # Project file path relative to the context
       tests: false
       build_method: dotnet
     secrets:
