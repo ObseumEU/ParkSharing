@@ -21,5 +21,5 @@ jobs:
       image-name: smixers/parksharing-reservation-server
     secrets:
       ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
-      DOCKER_USER: ${{ secrets.DOCKER_USER }}
-      DOCKER_PASS: ${{ secrets.DOCKER_PASS }}
+      DOCKER_USER: ${{ secrets.DOCKER_SMIXERS_USER }}
+      DOCKER_PASS: ${{ secrets.DOCKER_SMIXERS_SECRET }}
