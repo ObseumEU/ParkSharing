@@ -6,7 +6,6 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<RootNamespace>App</RootNamespace>
 		<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
-		<ContainerRepository>smixers/parksharing-admin-server</ContainerRepository>
 		<ContainerRegistry>index.docker.io</ContainerRegistry>
 	</PropertyGroup>
 
