@@ -15,10 +15,10 @@ jobs:
   docker:
     uses: ObseumEU/github-workflows/.github/workflows/build-and-push.yml@master
     with:
-      context: /src/ParkSharing.Reservation.Client
+      context: src/ParkSharing.Reservation.Client
       tests: false
       image: smixers/parksharing-reservation-client
-      dockerfile: /src/ParkSharing.Reservation.Client/Dockerfile
+      dockerfile: src/ParkSharing.Reservation.Client/Dockerfile
     secrets:
       ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
       DOCKER_USER: ${{ secrets.DOCKER_SMIXERS_USER }}
