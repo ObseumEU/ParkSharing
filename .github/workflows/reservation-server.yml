@@ -19,6 +19,7 @@ jobs:
     with:
       project_path: src/ParkSharing.Reservation.Server/ParkSharing.Reservation.Server.csproj  # Context directory for the build
       image-name: smixers/parksharing-reservation-server
+      servicename: reservation-server
     secrets:
       ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
       DOCKER_USER: ${{ secrets.DOCKER_SMIXERS_USER }}
