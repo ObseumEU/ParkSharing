@@ -7,8 +7,7 @@
 		<RootNamespace>App</RootNamespace>
 		<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
 		<ContainerRepository>smixers/parksharing-admin-server</ContainerRepository>
-		<ContainerImageName>smixers/parksharing-admin-server</ContainerImageName>
-		<ContainerRegistry>registry-1.docker.io</ContainerRegistry>
+		<ContainerRegistry>index.docker.io</ContainerRegistry>
 	</PropertyGroup>
 
   <ItemGroup>
