@@ -6,7 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <InvariantGlobalization>true</InvariantGlobalization>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
-	<ContainerImageName>obseum-parksharing-reservations-server</ContainerImageName>
+	<ContainerImageName>smixers/parksharing-reservation-server</ContainerImageName>
 	<RuntimeIdentifiers>linux-x64</RuntimeIdentifiers>
 	<EnableSdkContainerDebugging>True</EnableSdkContainerDebugging>
 	<UserSecretsId>1160087c-436b-45b5-91d1-db48ae98d0d0</UserSecretsId>
