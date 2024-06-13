@@ -18,6 +18,7 @@ jobs:
       context: /src/ParkSharing.Reservation.Client
       tests: false
       build_method: dotnet
+      dockerfile: /src/ParkSharing.Reservation.Client/Dockerfile
     secrets:
       ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
       DOCKER_USER: ${{ secrets.DOCKER_SMIXERS_USER }}
