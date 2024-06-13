@@ -15,9 +15,10 @@ jobs:
   docker:
     uses: ObseumEU/github-workflows/.github/workflows/build-and-push.yml@master
     with:
-      context: /src/ParkSharing.Admin.Client
+      context: src/ParkSharing.Admin.Client
       tests: false
-      build_method: dotnet
+      image: smixers/parksharing-admin-client
+      dockerfile: src/ParkSharing.Admin.Client/Dockerfile
     secrets:
       ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
       DOCKER_USER: ${{ secrets.DOCKER_SMIXERS_USER }}
