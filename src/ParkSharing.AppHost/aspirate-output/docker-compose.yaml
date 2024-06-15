@@ -26,6 +26,7 @@ services:
       ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"
       ConnectionStrings__mongodb: "mongodb://mongo:27017/mongodb"
       ConnectionStrings__rabbitmq: "amqp://guest:uao19CHmJw9EnOhjfK6LOQ@rabbitmq:5672"
+      ASPNETCORE_URLS: "http://+:8080"
     ports:
     - target: 8080
       published: 10000
