@@ -18,7 +18,6 @@
 
 	<ItemGroup>
 	  <ProjectReference Include="..\ParkSharing.Admin.Server\ParkSharing.Admin.Server.csproj" />
-	  <ProjectReference Include="..\ParkSharing.DebugSeed\ParkSharing.DebugSeed.csproj" />
 	  <ProjectReference Include="..\ParkSharing.Reservation.Server\ParkSharing.Reservation.Server.csproj" />
 	</ItemGroup>
 

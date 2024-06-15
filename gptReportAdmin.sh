@@ -22,16 +22,16 @@ do
     echo  # Adds a newline for better readability between files
 done
 
-search_directory="./src/ParkSharing.Admin.Client"
-exclude_path="src/ParkSharing.Admin.Client/node_modules"
-find "$search_directory" -type d -path "./$exclude_path" -prune -o -type f -name "*.js" -print | while read -r file_path
-do
-    echo "--------------------------------------------------"
-    echo "File: $file_path"
-    echo "--------------------------------------------------"
-    cat "$file_path"  # Use cat to print the file content
-    echo  # Adds a newline for better readability between files
-done
+# search_directory="./src/ParkSharing.Admin.Client"
+# exclude_path="src/ParkSharing.Admin.Client/node_modules"
+# find "$search_directory" -type d -path "./$exclude_path" -prune -o -type f -name "*.js" -print | while read -r file_path
+# do
+#     echo "--------------------------------------------------"
+#     echo "File: $file_path"
+#     echo "--------------------------------------------------"
+#     cat "$file_path"  # Use cat to print the file content
+#     echo  # Adds a newline for better readability between files
+# done
 
 # search_directory="./src/ParkSharing.Admin.Client"
 # exclude_path="src/ParkSharing.Admin.Client/node_modules"

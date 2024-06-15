@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Nelibur.ObjectMapper;
 using ParkSharing.Contracts;
 
-[Route("api/[controller]")]
+[Route("[controller]")]
 [ApiController]
 public class ReservationController : ControllerBase
 {

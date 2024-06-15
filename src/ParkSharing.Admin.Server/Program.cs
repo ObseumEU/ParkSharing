@@ -6,6 +6,7 @@ using App.Services;
 using dotenv.net;
 using MassTransit;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.Net.Http.Headers;
 using MongoDB.Driver;
@@ -65,27 +66,27 @@ builder.Services.AddCors(options =>
               .SetPreflightMaxAge(TimeSpan.FromSeconds(86400));
     });
 });
+IdentityModelEventSource.ShowPII = true;
 
 // Configure Authentication
 builder.Host.ConfigureServices((services) =>
     services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         .AddJwtBearer(options =>
         {
-            var audience = builder.Configuration.GetValue<string>("AUTH0_AUDIENCE");
             options.Authority = $"https://{builder.Configuration.GetValue<string>("AUTH0_DOMAIN")}/";
-            options.Audience = audience;
+            options.Audience = builder.Configuration.GetValue<string>("AUTH0_AUDIENCE");
             options.TokenValidationParameters = new TokenValidationParameters
             {
                 ValidateAudience = true,
-                ValidateIssuerSigningKey = true
+                ValidateIssuerSigningKey = true,
+                ValidIssuer = $"https://{builder.Configuration.GetValue<string>("AUTH0_DOMAIN")}/",
+                ValidAudience = builder.Configuration.GetValue<string>("AUTH0_AUDIENCE")
             };
         })
 );
 
 var app = builder.Build();
 
-#if DEBUG
-#if DEBUG
 using (var scope = app.Services.CreateScope())
 {
     var seedData = scope.ServiceProvider.GetRequiredService<DebugSeedData>();
@@ -94,12 +95,9 @@ using (var scope = app.Services.CreateScope())
     await bus.StopAsync();
     await seedData.InitializeAsync();
 }
-#endif
-#endif
 
 // Validate Configuration Variables
 var requiredVars = new string[] {
-    "PORT",
     "CLIENT_ORIGIN_URL",
     "AUTH0_DOMAIN",
     "AUTH0_AUDIENCE",
@@ -115,7 +113,7 @@ foreach (var key in requiredVars)
     }
 }
 
-app.Urls.Add($"http://+:{app.Configuration.GetValue<string>("PORT")}");
+//app.Urls.Add($"http://+:{app.Configuration.GetValue<string>("PORT")}");
 
 // Middleware Configuration
 app.UseErrorHandler();

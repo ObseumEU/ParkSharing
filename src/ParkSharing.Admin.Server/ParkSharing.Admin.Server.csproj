@@ -6,13 +6,13 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<RootNamespace>App</RootNamespace>
 		<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
-		<ContainerRegistry>index.docker.io</ContainerRegistry>
 	</PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Aspire.Hosting.Testing" Version="8.0.1" />
     <PackageReference Include="Aspire.MongoDB.Driver" Version="8.0.1" />
     <PackageReference Include="dotenv.net" Version="3.1.1" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.5" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.6" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.0-Preview.1" />
     <PackageReference Include="MongoDB.Bson" Version="2.25.0" />
     <PackageReference Include="MongoDB.Driver" Version="2.25.0" />

@@ -4,14 +4,16 @@ using Microsoft.AspNetCore.Mvc;
 using Nelibur.ObjectMapper;
 using System;
 
-[Route("api/[controller]")]
+[Route("[controller]")]
 [ApiController]
 public class SettingsController : ControllerBase
 {
     IParkingSpotService _parkingSpotService;
-    public SettingsController(IParkingSpotService parkingSpotService)
+    ILogger<SettingsController> _log;
+    public SettingsController(IParkingSpotService parkingSpotService, ILogger<SettingsController> log)
     {
         _parkingSpotService = parkingSpotService;
+        _log = log;
     }
 
 
@@ -19,19 +21,27 @@ public class SettingsController : ControllerBase
     [Authorize]
     public async Task<ActionResult<SettingsDto>> GetSettings()
     {
-        var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-        if (userId == null)
+        try
         {
-            return Unauthorized();
-        }
+            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (userId == null)
+            {
+                return Unauthorized();
+            }
 
-        var spot = await _parkingSpotService.GetSpotByUser(userId);
-        return new SettingsDto()
+            var spot = await _parkingSpotService.GetSpotByUser(userId);
+            return new SettingsDto()
+            {
+                BankAccount = spot.BankAccount,
+                Name = spot.Name,
+                PricePerHour = spot.PricePerHour
+            };
+        }
+        catch(Exception ex)
         {
-            BankAccount = spot.BankAccount,
-            Name = spot.Name,
-            PricePerHour = spot.PricePerHour
-        };
+            _log.LogError(ex, "Failed Get settings");
+            throw ex;
+        }
     }
 
     [Authorize]

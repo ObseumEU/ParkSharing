@@ -1,0 +1,83 @@
+services:
+  mongo:
+    container_name: "mongo"
+    image: "docker.io/library/mongo:7.0"
+    ports:
+    - target: 27017
+      published: 2023
+    restart: unless-stopped
+  rabbitmq:
+    container_name: "rabbitmq"
+    image: "docker.io/library/rabbitmq:3.13"
+    environment:
+      RABBITMQ_DEFAULT_USER: "guest"
+      RABBITMQ_DEFAULT_PASS: "uao19CHmJw9EnOhjfK6LOQ"
+    ports:
+    - target: 5672
+      published: 5672
+    restart: unless-stopped
+  reservationserver:
+    container_name: "reservationserver"
+    image: "reservationserver:latest"
+    environment:
+      OTEL_DOTNET_EXPERIMENTAL_OTLP_EMIT_EXCEPTION_LOG_ATTRIBUTES: "true"
+      OTEL_DOTNET_EXPERIMENTAL_OTLP_EMIT_EVENT_LOG_ATTRIBUTES: "true"
+      OTEL_DOTNET_EXPERIMENTAL_OTLP_RETRY: "in_memory"
+      ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"
+      ConnectionStrings__mongodb: "mongodb://mongo:27017/mongodb"
+      ConnectionStrings__rabbitmq: "amqp://guest:uao19CHmJw9EnOhjfK6LOQ@rabbitmq:5672"
+    ports:
+    - target: 8080
+      published: 10000
+    - target: 8443
+      published: 10001
+    restart: unless-stopped
+  adminserver:
+    container_name: "adminserver"
+    image: "adminserver:latest"
+    environment:
+      OTEL_DOTNET_EXPERIMENTAL_OTLP_EMIT_EXCEPTION_LOG_ATTRIBUTES: "true"
+      OTEL_DOTNET_EXPERIMENTAL_OTLP_EMIT_EVENT_LOG_ATTRIBUTES: "true"
+      OTEL_DOTNET_EXPERIMENTAL_OTLP_RETRY: "in_memory"
+      ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"
+      ConnectionStrings__mongodb: "mongodb://mongo:27017/mongodb"
+      ConnectionStrings__rabbitmq: "amqp://guest:uao19CHmJw9EnOhjfK6LOQ@rabbitmq:5672"
+      CLIENT_ORIGIN_URL: "localhost"
+      AUTH0_AUDIENCE: "https://parksharing.obseum.cloud"
+      AUTH0_DOMAIN: "dev-j8mvyoxwsvvvkvs6.eu.auth0.com"
+      ASPNETCORE_URLS: "http://+:8080"
+    ports:
+    - target: 8080
+      published: 10002
+    - target: 8443
+      published: 10003
+    restart: unless-stopped
+  reservationclient:
+    container_name: "reservationclient"
+    image: "reservationclient:latest"
+    environment:
+      NODE_ENV: "development"
+      services__reservationserver__http__0: "http://reservationserver:8080"
+      BROWSER: "none"
+      PORT: "8000"
+    ports:
+    - target: 8000
+      published: 4224
+    restart: unless-stopped
+  adminclient:
+    container_name: "adminclient"
+    image: "adminclient:latest"
+    environment:
+      NODE_ENV: "development"
+      services__adminserver__http__0: "http://adminserver:8080"
+      BROWSER: "none"
+      REACT_APP_AUTH0_DOMAIN: "dev-j8mvyoxwsvvvkvs6.eu.auth0.com"
+      REACT_APP_AUTH0_CLIENT_ID: "b7ZPBulSPQXCzgolfNAWkxERDPGDTZoz"
+      REACT_APP_AUTH0_CALLBACK_URL: "http://localhost:4225/callback"
+      REACT_APP_API_SERVER_URL: "http://localhost:4355"
+      REACT_APP_AUTH0_AUDIENCE: "https://parksharing.obseum.cloud"
+      PORT: "8001"
+    ports:
+    - target: 8001
+      published: 4225
+    restart: unless-stopped
