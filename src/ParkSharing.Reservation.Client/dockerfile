@@ -12,6 +12,8 @@ RUN npm run build
 
 FROM nginx:alpine
 
+
+COPY --from=build /app/default.conf.template /etc/nginx/templates/default.conf.template
 COPY --from=build /app/build /usr/share/nginx/html
 
 ARG REACT_APP_AUTH0_DOMAIN
