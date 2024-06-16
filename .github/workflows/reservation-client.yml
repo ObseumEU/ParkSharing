@@ -1,4 +1,4 @@
-name: ci
+name: reservation-client
 on:
   push:
     branches:
@@ -12,14 +12,14 @@ jobs:
         with:
           submodules: recursive
           token: ${{ secrets.ACCESS_TOKEN }}
-  docker-admin-server:
+  docker:
     uses: ObseumEU/github-workflows/.github/workflows/build-and-push.yml@master
     with:
-      image: "davidrosko/parksharing-reservation-client"
-      dockerfile: ./src/Dockerfile
-      context: ./src
-      tests: true
+      context: src/ParkSharing.Reservation.Client
+      tests: false
+      image: smixers/parksharing-reservation-client
+      dockerfile: src/ParkSharing.Reservation.Client/Dockerfile
     secrets:
       ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
-      DOCKER_USER: ${{ secrets.DOCKER_USER }}
-      DOCKER_PASS: ${{ secrets.DOCKER_PASS }}
+      DOCKER_USER: ${{ secrets.DOCKER_SMIXERS_USER }}
+      DOCKER_PASS: ${{ secrets.DOCKER_SMIXERS_SECRET }}

@@ -1,10 +1,11 @@
 import axios from 'axios';
 
 const apiServerUrl = process.env.REACT_APP_API_SERVER_URL;
+console.log('API Server URL:', process.env.REACT_APP_API_SERVER_URL);
 
 export const getParkingSpot = async (accessToken) => {
   const config = {
-    url: `${apiServerUrl}/api/avaliability`,
+    url: `${apiServerUrl}/avaliability`,
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
@@ -22,7 +23,7 @@ export const getParkingSpot = async (accessToken) => {
 
 export const updateParkingSpot = async (accessToken, spot) => {
   const config = {
-    url: `${apiServerUrl}/api/avaliability`,
+    url: `${apiServerUrl}/avaliability`,
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -40,7 +41,7 @@ export const updateParkingSpot = async (accessToken, spot) => {
 };
 export const getSettings = async (accessToken) => {
   const config = {
-    url: `${apiServerUrl}/api/settings`,
+    url: `${apiServerUrl}/settings`,
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
@@ -58,7 +59,7 @@ export const getSettings = async (accessToken) => {
 
 export const updateSettings = async (accessToken, settings) => {
   const config = {
-    url: `${apiServerUrl}/api/settings`,
+    url: `${apiServerUrl}/settings`,
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -77,7 +78,7 @@ export const updateSettings = async (accessToken, settings) => {
 
 export const getReservations = async (accessToken) => {
   const config = {
-    url: `${apiServerUrl}/api/reservation`,
+    url: `${apiServerUrl}/reservation`,
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
@@ -95,7 +96,7 @@ export const getReservations = async (accessToken) => {
 
 export const rejectReservation = async (accessToken, reservationId) => {
   const config = {
-    url: `${apiServerUrl}/api/reservation/reject`,
+    url: `${apiServerUrl}/reservation/reject`,
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -115,7 +116,7 @@ export const rejectReservation = async (accessToken, reservationId) => {
 
 export const allowReservation = async (accessToken, reservationId) => {
   const config = {
-    url: `${apiServerUrl}/api/reservation/allow`,
+    url: `${apiServerUrl}/reservation/allow`,
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',

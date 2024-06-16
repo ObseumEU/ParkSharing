@@ -7,6 +7,7 @@ export const SettingsPage = () => {
   const { getAccessTokenSilently } = useAuth0();
   const [bankAccount, setBankAccount] = useState("");
   const [parkingSpotName, setParkingSpotName] = useState("");
+  const [pricePerHour, setPricePerHour] = useState(0);
   const [loading, setLoading] = useState(true);
 
   const fetchSettings = useCallback(async () => {
@@ -16,6 +17,7 @@ export const SettingsPage = () => {
       if (data) {
         setBankAccount(data.bankAccount);
         setParkingSpotName(data.name);
+        setPricePerHour(data.pricePerHour);
       }
     } catch (error) {
       console.error("Failed to fetch settings:", error);
@@ -34,6 +36,7 @@ export const SettingsPage = () => {
       await updateSettings(token, {
         bankAccount,
         name: parkingSpotName,
+        pricePerHour
       });
     } catch (error) {
       console.error("Failed to update settings:", error);
@@ -54,12 +57,12 @@ export const SettingsPage = () => {
   return (
     <PageLayout>
       <div className="protected-page">
-        <h1>Settings</h1>
+        <h1>Nastavení</h1>
         <div className="section">
           <h2>Bankovní účet</h2>
           <input
             type="text"
-            placeholder="Číslo bankovní účetu"
+            placeholder="např. 22223111/0100"
             value={bankAccount}
             onChange={(e) => setBankAccount(e.target.value)}
             className="input-field"
@@ -75,8 +78,18 @@ export const SettingsPage = () => {
             className="input-field"
           />
         </div>
+        <div className="section">
+          <h2>Cena Kč / Hod.</h2>
+          <input
+            type="number"
+            placeholder="40"
+            value={pricePerHour}
+            onChange={(e) => setPricePerHour(parseFloat(e.target.value))}
+            className="input-field"
+          />
+        </div>
         <button onClick={handleSaveSettings} className="button">
-          Save Settings
+          Uložit
         </button>
       </div>
     </PageLayout>

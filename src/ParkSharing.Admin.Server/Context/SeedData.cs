@@ -20,7 +20,7 @@ public class DebugSeedData
     {
         _ = Task.Run(async () =>
         {
-            await Task.Delay(5000);
+            await Task.Delay(3000);
             ParkingSpot newParkSpot = new ParkingSpot()
             {
                 PublicId = "ADebugSpot",
@@ -29,14 +29,14 @@ public class DebugSeedData
                     {
                         new Availability
                         {
-                            Id = Guid.NewGuid().ToString(),
+                            PublicId = Guid.NewGuid().ToString(),
                             StartTime = new TimeSpan(8, 1, 33),
                             EndTime = new TimeSpan(18, 4, 11),
                             Recurrence= AvailabilityRecurrence.Daily
                         },
                         new Availability
                         {
-                            Id = Guid.NewGuid().ToString(),
+                            PublicId = Guid.NewGuid().ToString(),
                             StartTime = new TimeSpan(1, 4, 0),
                             EndTime = new TimeSpan(2, 2, 0),
                             Recurrence = AvailabilityRecurrence.Weekly,
@@ -44,14 +44,14 @@ public class DebugSeedData
                         },
                         new Availability
                         {
-                            Id = Guid.NewGuid().ToString(),
-                            StartDate = DateTime.UtcNow.AddDays(1).AddHours(2),
-                            EndDate = DateTime.UtcNow.AddDays(2).AddHours(4),
+                            PublicId = Guid.NewGuid().ToString(),
+                            StartDate = new DateTime(DateTime.UtcNow.Year, DateTime.UtcNow.Month + 1, DateTime.UtcNow.Day, 10,0,0),
+                            EndDate = new DateTime(DateTime.UtcNow.Year, DateTime.UtcNow.Month + 1, DateTime.UtcNow.Day, 18,0,0),
                             Recurrence= AvailabilityRecurrence.Once
                         }
                     },
                 Name = "GS22",
-                PricePerHour = 5,
+                PricePerHour = 30,
                 UserId = "google-oauth2|106383545592871849353"
             };
 

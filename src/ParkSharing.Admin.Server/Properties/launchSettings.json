@@ -15,6 +15,14 @@
         "ASPNETCORE_HTTP_PORTS": "8080"
       },
       "publishAllPorts": true
+    },
+    "Container (.NET SDK)": {
+      "commandName": "SdkContainer",
+      "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}",
+      "environmentVariables": {
+        "ASPNETCORE_HTTP_PORTS": "8080"
+      },
+      "publishAllPorts": true
     }
   },
   "$schema": "https://json.schemastore.org/launchsettings.json"

@@ -2,6 +2,8 @@
 using MassTransit;
 using MongoDB.Driver;
 using System.Diagnostics;
+using System.IO.Pipelines;
+using System.Numerics;
 
 namespace App.Consumers
 {
@@ -23,28 +25,52 @@ namespace App.Consumers
         {
             var filter = Builders<ParkingSpot>.Filter.Eq(ps => ps.PublicId, context.Message.PublicSpotId);
             Console.WriteLine($"Filter: PublicSpotId = {context.Message.PublicSpotId}");
-            var parkingSpot = await _parkingSpotsCollection.Find(filter).FirstOrDefaultAsync();
 
-            if (parkingSpot != null)
+            var parkingSpot = await _parkingSpotsCollection.Find(filter).FirstOrDefaultAsync();
+            if (parkingSpot == null)
             {
-                parkingSpot.Reservations =
-                [
-                    new Reservation
-                    {
-                        PublicId = context.Message.PublicId,
-                        Start = context.Message.Start,
-                        End = context.Message.End,
-                        Phone = context.Message.Phone,
-                        Price = context.Message.Price,
-                    },
-                ];
-                var update = Builders<ParkingSpot>.Update.Set(ps => ps.Reservations, parkingSpot.Reservations);
-                _parkingSpotsCollection.UpdateOne(filter, update);
+                throw new Exception($"Spot not found Id: {context.Message.PublicSpotId}");
+            }
+
+            if (parkingSpot.Reservations == null)
+            {
+                parkingSpot.Reservations = new List<Reservation>();
+            }
+
+            var existingReservation = parkingSpot.Reservations
+                                                 .FirstOrDefault(r => r.PublicId == context.Message.PublicId);
+
+            if (existingReservation != null)
+            {
+                UpdateExistingReservation(existingReservation, context.Message);
             }
             else
             {
-                throw new Exception($"Spot not found Id:{context.Message.PublicId}");
+                AddNewReservation(parkingSpot, context.Message);
             }
+
+            var update = Builders<ParkingSpot>.Update.Set(ps => ps.Reservations, parkingSpot.Reservations);
+            await _parkingSpotsCollection.UpdateOneAsync(filter, update);
+        }
+
+        private void UpdateExistingReservation(Reservation existingReservation, ReservationCreatedEvent message)
+        {
+            existingReservation.Start = message.Start;
+            existingReservation.End = message.End;
+            existingReservation.Phone = message.Phone;
+            existingReservation.Price = message.Price;
+        }
+
+        private void AddNewReservation(ParkingSpot parkingSpot, ReservationCreatedEvent message)
+        {
+            parkingSpot.Reservations.Add(new Reservation
+            {
+                PublicId = message.PublicId,
+                Start = message.Start,
+                End = message.End,
+                Phone = message.Phone,
+                Price = message.Price,
+            });
         }
     }
 }

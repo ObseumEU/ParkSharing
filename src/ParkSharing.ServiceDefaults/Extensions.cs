@@ -8,6 +8,7 @@ using Microsoft.Extensions.ServiceDiscovery;
 using OpenTelemetry;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
+using System.Reflection;
 
 namespace Microsoft.Extensions.Hosting
 {
@@ -42,8 +43,14 @@ namespace Microsoft.Extensions.Hosting
             return builder;
         }
 
-        public static IHostApplicationBuilder ConfigureMassTransit(this IHostApplicationBuilder builder, string host, params Type[] consumers)
+        public static IHostApplicationBuilder ConfigureMassTransit(this IHostApplicationBuilder builder, string host, Assembly consumersAssembly)
         {
+            var consumers = consumersAssembly.GetTypes()
+                                    .Where(t => t.GetInterfaces()
+                                                 .Any(i => i.IsGenericType &&
+                                                           i.GetGenericTypeDefinition() == typeof(IConsumer<>)))
+                                    .ToArray();
+
             builder.Services.AddMassTransit(x =>
             {
                 foreach(var consumer in consumers)

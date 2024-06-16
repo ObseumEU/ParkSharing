@@ -1,20 +1,1895 @@
-Write .net aplication using chat gpt API\ Write ony code, file by file one bu one, not exmplanantions , only just full workign code. No examples!
-Application is used for reservation of parking places in comunity parking between nebours. Some nebour have parking place but they dont use them all the time. Main goal is make able to toher people from outside worl or from our comunity reserve some places and send money to bank account. Every person who want share place have bank account. If not the parking place is free. People must be able in chat register parking place for share, set what times regulary or one time what day is avaliable. They must be able manage own place sharing times. Other people, everyone must be able reserve some places wit limits for only 2 places same time one day. If they reserve some place they need pay for it if its not free. Everything is possible in chat on website. Chat must be usable on mobile phoneKey features*Frontend is chat* Backend is C# net core 8* Database is postgres* Using docker * Chat must bee full screen on mobile phones    
-On backend is used chatgpt for undertund commands and handle converstion.\ http://localhost:5239/parking is endpoitn for sending and receiving messages from chatbot. The chatbot is runnign on this endpoint http://localhost:5239/parking is endpoitn for sending and receiving messages from chatbot.
-Frontend must use already existing chat solution modul/framework for example react-simple-chatbot.Write first how connect react fe to backendConversation logic is on backendWrite code, not text. \ In React command line I use powershell
-Used xUnit test for test My code must be secure POST method Parking. I need to be able anyone from internet use application, but i need to be sure nobody misuse the endpoint and fake different conversation of someone else. Everyone must be able handle and comunicate only with theis session conversation. Use Sessions for this
+--------------------------------------------------
+File: ./src/ParkSharing.Reservation.Server/Consumers/AdminConsumer.cs
+--------------------------------------------------
+﻿using App.Context.Models;
+using MassTransit;
+using MongoDB.Driver;
+using ParkSharing.Contracts;
+using System.Diagnostics;
+using System.Linq;
+using System.Threading.Tasks;
+
+public class AdminConsumer : IConsumer<ParkSpotCreatedOrUpdatedEvent>
+{
+    private readonly IMongoCollection<ParkingSpot> _parkingSpotsCollection;
+
+    public AdminConsumer(IMongoDbContext context)
+    {
+        _parkingSpotsCollection = context.ParkingSpots;
+    }
+
+    public async Task Consume(ConsumeContext<ParkSpotCreatedOrUpdatedEvent> context)
+    {
+        Debug.WriteLine($"Received: {System.Text.Json.JsonSerializer.Serialize(context.Message)}");
+        var msg = context.Message;
+
+        var filter = Builders<ParkingSpot>.Filter.Eq(ps => ps.PublicId, msg.PublicId);
+        var existingSpot = await _parkingSpotsCollection.Find(filter).FirstOrDefaultAsync();
+
+        var newParkingSpot = new ParkingSpot()
+        {
+            Availability = msg.Availability.Select(a => new Availability
+            {
+                DayOfWeek = a.DayOfWeek,
+                EndDate = a.EndDate,
+                EndTime = a.EndTime,
+                PublicId = a.PublicId,
+                Recurrence = a.Recurrence,
+                StartDate = a.StartDate,
+                StartTime = a.StartTime
+            }).ToList(),
+            BankAccount = msg.BankAccount,
+            Name = msg.Name,
+            PricePerHour = msg.PricePerHour,
+            PublicId = msg.PublicId
+        };
+
+        if (existingSpot != null)
+        {
+            // Update the existing parking spot
+            var update = Builders<ParkingSpot>.Update
+                .Set(ps => ps.Availability, newParkingSpot.Availability)
+                .Set(ps => ps.BankAccount, newParkingSpot.BankAccount)
+                .Set(ps => ps.Name, newParkingSpot.Name)
+                .Set(ps => ps.PricePerHour, newParkingSpot.PricePerHour);
+
+            await _parkingSpotsCollection.UpdateOneAsync(filter, update);
+        }
+        else
+        {
+            // Insert a new parking spot
+            await _parkingSpotsCollection.InsertOneAsync(newParkingSpot);
+        }
+    }
+}
+
+--------------------------------------------------
+File: ./src/ParkSharing.Reservation.Server/Consumers/ReservationRemoveConsumer.cs
+--------------------------------------------------
+﻿using App.Context.Models;
+using MassTransit;
+using MongoDB.Driver;
+using Nelibur.ObjectMapper;
+using ParkSharing.Contracts;
+using System.Diagnostics;
+
+public class ReservationRemoveConsumer : IConsumer<ReservationRemovedEvent>
+{
+    private readonly IMongoCollection<ParkingSpot> _parkingSpotsCollection;
+
+    public ReservationRemoveConsumer(IMongoDbContext context)
+    {
+        _parkingSpotsCollection = context.ParkingSpots;
+
+    }
+
+    public async Task Consume(ConsumeContext<ReservationRemovedEvent> context)
+    {
+        Debug.WriteLine($"Received: {System.Text.Json.JsonSerializer.Serialize(context.Message)}");
+        var msg = context.Message;
+
+        // Find the parking spot that contains the reservation with the given PublicId
+        var filter = Builders<ParkingSpot>.Filter.ElemMatch(spot => spot.Reservations, reservation => reservation.PublicId == msg.PublicId);
+        var update = Builders<ParkingSpot>.Update.PullFilter(spot => spot.Reservations, reservation => reservation.PublicId == msg.PublicId);
+
+        // Apply the update
+        var result = await _parkingSpotsCollection.UpdateOneAsync(filter, update);
+
+        // Check if the update was successful
+        if (result.ModifiedCount == 0)
+        {
+            throw new Exception("Reservation not found or removal failed.");
+        }
+    }
+}
+
+--------------------------------------------------
+File: ./src/ParkSharing.Reservation.Server/Context/MongoDbContext.cs
+--------------------------------------------------
+﻿using MongoDB.Driver;
+
+public interface IMongoDbContext
+{
+    IMongoCollection<ParkingSpot> ParkingSpots { get; }
+}
+
+public class MongoDbContext : IMongoDbContext
+{
+    private readonly IMongoDatabase _database;
+
+    public MongoDbContext(IMongoClient mongoClient, string databaseName)
+    {
+        _database = mongoClient.GetDatabase(databaseName);
+    }
+
+    public IMongoCollection<ParkingSpot> ParkingSpots => _database.GetCollection<ParkingSpot>("ReservationParkingSpots");
+}
+--------------------------------------------------
+File: ./src/ParkSharing.Reservation.Server/Context/SeedData.cs
+--------------------------------------------------
+﻿using App.Context.Models;
+using MassTransit;
+
+public class DebugSeedData
+{
+    IBus _messageBroker;
+    IReservationService _reservation;
+    public DebugSeedData(IBusControl messageBroker, IReservationService reservation)
+    {
+        _messageBroker = messageBroker;
+        _reservation = reservation;
+    }
+
+    public async Task InitializeAsync()
+    {
+        Task.Run(async () => {
+            bool res = false;
+
+            for(int i = 0; i < 4 && res == false; i++)
+            {
+                await Task.Delay(3000);
+                res = await _reservation.ReserveAsync("GS22", new ReservationSpot()
+                {
+                    PublicId = Guid.NewGuid().ToString(),
+                    Start = new DateTime(DateTime.UtcNow.Year, DateTime.UtcNow.Month + 1, DateTime.UtcNow.Day, 11, 0, 0),
+                    End = new DateTime(DateTime.UtcNow.Year, DateTime.UtcNow.Month + 1, DateTime.UtcNow.Day, 17, 0, 0),
+                    Phone = "123123123",
+                    Price = 22,
+                    State = ParkSharing.Contracts.ReservationState.Created
+                },
+                true);
+            }
+        });
+    }
+}
+--------------------------------------------------
+File: ./src/ParkSharing.Reservation.Server/Controllers/ParkingController.cs
+--------------------------------------------------
+using Microsoft.AspNetCore.Mvc;
+using OpenAI.ObjectModels.RequestModels;
+using ParkSharing.Services.ChatGPT;
+using ParkSharing.Services.ChatGPT.Helpers;
+using System.Security.Cryptography;
+
+[ApiController]
+[Route("[controller]")]
+public class ParkingController : ControllerBase
+{
+    private readonly HttpClient _httpClient;
+    ChatGPTService _gpt;
+    static List<ChatMessage> messages = new List<ChatMessage>();
+
+    public ParkingController(HttpClient httpClient, ChatGPTService gpt)
+    {
+        _httpClient = httpClient;
+        _gpt = gpt;
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> Post([FromBody] UserInputModel input)
+    {
+        var sessionId = GetOrCreateSessionId();
+        try
+        {
+            messages.Add(ChatMessage.FromUser(input.Input));
+            messages = await _gpt.Send(messages);
+            return Ok(new { reply = messages.LastOrDefault().Content });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest($"Error processing your request: {ex.Message}");
+        }
+    }
+
+    private string GetOrCreateSessionId()
+    {
+        var sessionId = HttpContext.Session.GetString("SessionId");
+
+        // If not present, generate a new one and set it in the session
+        if (string.IsNullOrEmpty(sessionId))
+        {
+            sessionId = GenerateSecureSessionId();
+            HttpContext.Session.SetString("SessionId", sessionId);
+        }
+
+        return sessionId;
+    }
+
+    private string GenerateSecureSessionId()
+    {
+        using (var randomNumberGenerator = new RNGCryptoServiceProvider())
+        {
+            var randomBytes = new byte[32]; // 256 bits
+            randomNumberGenerator.GetBytes(randomBytes);
+            return Convert.ToBase64String(randomBytes);
+        }
+    }
+}
+
+public class UserInputModel
+{
+    public string Input { get; set; }
+}
+
+--------------------------------------------------
+File: ./src/ParkSharing.Reservation.Server/obj/Debug/net8.0/.NETCoreApp,Version=v8.0.AssemblyAttributes.cs
+--------------------------------------------------
+// <autogenerated />
+using System;
+using System.Reflection;
+[assembly: global::System.Runtime.Versioning.TargetFrameworkAttribute(".NETCoreApp,Version=v8.0", FrameworkDisplayName = ".NET 8.0")]
+
+--------------------------------------------------
+File: ./src/ParkSharing.Reservation.Server/obj/Debug/net8.0/ParkingReservationApp.AssemblyInfo.cs
+--------------------------------------------------
+//------------------------------------------------------------------------------
+// <auto-generated>
+//     This code was generated by a tool.
+//     Runtime Version:4.0.30319.42000
+//
+//     Changes to this file may cause incorrect behavior and will be lost if
+//     the code is regenerated.
+// </auto-generated>
+//------------------------------------------------------------------------------
+
+using System;
+using System.Reflection;
+
+[assembly: System.Reflection.AssemblyCompanyAttribute("ParkingReservationApp")]
+[assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
+[assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyProductAttribute("ParkingReservationApp")]
+[assembly: System.Reflection.AssemblyTitleAttribute("ParkingReservationApp")]
+[assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
+
+// Generated by the MSBuild WriteCodeFragment class.
+
+
+--------------------------------------------------
+File: ./src/ParkSharing.Reservation.Server/obj/Debug/net8.0/ParkingReservationApp.GlobalUsings.g.cs
+--------------------------------------------------
+// <auto-generated/>
+global using global::Microsoft.AspNetCore.Builder;
+global using global::Microsoft.AspNetCore.Hosting;
+global using global::Microsoft.AspNetCore.Http;
+global using global::Microsoft.AspNetCore.Routing;
+global using global::Microsoft.Extensions.Configuration;
+global using global::Microsoft.Extensions.DependencyInjection;
+global using global::Microsoft.Extensions.Hosting;
+global using global::Microsoft.Extensions.Logging;
+global using global::System;
+global using global::System.Collections.Generic;
+global using global::System.IO;
+global using global::System.Linq;
+global using global::System.Net.Http;
+global using global::System.Net.Http.Json;
+global using global::System.Threading;
+global using global::System.Threading.Tasks;
+
+--------------------------------------------------
+File: ./src/ParkSharing.Reservation.Server/obj/Debug/net8.0/ParkingReservationApp.MvcApplicationPartsAssemblyInfo.cs
+--------------------------------------------------
+//------------------------------------------------------------------------------
+// <auto-generated>
+//     This code was generated by a tool.
+//
+//     Changes to this file may cause incorrect behavior and will be lost if
+//     the code is regenerated.
+// </auto-generated>
+//------------------------------------------------------------------------------
+
+using System;
+using System.Reflection;
+
+[assembly: Microsoft.AspNetCore.Mvc.ApplicationParts.ApplicationPartAttribute("Microsoft.AspNetCore.OpenApi")]
+[assembly: Microsoft.AspNetCore.Mvc.ApplicationParts.ApplicationPartAttribute("Swashbuckle.AspNetCore.SwaggerGen")]
+
+// Generated by the MSBuild WriteCodeFragment class.
+
+
+--------------------------------------------------
+File: ./src/ParkSharing.Reservation.Server/obj/Debug/net8.0/ParkSharing.AssemblyInfo.cs
+--------------------------------------------------
+//------------------------------------------------------------------------------
+// <auto-generated>
+//     This code was generated by a tool.
+//     Runtime Version:4.0.30319.42000
+//
+//     Changes to this file may cause incorrect behavior and will be lost if
+//     the code is regenerated.
+// </auto-generated>
+//------------------------------------------------------------------------------
+
+using System;
+using System.Reflection;
+
+[assembly: System.Reflection.AssemblyCompanyAttribute("ParkSharing")]
+[assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
+[assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+31e70b14bbbd3d560eac41a00432f22f1adc5226")]
+[assembly: System.Reflection.AssemblyProductAttribute("ParkSharing")]
+[assembly: System.Reflection.AssemblyTitleAttribute("ParkSharing")]
+[assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
+
+// Generated by the MSBuild WriteCodeFragment class.
+
+
+--------------------------------------------------
+File: ./src/ParkSharing.Reservation.Server/obj/Debug/net8.0/ParkSharing.GlobalUsings.g.cs
+--------------------------------------------------
+// <auto-generated/>
+global using global::Microsoft.AspNetCore.Builder;
+global using global::Microsoft.AspNetCore.Hosting;
+global using global::Microsoft.AspNetCore.Http;
+global using global::Microsoft.AspNetCore.Routing;
+global using global::Microsoft.Extensions.Configuration;
+global using global::Microsoft.Extensions.DependencyInjection;
+global using global::Microsoft.Extensions.Hosting;
+global using global::Microsoft.Extensions.Logging;
+global using global::System;
+global using global::System.Collections.Generic;
+global using global::System.IO;
+global using global::System.Linq;
+global using global::System.Net.Http;
+global using global::System.Net.Http.Json;
+global using global::System.Threading;
+global using global::System.Threading.Tasks;
+
+--------------------------------------------------
+File: ./src/ParkSharing.Reservation.Server/obj/Debug/net8.0/ParkSharing.MvcApplicationPartsAssemblyInfo.cs
+--------------------------------------------------
+//------------------------------------------------------------------------------
+// <auto-generated>
+//     This code was generated by a tool.
+//     Runtime Version:4.0.30319.42000
+//
+//     Changes to this file may cause incorrect behavior and will be lost if
+//     the code is regenerated.
+// </auto-generated>
+//------------------------------------------------------------------------------
+
+using System;
+using System.Reflection;
+
+[assembly: Microsoft.AspNetCore.Mvc.ApplicationParts.ApplicationPartAttribute("Microsoft.AspNetCore.OpenApi")]
+[assembly: Microsoft.AspNetCore.Mvc.ApplicationParts.ApplicationPartAttribute("Swashbuckle.AspNetCore.SwaggerGen")]
+
+// Generated by the MSBuild WriteCodeFragment class.
+
+
+--------------------------------------------------
+File: ./src/ParkSharing.Reservation.Server/obj/Debug/net8.0/ParkSharing.Reservation.AssemblyInfo.cs
+--------------------------------------------------
+//------------------------------------------------------------------------------
+// <auto-generated>
+//     This code was generated by a tool.
+//     Runtime Version:4.0.30319.42000
+//
+//     Changes to this file may cause incorrect behavior and will be lost if
+//     the code is regenerated.
+// </auto-generated>
+//------------------------------------------------------------------------------
+
+using System;
+using System.Reflection;
+
+[assembly: System.Reflection.AssemblyCompanyAttribute("ParkSharing.Reservation")]
+[assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
+[assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyProductAttribute("ParkSharing.Reservation")]
+[assembly: System.Reflection.AssemblyTitleAttribute("ParkSharing.Reservation")]
+[assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
+
+// Generated by the MSBuild WriteCodeFragment class.
+
+
+--------------------------------------------------
+File: ./src/ParkSharing.Reservation.Server/obj/Debug/net8.0/ParkSharing.Reservation.GlobalUsings.g.cs
+--------------------------------------------------
+// <auto-generated/>
+global using global::Microsoft.AspNetCore.Builder;
+global using global::Microsoft.AspNetCore.Hosting;
+global using global::Microsoft.AspNetCore.Http;
+global using global::Microsoft.AspNetCore.Routing;
+global using global::Microsoft.Extensions.Configuration;
+global using global::Microsoft.Extensions.DependencyInjection;
+global using global::Microsoft.Extensions.Hosting;
+global using global::Microsoft.Extensions.Logging;
+global using global::System;
+global using global::System.Collections.Generic;
+global using global::System.IO;
+global using global::System.Linq;
+global using global::System.Net.Http;
+global using global::System.Net.Http.Json;
+global using global::System.Threading;
+global using global::System.Threading.Tasks;
+
+--------------------------------------------------
+File: ./src/ParkSharing.Reservation.Server/obj/Debug/net8.0/ParkSharing.Reservation.Server.AssemblyInfo.cs
+--------------------------------------------------
+//------------------------------------------------------------------------------
+// <auto-generated>
+//     This code was generated by a tool.
+//     Runtime Version:4.0.30319.42000
+//
+//     Changes to this file may cause incorrect behavior and will be lost if
+//     the code is regenerated.
+// </auto-generated>
+//------------------------------------------------------------------------------
+
+using System;
+using System.Reflection;
+
+[assembly: Microsoft.Extensions.Configuration.UserSecrets.UserSecretsIdAttribute("1160087c-436b-45b5-91d1-db48ae98d0d0")]
+[assembly: System.Reflection.AssemblyCompanyAttribute("ParkSharing.Reservation.Server")]
+[assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
+[assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+8e63a1b499127dabb7220447ad852f764f3d15ac")]
+[assembly: System.Reflection.AssemblyProductAttribute("ParkSharing.Reservation.Server")]
+[assembly: System.Reflection.AssemblyTitleAttribute("ParkSharing.Reservation.Server")]
+[assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
+
+// Generated by the MSBuild WriteCodeFragment class.
+
+
+--------------------------------------------------
+File: ./src/ParkSharing.Reservation.Server/obj/Debug/net8.0/ParkSharing.Reservation.Server.GlobalUsings.g.cs
+--------------------------------------------------
+// <auto-generated/>
+global using global::Microsoft.AspNetCore.Builder;
+global using global::Microsoft.AspNetCore.Hosting;
+global using global::Microsoft.AspNetCore.Http;
+global using global::Microsoft.AspNetCore.Routing;
+global using global::Microsoft.Extensions.Configuration;
+global using global::Microsoft.Extensions.DependencyInjection;
+global using global::Microsoft.Extensions.Hosting;
+global using global::Microsoft.Extensions.Logging;
+global using global::System;
+global using global::System.Collections.Generic;
+global using global::System.IO;
+global using global::System.Linq;
+global using global::System.Net.Http;
+global using global::System.Net.Http.Json;
+global using global::System.Threading;
+global using global::System.Threading.Tasks;
+
+--------------------------------------------------
+File: ./src/ParkSharing.Reservation.Server/obj/Debug/net8.0/ParkSharing.Reservation.Server.MvcApplicationPartsAssemblyInfo.cs
+--------------------------------------------------
+//------------------------------------------------------------------------------
+// <auto-generated>
+//     This code was generated by a tool.
+//     Runtime Version:4.0.30319.42000
+//
+//     Changes to this file may cause incorrect behavior and will be lost if
+//     the code is regenerated.
+// </auto-generated>
+//------------------------------------------------------------------------------
+
+using System;
+using System.Reflection;
+
+[assembly: Microsoft.AspNetCore.Mvc.ApplicationParts.ApplicationPartAttribute("Microsoft.AspNetCore.OpenApi")]
+[assembly: Microsoft.AspNetCore.Mvc.ApplicationParts.ApplicationPartAttribute("Swashbuckle.AspNetCore.SwaggerGen")]
+
+// Generated by the MSBuild WriteCodeFragment class.
+
+
+--------------------------------------------------
+File: ./src/ParkSharing.Reservation.Server/obj/Release/net8.0/.NETCoreApp,Version=v8.0.AssemblyAttributes.cs
+--------------------------------------------------
+// <autogenerated />
+using System;
+using System.Reflection;
+[assembly: global::System.Runtime.Versioning.TargetFrameworkAttribute(".NETCoreApp,Version=v8.0", FrameworkDisplayName = ".NET 8.0")]
+
+--------------------------------------------------
+File: ./src/ParkSharing.Reservation.Server/obj/Release/net8.0/linux-x64/.NETCoreApp,Version=v8.0.AssemblyAttributes.cs
+--------------------------------------------------
+// <autogenerated />
+using System;
+using System.Reflection;
+[assembly: global::System.Runtime.Versioning.TargetFrameworkAttribute(".NETCoreApp,Version=v8.0", FrameworkDisplayName = ".NET 8.0")]
+
+--------------------------------------------------
+File: ./src/ParkSharing.Reservation.Server/obj/Release/net8.0/linux-x64/ParkSharing.Reservation.Server.AssemblyInfo.cs
+--------------------------------------------------
+//------------------------------------------------------------------------------
+// <auto-generated>
+//     This code was generated by a tool.
+//
+//     Changes to this file may cause incorrect behavior and will be lost if
+//     the code is regenerated.
+// </auto-generated>
+//------------------------------------------------------------------------------
+
+using System;
+using System.Reflection;
+
+[assembly: Microsoft.Extensions.Configuration.UserSecrets.UserSecretsIdAttribute("1160087c-436b-45b5-91d1-db48ae98d0d0")]
+[assembly: System.Reflection.AssemblyCompanyAttribute("ParkSharing.Reservation.Server")]
+[assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
+[assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+9a6d890e61efff990e90ba9b350a0374df0c9548")]
+[assembly: System.Reflection.AssemblyProductAttribute("ParkSharing.Reservation.Server")]
+[assembly: System.Reflection.AssemblyTitleAttribute("ParkSharing.Reservation.Server")]
+[assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
+
+// Generated by the MSBuild WriteCodeFragment class.
+
+
+--------------------------------------------------
+File: ./src/ParkSharing.Reservation.Server/obj/Release/net8.0/linux-x64/ParkSharing.Reservation.Server.GlobalUsings.g.cs
+--------------------------------------------------
+// <auto-generated/>
+global using global::Microsoft.AspNetCore.Builder;
+global using global::Microsoft.AspNetCore.Hosting;
+global using global::Microsoft.AspNetCore.Http;
+global using global::Microsoft.AspNetCore.Routing;
+global using global::Microsoft.Extensions.Configuration;
+global using global::Microsoft.Extensions.DependencyInjection;
+global using global::Microsoft.Extensions.Hosting;
+global using global::Microsoft.Extensions.Logging;
+global using global::System;
+global using global::System.Collections.Generic;
+global using global::System.IO;
+global using global::System.Linq;
+global using global::System.Net.Http;
+global using global::System.Net.Http.Json;
+global using global::System.Threading;
+global using global::System.Threading.Tasks;
+
+--------------------------------------------------
+File: ./src/ParkSharing.Reservation.Server/obj/Release/net8.0/linux-x64/ParkSharing.Reservation.Server.MvcApplicationPartsAssemblyInfo.cs
+--------------------------------------------------
+//------------------------------------------------------------------------------
+// <auto-generated>
+//     This code was generated by a tool.
+//
+//     Changes to this file may cause incorrect behavior and will be lost if
+//     the code is regenerated.
+// </auto-generated>
+//------------------------------------------------------------------------------
+
+using System;
+using System.Reflection;
+
+[assembly: Microsoft.AspNetCore.Mvc.ApplicationParts.ApplicationPartAttribute("Microsoft.AspNetCore.OpenApi")]
+[assembly: Microsoft.AspNetCore.Mvc.ApplicationParts.ApplicationPartAttribute("Swashbuckle.AspNetCore.SwaggerGen")]
+
+// Generated by the MSBuild WriteCodeFragment class.
+
+
+--------------------------------------------------
+File: ./src/ParkSharing.Reservation.Server/obj/Release/net8.0/ParkSharing.Reservation.Server.AssemblyInfo.cs
+--------------------------------------------------
+//------------------------------------------------------------------------------
+// <auto-generated>
+//     This code was generated by a tool.
+//     Runtime Version:4.0.30319.42000
+//
+//     Changes to this file may cause incorrect behavior and will be lost if
+//     the code is regenerated.
+// </auto-generated>
+//------------------------------------------------------------------------------
+
+using System;
+using System.Reflection;
+
+[assembly: Microsoft.Extensions.Configuration.UserSecrets.UserSecretsIdAttribute("1160087c-436b-45b5-91d1-db48ae98d0d0")]
+[assembly: System.Reflection.AssemblyCompanyAttribute("ParkSharing.Reservation.Server")]
+[assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
+[assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+cce118c3391a510f96243ea301c877f2acf54f5f")]
+[assembly: System.Reflection.AssemblyProductAttribute("ParkSharing.Reservation.Server")]
+[assembly: System.Reflection.AssemblyTitleAttribute("ParkSharing.Reservation.Server")]
+[assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
+
+// Generated by the MSBuild WriteCodeFragment class.
+
+
+--------------------------------------------------
+File: ./src/ParkSharing.Reservation.Server/obj/Release/net8.0/ParkSharing.Reservation.Server.GlobalUsings.g.cs
+--------------------------------------------------
+// <auto-generated/>
+global using global::Microsoft.AspNetCore.Builder;
+global using global::Microsoft.AspNetCore.Hosting;
+global using global::Microsoft.AspNetCore.Http;
+global using global::Microsoft.AspNetCore.Routing;
+global using global::Microsoft.Extensions.Configuration;
+global using global::Microsoft.Extensions.DependencyInjection;
+global using global::Microsoft.Extensions.Hosting;
+global using global::Microsoft.Extensions.Logging;
+global using global::System;
+global using global::System.Collections.Generic;
+global using global::System.IO;
+global using global::System.Linq;
+global using global::System.Net.Http;
+global using global::System.Net.Http.Json;
+global using global::System.Threading;
+global using global::System.Threading.Tasks;
+
+--------------------------------------------------
+File: ./src/ParkSharing.Reservation.Server/Program.cs
+--------------------------------------------------
+using MassTransit;
+using MongoDB.Driver;
+using OpenAI.Extensions;
+using ParkSharing.Services.ChatGPT;
+using System.Reflection;
+
+var builder = WebApplication.CreateBuilder(args);
+ParkSharing.Reservation.Server.Mapper.BindMaps();
+// Add Service Defaults
+builder.AddServiceDefaults();
+builder.AddMongoDBClient("mongodb");
+var config = builder.Configuration;
+
+// Register custom services
+builder.Services.AddScoped<IMongoDbContext, MongoDbContext>(sp =>
+{
+    var client = sp.GetRequiredService<IMongoClient>();
+    var databaseName = "ReservationParkSharing"; // Ensure this is configured in your settings
+    return new MongoDbContext(client, databaseName);
+});
+
+builder.Services.AddScoped<DebugSeedData>(); // Register SeedData service
+
+builder.ConfigureMassTransit(config.GetConnectionString("rabbitmq"), Assembly.GetExecutingAssembly());
+
+// Add Configuration
+builder.Host.ConfigureAppConfiguration((configBuilder) =>
+{
+    configBuilder.AddEnvironmentVariables();
+});
+
+// Configure Kestrel
+builder.WebHost.ConfigureKestrel(serverOptions =>
+{
+    serverOptions.AddServerHeader = false;
+});
+
+// Add Services to the Container
+builder.Services.AddHttpClient();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
+builder.Services.AddScoped<IReservationService, ReservationService>();
+builder.Services.AddScoped<SessionService>();
+builder.Services.AddScoped<ChatGPTService>();
+builder.Services.AddScoped<ChatGPTCapabilities>();
+
+builder.Services.AddOpenAIService();
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddControllers();
+
+// Configure CORS to allow all
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowSpecificOrigin", policy =>
+        policy.WithOrigins("http://localhost:4224") // Add your frontend URL here
+               .AllowAnyHeader()
+               .AllowAnyMethod()
+               .AllowCredentials());
+});
+
+
+// Configure Session
+builder.Services.AddSession(options =>
+{
+    options.Cookie.Name = "WhyAreYouLookingAtThat";
+    options.IdleTimeout = TimeSpan.FromDays(10000);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+});
+
+var app = builder.Build();
+
+// Middleware Configuration
+app.Use(async (context, next) =>
+{
+    context.Response.OnStarting(() =>
+    {
+        context.Response.Headers.Remove("Server");
+        context.Response.Headers.Remove("X-Powered-By");
+        return Task.CompletedTask;
+    });
+
+    await next();
+});
+
+app.UseExceptionHandler("/Error");
+
+// Configure the HTTP Request Pipeline
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+
+//app.UseHttpsRedirection();
+app.UseCors("AllowSpecificOrigin");
+
+app.UseStaticFiles();
+app.UseRouting();
+app.UseSession();
+app.UseAuthorization();
+app.MapControllers();
+app.MapFallbackToFile("index.html");
+
+app.Run();
+
+--------------------------------------------------
+File: ./src/ParkSharing.Reservation.Server/Reservation/FreeSlotsHelper.cs
+--------------------------------------------------
+﻿using ParkSharing.Contracts;
+using System.ComponentModel.DataAnnotations;
+
+namespace ParkSharing.Reservation.Server.Reservation
+{
+    public static class FreeSlotsHelper
+    {
+        /// <summary>
+        /// Generate FreeSlot for a specific Date range.
+        /// </summary>
+        /// <param name="spots">List of existing spots with availability set</param>
+        /// <param name="from">Generate from this date</param>
+        /// <param name="to">Generate to this date</param>
+        /// <returns>List of available slots</returns>
+        public static List<FreeSlot> GenerateAvaliableSlots(this List<ParkingSpot> spots, DateTime from, DateTime to)
+        {
+            var freeSlots = new List<FreeSlot>();
+
+            foreach (var spot in spots)
+            {
+                if (spot.Availability == null || spot.Availability.Count == 0)
+                {
+                    continue;
+                }
+
+                foreach (var availability in spot.Availability)
+                {
+                    switch (availability.Recurrence)
+                    {
+                        case AvailabilityRecurrence.Once:
+                            AddOnceAvailability(freeSlots, spot, availability, from, to);
+                            break;
+                        case AvailabilityRecurrence.Daily:
+                            AddDailyAvailability(freeSlots, spot, availability, from, to);
+                            break;
+                        case AvailabilityRecurrence.Weekly:
+                            AddWeeklyAvailability(freeSlots, spot, availability, from, to);
+                            break;
+                        case AvailabilityRecurrence.WeekDays:
+                            AddWeekDaysAvailability(freeSlots, spot, availability, from, to);
+                            break;
+                    }
+                }
+            }
+
+            return MergeOverlappingSlots(freeSlots);
+        }
+
+        private static void AddOnceAvailability(List<FreeSlot> freeSlots, ParkingSpot spot, Availability availability, DateTime from, DateTime to)
+        {
+            if (availability.StartDate.HasValue && availability.EndDate.HasValue &&
+                availability.StartDate.Value.Date <= to.Date && availability.EndDate.Value.Date >= from.Date)
+            {
+                if (availability.StartTime != availability.EndTime)
+                {
+                    AddFreeSlot(freeSlots, spot, availability.StartDate.Value.Date + availability.StartTime, availability.EndDate.Value.Date + availability.EndTime);
+                }
+            }
+        }
+
+        private static void AddDailyAvailability(List<FreeSlot> freeSlots, ParkingSpot spot, Availability availability, DateTime from, DateTime to)
+        {
+            for (var date = from.Date; date <= to.Date; date = date.AddDays(1))
+            {
+                if (availability.StartTime != availability.EndTime)
+                {
+                    if (availability.EndTime <= availability.StartTime)
+                    {
+                        AddFreeSlot(freeSlots, spot, date + availability.StartTime, date.AddDays(1) + availability.EndTime);
+                    }
+                    else
+                    {
+                        AddFreeSlot(freeSlots, spot, date + availability.StartTime, date + availability.EndTime);
+                    }
+                }
+            }
+        }
+
+        private static void AddWeeklyAvailability(List<FreeSlot> freeSlots, ParkingSpot spot, Availability availability, DateTime from, DateTime to)
+        {
+            for (var date = from.Date; date <= to.Date; date = date.AddDays(1))
+            {
+                if (date.DayOfWeek == availability.DayOfWeek)
+                {
+                    if (availability.StartTime != availability.EndTime)
+                    {
+                        if (availability.EndTime <= availability.StartTime)
+                        {
+                            AddFreeSlot(freeSlots, spot, date + availability.StartTime, date.AddDays(1) + availability.EndTime);
+                        }
+                        else
+                        {
+                            AddFreeSlot(freeSlots, spot, date + availability.StartTime, date + availability.EndTime);
+                        }
+                    }
+                }
+            }
+        }
+
+        private static void AddWeekDaysAvailability(List<FreeSlot> freeSlots, ParkingSpot spot, Availability availability, DateTime from, DateTime to)
+        {
+            for (var date = from.Date; date <= to.Date; date = date.AddDays(1))
+            {
+                if (date.DayOfWeek != DayOfWeek.Saturday && date.DayOfWeek != DayOfWeek.Sunday)
+                {
+                    if (availability.StartTime != availability.EndTime)
+                    {
+                        if (availability.EndTime <= availability.StartTime)
+                        {
+                            AddFreeSlot(freeSlots, spot, date + availability.StartTime, date.AddDays(1) + availability.EndTime);
+                        }
+                        else
+                        {
+                            AddFreeSlot(freeSlots, spot, date + availability.StartTime, date + availability.EndTime);
+                        }
+                    }
+                }
+            }
+        }
+
+        private static void AddFreeSlot(List<FreeSlot> freeSlots, ParkingSpot spot, DateTime from, DateTime to)
+        {
+            if (spot.Reservations == null || spot.Reservations.Count == 0)
+            {
+                freeSlots.Add(new FreeSlot
+                {
+                    From = from,
+                    To = to,
+                    SpotName = spot.Name,
+                    SpotPublicId = spot.PublicId,
+                    PricePerHour = spot.PricePerHour
+                });
+            }
+            else
+            {
+                var reservations = spot.Reservations.OrderBy(r => r.Start).ToList();
+                DateTime currentStart = from;
+
+                foreach (var reservation in reservations)
+                {
+                    if (reservation.Start < to && reservation.End > from)
+                    {
+                        if (reservation.Start > currentStart)
+                        {
+                            freeSlots.Add(new FreeSlot
+                            {
+                                From = currentStart,
+                                To = reservation.Start,
+                                SpotName = spot.Name,
+                                SpotPublicId = spot.PublicId,
+                                PricePerHour = spot.PricePerHour
+                            });
+                        }
+                        currentStart = reservation.End > to ? to : reservation.End;
+                    }
+                }
+
+                if (currentStart < to)
+                {
+                    freeSlots.Add(new FreeSlot
+                    {
+                        From = currentStart,
+                        To = to,
+                        SpotName = spot.Name,
+                        SpotPublicId = spot.PublicId,
+                        PricePerHour = spot.PricePerHour
+                    });
+                }
+            }
+        }
+
+        private static List<FreeSlot> MergeOverlappingSlots(List<FreeSlot> slots)
+        {
+            if (slots == null || slots.Count == 0)
+            {
+                return new List<FreeSlot>();
+            }
+
+            var mergedSlots = new List<FreeSlot>();
+
+            foreach (var slot in slots.OrderBy(s => s.From))
+            {
+                if (!mergedSlots.Any() || mergedSlots.Last().To < slot.From)
+                {
+                    mergedSlots.Add(slot);
+                }
+                else
+                {
+                    var lastSlot = mergedSlots.Last();
+                    mergedSlots[mergedSlots.Count - 1] = new FreeSlot
+                    {
+                        From = lastSlot.From,
+                        To = lastSlot.To > slot.To ? lastSlot.To : slot.To,
+                        SpotName = lastSlot.SpotName,
+                        SpotPublicId = lastSlot.SpotPublicId
+                    };
+                }
+            }
+
+            return mergedSlots;
+        }
+    }
+}
+public record FreeSlot
+{
+    [Required] public DateTime From { get; init; }
+    [Required] public DateTime To { get; init; }
+    [Required] public string SpotName { get; init; }
+    [Required] public string SpotPublicId { get; init; }
+    [Required] public decimal PricePerHour { get; init; }
+}
+
+--------------------------------------------------
+File: ./src/ParkSharing.Reservation.Server/Reservation/Models/Owner.cs
+--------------------------------------------------
+﻿public class Owner
+{
+    public string OwnerId { get; set; }
+    public string Phone { get; set; }
+    public string Email { get; set; }
+    public List<ParkingSpot> ParkingSpots { get; set; } = new List<ParkingSpot>();
+    public string Password { get; set; }
+}
+
+--------------------------------------------------
+File: ./src/ParkSharing.Reservation.Server/Reservation/Models/ParkingSpot.cs
+--------------------------------------------------
+﻿using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
+using ParkSharing.Contracts;
+using System.ComponentModel.DataAnnotations;
+
+public class Availability
+{
+    [Required]
+    public string PublicId { get; set; }
+    [Required]
+    public TimeSpan StartTime { get; set; }
+    [Required]
+    public TimeSpan EndTime { get; set; }
+    public DateTime? StartDate { get; set; }
+    public DateTime? EndDate { get; set; }
+    [Required]
+    [BsonRepresentation(BsonType.String)]
+    public AvailabilityRecurrence? Recurrence { get; set; }
+    public DayOfWeek? DayOfWeek { get; set; }
+}
+
+public class ParkingSpot
+{
+    [BsonId]
+    [BsonRepresentation(BsonType.ObjectId)]
+    public string Id { get; set; }
+    [Required]
+    public string PublicId { get; set; }
+    [Required]
+    public string Name { get; set; }
+    [Required]
+    public string BankAccount { get; set; }
+    public List<Availability> Availability { get; set; }
+    public List<ReservationSpot> Reservations { get; set; }
+    [Required]
+    public string UserId { get; set; }
+    [Required]
+    public decimal PricePerHour { get; set; }
+}
+
+public class ReservationSpot
+{
+    [BsonId]
+    [BsonRepresentation(BsonType.ObjectId)]
+    public string Id { get; set; }
+    [Required]
+    public string PublicId { get; set; }
+    public string Phone { get; set; }
+    [Required]
+    public DateTime Start { get; set; }
+    [Required]
+    public DateTime End { get; set; }
+    [Required]
+    public decimal Price { get; set; }
+    [Required]
+    [BsonRepresentation(BsonType.String)]
+    public ReservationState State { get; set; }
+}
+
+public class OpenSlot
+{
+    public DateTime From;
+    public DateTime To;
+    public string SpotName;
+}
+--------------------------------------------------
+File: ./src/ParkSharing.Reservation.Server/Services/ChatGPT/ChatGPTCapabilities.cs
+--------------------------------------------------
+﻿using App.Context.Models;
+using MassTransit;
+using OpenAI.Utilities.FunctionCalling;
+using System;
+using System.Globalization;
+using System.Text.Json;
+
+namespace ParkSharing.Services.ChatGPT
+{
+    public class ChatGPTCapabilities
+    {
+        IReservationService _reservation;
+        IBus _messageBroker;
+        public ChatGPTCapabilities(IReservationService reservation, IBus messageBroker)
+        {
+            _reservation = reservation;
+            _messageBroker = messageBroker;
+        }
+
+        [FunctionDescription("Rezervace parkovacího místa. Neni dovoleno rezervova na delsi dobu nez 3 dny, neni dovoleno rezervovat misto pokud neni volne. Navratova hodnota je Nazev parkovaciho mista. Rezervovat lze jen volna mista ziskane funkci AvaliableSpots. Sam vyber nahodne nektere misto. Povolene jsou rezervovat jen cele hodiny")]
+        public async Task<string> ReserveSpot(
+            [ParameterDescription("Datetime format yyyy-mm-dd HH:00")] string from,
+            [ParameterDescription("Datetime format yyyy-mm-dd HH:00")] string to, 
+            string spotName,
+            [ParameterDescription("Telefon pro kontakt")] string phone)
+        {
+            if (!TryParseDateTime(from, out DateTime fromDateTime))
+            {
+                return "Invalid 'from' date format.";
+            }
+
+            if (!TryParseDateTime(to, out DateTime toDateTime))
+            {
+                return "Invalid 'to' date format.";
+            }
+
+            var spot = await _reservation.GetParkingSpotByNameAsync(spotName);
+
+            var totalPrice = spot.PricePerHour * (toDateTime - fromDateTime).Hours;
+
+            var id = Guid.NewGuid().ToString();
+            var result = await _reservation.ReserveAsync(spot.Name, new ReservationSpot()
+            {
+                Phone = phone,
+                End = toDateTime,
+                Start = fromDateTime,
+                Price = (int)totalPrice,
+                PublicId = id
+            });
+
+            if(result == false)
+            {
+                return $"Reservation not created, spot is already reserved for this time.";
+            }
+
+            return $"Reservation created TotalPrice:{totalPrice} BankAccount To pay:{spot.BankAccount}";
+        }
+
+        [FunctionDescription("Tato metoda vrací možné volné termíny. Povolene jsou jen cele hodiny, například od 13:00 do 15:00. Pokud je zdarma napiš to.")]
+        public async Task<string> GetAllOpenSlots(
+          [ParameterDescription("Datetime format yyyy-mm-dd HH:00")] string from,
+          [ParameterDescription("Datetime format yyyy-mm-dd HH:00")] string to)
+        {
+            if (!TryParseDateTime(from, out DateTime fromDateTime))
+            {
+                return "Invalid 'from' date format.";
+            }
+
+            if (!TryParseDateTime(to, out DateTime toDateTime))
+            {
+                return "Invalid 'to' date format.";
+            }
+
+             
+            var freeSlots = await _reservation.GetAllOpenSlots(fromDateTime, toDateTime);
+            var cetZone = TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time");
+
+            var res = freeSlots.Select(f =>
+            {
+                var fromCET = TimeZoneInfo.ConvertTimeFromUtc(f.From, cetZone);
+                var toCET = TimeZoneInfo.ConvertTimeFromUtc(f.To, cetZone);
+                return $"{fromCET.ToString("dd MMM yyyy HH:mm")}-{toCET.ToString("dd MMM yyyy HH:mm")},{f.SpotName},PricePerHour:{f.PricePerHour}:";
+            }).ToList();
+            return string.Join('\n',res);
+        }
+
+        private bool TryParseDateTime(string input, out DateTime dateTime)
+        {
+            string[] formats = { "yyyy-MM-dd HH:00" };
+            return DateTime.TryParseExact(input, formats, CultureInfo.InvariantCulture, DateTimeStyles.None, out dateTime);
+        }
+
+
+        [FunctionDescription("Detail o parkovacim miste. Zobrazit vzdy pri potvrzeni rezervace")]
+        public async Task<string> SpotDetail(string spot)
+        {
+            // Sanitize the input
+            if (!Guid.TryParse(spot, out Guid spotGuid))
+            {
+                return JsonSerializer.Serialize(new { error = "Invalid spot identifier." });
+            }
+
+            // Get the parking spot details
+            var parkingSpot = await _reservation.GetParkingSpotAsync(spotGuid);
+            if (parkingSpot == null)
+            {
+                return JsonSerializer.Serialize(new { error = "Parking spot not found." });
+            }
+
+            // Prepare the result
+            var result = new
+            {
+                Name = parkingSpot.Name,
+                PricePerHour = parkingSpot.PricePerHour
+            };
+
+            // Serialize the result to JSON
+            return JsonSerializer.Serialize(result);
+        }
+    }
+
+    public class SpotDetails
+    {
+        public string Name { get; set; }
+        public string BankAccount { get; set; }
+        public string PricePerHour { get; set; }
+    }
+}
+
+--------------------------------------------------
+File: ./src/ParkSharing.Reservation.Server/Services/ChatGPT/ChatGPTChatClient.cs
+--------------------------------------------------
+﻿using Azure;
+using Microsoft.Extensions.Options;
+using ParkSharing.Services.ChatGPT.Helpers;
+using System.Net.Http.Headers;
+using System.Text;
+using System.Text.Json;
+
+namespace ParkSharing.Services.ChatGPT
+{
+    public partial class ChatGPTChatClient : IChatGPTClient
+    {
+        private readonly IOptions<ChatGPTClientOptions> _options;
+        private readonly IHttpClientFactory _httpClientFactory;
+        private readonly ILogger<ChatGPTChatClient> _log;
+
+        public ChatGPTChatClient(IOptions<ChatGPTClientOptions> options, IHttpClientFactory httpClientFactory, ILogger<ChatGPTChatClient> log)
+        {
+            _options = options;
+            _httpClientFactory = httpClientFactory;
+            _log = log;
+        }
+
+        public async Task<string> CallChatGpt(string text)
+        {
+            try
+            {
+                using var client = _httpClientFactory.CreateClient("Gpt");
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _options.Value.ApiKey);
+
+                var messages = new List<Message>
+            {
+                new Message
+                {
+                    Role = "user",
+                    Content = text
+                }
+            };
+
+                var requestBody = new GptModel
+                {
+                    MaxTokens = _options.Value.MaxTokens,
+                    TopP = _options.Value.TopP,
+                    PresencePenalty = _options.Value.PresencePenalty,
+                    Stream = false,
+                    Temperature = _options.Value.Temperature,
+                    Messages = messages.ToArray(),
+                    Model = "gpt-4"
+                };
+
+                var jsonRequest = JsonSerializer.Serialize(requestBody);
+                _log.LogInformation("Call chatgpt with body: {jsonRequest}", jsonRequest);
+
+                var response = await client.PostAsync(_options.Value.ApiUrl, new StringContent(jsonRequest, Encoding.UTF8, "application/json"));
+                var jsonResponse = await response.Content.ReadAsStringAsync();
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    throw new Exception($"{response.StatusCode} {response.Content}");
+                }
+
+                Console.WriteLine(jsonResponse);
+
+                var responseObject = JsonSerializer.Deserialize<Helpers.Response>(jsonResponse);
+
+                if (jsonResponse.Contains("exceeded your current quota"))
+                {
+                    throw new ExceededCurrentQuotaException();
+                }
+                var documentation = responseObject?.Choices[0]?.ResponseMessage?.Content?.ToString();
+
+                return documentation;
+            }
+            catch (Exception ex)
+            {
+                _log.LogError(ex, "Error call GPT Client");
+                throw;
+            }
+        }
+    }
+}
+--------------------------------------------------
+File: ./src/ParkSharing.Reservation.Server/Services/ChatGPT/ChatGPTService.cs
+--------------------------------------------------
+﻿using OpenAI;
+using OpenAI.Interfaces;
+using OpenAI.Managers;
+using OpenAI.ObjectModels.RequestModels;
+using OpenAI.Utilities.FunctionCalling;
+using System.Collections.Concurrent;
+using System.Globalization;
+namespace ParkSharing.Services.ChatGPT
+{
+    public class Session
+    {
+        public string SessionId { get; set; }
+        public string ExternalGPTThreadId { get; set; }
+        public string ExternalGPTRunId { get; set; }
+        public List<ChatMessage> Activities { get; set; }
+    }
+
+    public class SessionService
+    {
+        public ConcurrentDictionary<string, Session> Sessions = new ConcurrentDictionary<string, Session>();
+
+        public Task<bool> ExistAsync(string id) => Task.FromResult(Sessions.ContainsKey(id));
+
+        public Task<Session> GetAsync(string id) => Task.FromResult(Sessions.TryGetValue(id, out var session) ? session : null);
+
+        public Task<Session> AddAsync(Session session)
+        {
+            Sessions[session.SessionId] = session;
+            return Task.FromResult(session);
+        }
+    }
+
+    public class ChatGPTService
+    {
+        private readonly IOpenAIService _openAI;
+        private readonly ILogger<ChatGPTService> _logger;
+        private readonly IReservationService _reservationService;
+        private readonly SessionService _sessions;
+        private readonly ChatGPTCapabilities _capabilities;
+
+        public ChatGPTService(ILogger<ChatGPTService> logger, IReservationService reservationService, SessionService sessions, ChatGPTCapabilities capabilities)
+        {
+            _openAI = new OpenAIService(new OpenAiOptions
+            {
+                ApiKey = "sk-proj-roWrNK4agpNuCEu1D76DT3BlbkFJcJSu1NGs8GdB09TcctbV",
+                UseBeta = true
+            });
+            _logger = logger;
+            _reservationService = reservationService;
+            _sessions = sessions;
+            _capabilities = capabilities;
+        }
+
+        public async Task<List<ChatMessage>> Send(List<ChatMessage> messages)
+        {
+            if (messages.LastOrDefault().Content.Contains("debug"))
+            {
+                //var msgContent = messages.LastOrDefault().Content;
+                //if (msgContent.Contains("reservation"))
+                //{
+                //    var newMsg = await _capabilities.ReserveSpot("2024-03-21 11:00", "2024-03-21 14:00", "GS22", "123123123");
+                //    messages.Add(ChatMessage.FromAssistant(newMsg));
+                //}
+                //else if (msgContent.Contains("avaliable"))
+                //{
+                //    var newMsg = await _capabilities.AvaliableSpots("2024-03-21 11:00", "2024-03-21 14:00");
+                //    messages.Add(ChatMessage.FromAssistant(newMsg));
+                //}
+                //else
+                //{
+                //    messages.Add(ChatMessage.FromAssistant("Unknown command"));
+                //}
+                return messages;
+            }
+
+
+            var toolDefinitions = FunctionCallingHelper.GetToolDefinitions(_capabilities);
+
+            messages.Insert(0, ChatMessage.FromSystem("Pouzivas v odpovedich markdown. Český chatbot pro sdílení a rezervaci parkovacích míst. Umožňuje majitelům nabízet místa když je nepoužívají a ostatním je rezervovat a platit přes bankovní účet. Uživatelé mohou registrovat místa, nastavovat dostupnost a spravovat nabídky, rezervace omezeny na dvě denně. Komunikace v češtině, pokud uživatel mluvi jinou reci mluvi jinou reci. Nevyplňuj nejasné funkce bez dotazu. Pokud uzivatel zadal email, pouzij jej pro kazdej dotaz. Pokud uzivatel zadal platny kod, pouzij jej pro kazdy dotaz. Pokud chce uzivatel pridavat, menit, mazat svoje parkovaci misto musi se nejdrive identifikovat."));
+            messages.Insert(0, ChatMessage.FromSystem($"Aktualni datum {DateTime.Now.ToString("dd. MMMM yyyy")}"));
+            messages.Insert(0, ChatMessage.FromSystem($"Pokud chce nekdo rezervovat misto, vyber mu nahodne jedno znich a nech si potvrdit ze to je ok nez ho rezervujes."));
+            messages.Insert(0, ChatMessage.FromSystem($"Podpora whatsapp 724 676 829"));
+            messages.Insert(0, ChatMessage.FromSystem($"Vsechna parkovani jsou venkovni. Nic neni v garazi"));
+            messages.Insert(0, ChatMessage.FromSystem($"FAQ: Penize prijdou na ucet majitele parkovaciho stani"));
+            messages.Insert(0, ChatMessage.FromSystem($"Jsi assisten co pomaha s parkovanim. S nicim jinym nepomahas. Pokud neni nic volného, navrhni at vyhledá jiný čas."));
+
+            var req = new ChatCompletionCreateRequest
+            {
+                Tools = toolDefinitions,
+                Messages = messages.ToList(),
+                Model = "gpt_4o",
+                MaxTokens = 200
+            };
+
+            ;
+            var reply = await _openAI.ChatCompletion.CreateCompletion(req, "gpt-4o");
+            if (!reply.Successful)
+            {
+                messages.Add(ChatMessage.FromAssistant("Ups! Něco se pokazilo"));
+                Console.WriteLine(reply.Error?.Message);
+                return req.Messages.ToList();
+            }
+
+            ChatMessage response = reply.Choices.First().Message;
+            req.Messages.Add(response);
+
+
+
+            if (response.ToolCalls?.Count > 0 && !string.IsNullOrEmpty(response.ToolCalls[0].FunctionCall.Name))
+            {
+                do
+                {
+                    string stringResponse = await ExecuteFunction(response);
+                    req.Messages.Add(ChatMessage.FromTool(stringResponse, response.ToolCalls[0].Id));
+                    reply = await _openAI.ChatCompletion.CreateCompletion(req, "gpt-4o");
+                    response = reply.Choices.First().Message;
+                    req.Messages.Add(response);
+                } while (response.ToolCalls != null);
+                req.Messages.Add(response); //Add answer from assistent
+
+            }
+            else
+            {
+                return req.Messages.ToList();
+            }
+
+
+            return req.Messages.ToList();
+        }
+
+        private async Task<string> ExecuteDebugFunction(ChatMessage response)
+        {
+            Console.WriteLine($"Invoking {response.ToolCalls[0].FunctionCall.Name}");
+            var functionCall = response.ToolCalls[0].FunctionCall;
+            var result = await FunctionCallingHelper.CallFunction<Task<string>>(functionCall, _capabilities);
+            var stringResponse = result.ToString(CultureInfo.CurrentCulture);
+            return stringResponse;
+        }
+
+        private async Task<string> ExecuteFunction(ChatMessage response)
+        {
+            Console.WriteLine($"Invoking {response.ToolCalls[0].FunctionCall.Name}");
+            var functionCall = response.ToolCalls[0].FunctionCall;
+            var result = await FunctionCallingHelper.CallFunction<Task<string>>(functionCall, _capabilities);
+            var stringResponse = result.ToString(CultureInfo.CurrentCulture);
+            return stringResponse;
+        }
+    }
+
+    public class ChatGPTResponse
+    {
+        public string Content { get; set; }
+        public FunctionCall FunctionCall { get; set; }
+    }
+}
+
+--------------------------------------------------
+File: ./src/ParkSharing.Reservation.Server/Services/ChatGPT/ExceededCurrentQuotaException.cs
+--------------------------------------------------
+﻿namespace ParkSharing.Services.ChatGPT
+{
+    public class ExceededCurrentQuotaException : Exception
+    {
+    }
+}
+
+--------------------------------------------------
+File: ./src/ParkSharing.Reservation.Server/Services/ChatGPT/Helpers/ChatGPTClientOptions.cs
+--------------------------------------------------
+﻿namespace ParkSharing.Services.ChatGPT.Helpers
+{
+    public class ChatGPTClientOptions
+    {
+        public string ApiKey { get; set; }
+        public string ApiUrl { get; set; }
+        public float Temperature { get; set; }
+        public int MaxTokens { get; set; }
+        public float TopP { get; set; }
+        public float PresencePenalty { get; set; }
+        public string Model { get; set; }
+    }
+}
+
+--------------------------------------------------
+File: ./src/ParkSharing.Reservation.Server/Services/ChatGPT/Helpers/GPTModel.cs
+--------------------------------------------------
+﻿namespace ParkSharing.Services.ChatGPT.Helpers
+{
+    public class GptModel
+    {
+        public Message[] Messages { get; set; }
+
+        public float Temperature { get; set; }
+
+        public int MaxTokens { get; set; }
+
+        public float TopP { get; set; }
+
+        public float FrequencyPenalty { get; set; }
+
+        public float PresencePenalty { get; set; }
+
+        public string Model { get; set; }
+
+        public bool Stream { get; set; }
+        public string Assistent { get; set; }
+    }
+
+    public class Message
+    {
+        public string Role { get; set; }
+        public string Content { get; set; }
+    }
+
+    public class Response
+    {
+        public string Id { get; set; }
+        public string Object { get; set; }
+        public int Created { get; set; }
+        public string Model { get; set; }
+        public ResponseUsage ResponseUsage { get; set; }
+        public Choice[] Choices { get; set; }
+    }
+
+    public class ResponseUsage
+    {
+        public int PromptTokens { get; set; }
+        public int CompletionTokens { get; set; }
+        public int TotalTokens { get; set; }
+    }
+
+    public class Choice
+    {
+        public ResponseMessage ResponseMessage { get; set; }
+        public string FinishReason { get; set; }
+        public int Index { get; set; }
+    }
+
+    public class ResponseMessage
+    {
+        public string Role { get; set; }
+        public string Content { get; set; }
+    }
+}
+--------------------------------------------------
+File: ./src/ParkSharing.Reservation.Server/Services/ChatGPT/IChatGPTClient.cs
+--------------------------------------------------
+﻿namespace ParkSharing.Services.ChatGPT
+{
+    public interface IChatGPTClient
+    {
+        Task<string> CallChatGpt(string text);
+    }
+}
+--------------------------------------------------
+File: ./src/ParkSharing.Reservation.Server/Services/Reservation/IReservationService.cs
+--------------------------------------------------
+﻿using App.Context.Models;
+
+public interface IReservationService
+{
+    Task<List<ParkingSpot>> GetAvailableSpotsAsync(DateTime fromUtc, DateTime toUtc);
+    Task<ParkingSpot> GetParkingSpotAsync(Guid parkingSpotId);
+    Task<ParkingSpot> GetParkingSpotByNameAsync(string name);
+    Task<bool> RemoveReservationAsync(Guid reservationId);
+    Task<bool> ReserveAsync(string spotName, ReservationSpot reservation, bool force = false);
+    Task<List<FreeSlot>> GetAllOpenSlots(DateTime fromUtc, DateTime toUtc);
+}
+--------------------------------------------------
+File: ./src/ParkSharing.Reservation.Server/Services/Reservation/ReservationService.cs
+--------------------------------------------------
+﻿using App.Context.Models;
+using MassTransit;
+using MongoDB.Bson;
+using MongoDB.Driver;
+using ParkSharing.Contracts;
+using Deedle;
+using ParkSharing.Reservation.Server.Reservation;
+
+public class ReservationService : IReservationService
+{
+    private readonly IMongoCollection<ParkingSpot> _parkingSpotsCollection;
+    IBus _broker;
+
+    public ReservationService(IMongoDbContext context, IBus broker)
+    {
+        _parkingSpotsCollection = context.ParkingSpots;
+        _broker = broker;
+    }
+
+    public async Task<List<ParkingSpot>> GetAvailableSpotsAsync(DateTime fromUtc, DateTime toUtc)
+    {
+        var availabilityFilter = CreateAvailabilityFilter(fromUtc, toUtc);
+        var reservationFilter = CreateReservationFilter(fromUtc, toUtc);
+        var filter = Builders<ParkingSpot>.Filter.And(availabilityFilter, reservationFilter);
+
+        //var filter = Builders<ParkingSpot>.Filter.And(availabilityFilter, reservationFilter);
+
+        try
+        {
+            return await _parkingSpotsCollection.Find(filter).ToListAsync();
+        }
+        catch (MongoCommandException ex)
+        {
+            Console.WriteLine($"MongoCommandException: {ex.Message}");
+            throw;
+        }
+    }
+
+    public async Task<List<ReservationSpot>> GetReservationsAsync(string name, DateTime fromUtc, DateTime toUtc)
+    {
+        // Define the filter to match the parking spot by name
+        var filter = Builders<ParkingSpot>.Filter.Eq(p => p.Name, name);
+
+        // Define the projection to include only the reservations that do not collide with the specified time range
+        var projection = Builders<ParkingSpot>.Projection
+            .ElemMatch(p => p.Reservations, r => r.End <= fromUtc || r.Start >= toUtc);
+
+        // Find the parking spot with the specified name and projection
+        var parkingSpotWithReservations = await _parkingSpotsCollection
+            .Find(filter)
+            .Project<ParkingSpot>(projection)
+            .FirstOrDefaultAsync();
+
+        // Return the non-colliding reservations or an empty list if no reservations match
+        return parkingSpotWithReservations?.Reservations ?? new List<ReservationSpot>();
+    }
+
+    public async Task<ParkingSpot> GetParkingSpotAsync(Guid parkingSpotId)
+    {
+        return await _parkingSpotsCollection.Find(p => p.Id == parkingSpotId.ToString()).FirstOrDefaultAsync();
+    }
+
+    public async Task<ParkingSpot> GetParkingSpotByNameAsync(string name)
+    {
+        return await _parkingSpotsCollection.Find(p => p.Name == name).FirstOrDefaultAsync();
+    }
+
+    public async Task<bool> RemoveReservationAsync(Guid reservationId)
+    {
+        var update = Builders<ParkingSpot>.Update.PullFilter(p => p.Reservations, r => r.Id == reservationId.ToString());
+        var result = await _parkingSpotsCollection.UpdateOneAsync(p => p.Reservations.Any(r => r.Id == reservationId.ToString()), update);
+
+        return result.ModifiedCount > 0;
+    }
+
+    public async Task<bool> ReserveAsync(string spotName, ReservationSpot reservation, bool force = false)
+    {
+        ValidateReservation(reservation);
+
+        var existingReservation = await GetAvailableSpotsAsync(reservation.Start, reservation.End);
+        if (existingReservation?.Count == 0 && !force)
+        {
+            return false;
+        }
+
+        var filter = Builders<ParkingSpot>.Filter.Eq(ps => ps.Name, spotName);
+        var parkingSpot = await _parkingSpotsCollection.Find(filter).FirstOrDefaultAsync();
+
+        if(parkingSpot == null)
+        {
+            return false;
+        }
+
+        if (parkingSpot.Reservations == null)
+        {
+            parkingSpot.Reservations = new List<ReservationSpot>();
+        }
+        parkingSpot.Reservations.Add(reservation);
+        var update = Builders<ParkingSpot>.Update.Set(ps => ps.Reservations, parkingSpot.Reservations);
+        var result = await _parkingSpotsCollection.UpdateOneAsync(filter, update);
+
+        var success = result.ModifiedCount > 0;
+
+        if (success)
+        {
+            //Publish event add reservation
+            await _broker.Publish(new ReservationCreatedEvent()
+            {
+                End = reservation.End,
+                Phone = reservation.Phone,
+                PublicId = reservation.PublicId,
+                PublicSpotId = parkingSpot.PublicId,
+                Start = reservation.Start,
+                Price = reservation.Price
+            });
+        }
+        return success;
+    }
+
+    private FilterDefinition<ParkingSpot> CreateAvailabilityFilter(DateTime fromUtc, DateTime toUtc)
+    {
+        var fromTimeOfDay = fromUtc.TimeOfDay;
+        var toTimeOfDay = toUtc.TimeOfDay;
+        var fromDayOfWeek = fromUtc.DayOfWeek;
+        var toDayOfWeek = toUtc.DayOfWeek;
+
+        var onceFilter = Builders<ParkingSpot>.Filter.ElemMatch(p => p.Availability, a =>
+            a.Recurrence == AvailabilityRecurrence.Once &&
+            a.StartDate <= fromUtc && a.EndDate >= toUtc &&
+            fromTimeOfDay >= a.StartTime && toTimeOfDay <= a.EndTime);
+
+        var dailyFilter = Builders<ParkingSpot>.Filter.ElemMatch(p => p.Availability, a =>
+            a.Recurrence == AvailabilityRecurrence.Daily &&
+            fromTimeOfDay >= a.StartTime && toTimeOfDay <= a.EndTime);
+
+        var weeklyFilter = Builders<ParkingSpot>.Filter.ElemMatch(p => p.Availability, a =>
+            a.Recurrence == AvailabilityRecurrence.Weekly &&
+            ((a.DayOfWeek == fromDayOfWeek && fromTimeOfDay >= a.StartTime && toTimeOfDay <= a.EndTime) ||
+             (a.DayOfWeek == toDayOfWeek && fromTimeOfDay >= a.StartTime && toTimeOfDay <= a.EndTime)));
+
+        var weekDaysFilter = Builders<ParkingSpot>.Filter.ElemMatch(p => p.Availability, a =>
+            a.Recurrence == AvailabilityRecurrence.WeekDays &&
+            fromDayOfWeek >= DayOfWeek.Monday && fromDayOfWeek <= DayOfWeek.Friday &&
+            toDayOfWeek >= DayOfWeek.Monday && toDayOfWeek <= DayOfWeek.Friday &&
+            fromTimeOfDay >= a.StartTime && toTimeOfDay <= a.EndTime);
+
+        var dateRangeFilter = Builders<ParkingSpot>.Filter.ElemMatch(p => p.Availability, a =>
+            a.StartDate.HasValue && a.EndDate.HasValue &&
+            fromUtc >= a.StartDate.Value && toUtc <= a.EndDate.Value &&
+            fromTimeOfDay >= a.StartTime && toTimeOfDay <= a.EndTime);
+
+        return Builders<ParkingSpot>.Filter.Or(onceFilter, dailyFilter, weeklyFilter, weekDaysFilter, dateRangeFilter);
+    }
+
+    public async Task<List<FreeSlot>> GetAllOpenSlots(DateTime fromUtc, DateTime toUtc)
+    {
+        var allSpots = await _parkingSpotsCollection.Find(new BsonDocument()).ToListAsync();
+        var openSlots = new List<OpenSlot>();
+        var openSpots = allSpots.GenerateAvaliableSlots(fromUtc, toUtc);
+
+        return openSpots;
+    }
+
+    private FilterDefinition<ParkingSpot> CreateReservationFilter(DateTime fromUtc, DateTime toUtc)
+    {
+        return Builders<ParkingSpot>.Filter.Not(Builders<ParkingSpot>.Filter.ElemMatch(p => p.Reservations, r =>
+            r.Start < toUtc && r.End > fromUtc));
+    }
+
+    private void ValidateReservation(ReservationSpot reservation)
+    {
+        if (reservation.Start == null || reservation.End == null)
+        {
+            throw new ArgumentException("Reservation must have valid start and end times.");
+        }
+    }
+
+    private bool IsSpotAvailable(ParkingSpot freeSpot, ReservationSpot reservation)
+    {
+        throw new NotImplementedException();
+        //return freeSpot.Availability.Any(a =>
+        //    (a.Recurrence == Recurrence.Daily && reservation.Start.Value.TimeOfDay >= a.Start && reservation.End.Value.TimeOfDay <= a.End) ||
+        //    (a.Recurrence == Recurrence.Weekly && a.DayOfWeek == reservation.Start.Value.DayOfWeek && reservation.Start.Value.TimeOfDay >= a.Start && reservation.End.Value.TimeOfDay <= a.End) ||
+        //    (a.Recurrence == Recurrence.Weekly && a.DayOfWeek == reservation.End.Value.DayOfWeek && reservation.Start.Value.TimeOfDay >= a.Start && reservation.End.Value.TimeOfDay <= a.End) ||
+        //    (a.Recurrence == Recurrence.Monthly && reservation.Start.Value.TimeOfDay >= a.Start && reservation.End.Value.TimeOfDay <= a.End)
+        //);
+    }
+}
+
+--------------------------------------------------
+File: ./src/ParkSharing.Reservation.Server/TdoMapper.cs
+--------------------------------------------------
+﻿using App.Context.Models;
+using Nelibur.ObjectMapper;
+using ParkSharing.Contracts;
+
+namespace ParkSharing.Reservation.Server
+{
+    public static class Mapper
+    {
+        public static void BindMaps()
+        {
+            TinyMapper.Bind<ParkSpotCreatedOrUpdatedEvent, ParkingSpot>();
+            TinyMapper.Bind<Availability, AvailabilityCreatedOrUpdatedEvent>();
+            TinyMapper.Bind<ReservationCreatedEvent, ReservationSpot>();
+            TinyMapper.Bind<ReservationSpot, ReservationCreatedEvent>();
+        }
+    }
+}
+
+--------------------------------------------------
+File: ./src/ParkSharing.Reservation.Client/src/App.css
+--------------------------------------------------
+.App {
+  text-align: center;
+  width: 100%;
+  height: 100%;
+}
+
+.App-logo {
+  height: 40vmin;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo {
+    animation: App-logo-spin infinite 20s linear;
+  }
+}
+
+.App-header {
+  background-color: #282c34;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+
+.App-link {
+  color: #61dafb;
+}
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+--------------------------------------------------
+File: ./src/ParkSharing.Reservation.Client/src/CustomChat.css
+--------------------------------------------------
+/* File: ./src/ParkSharing.Reservation.Client/src/CustomChat.css */
+
+.chat-container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    padding: 10px;
+  }
+  
+  .typing-indicator {
+    padding: 10px;
+    font-style: italic;
+    color: #aaa;
+  }
+  
+--------------------------------------------------
+File: ./src/ParkSharing.Reservation.Client/src/index.css
+--------------------------------------------------
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap');
+
+body, html {
+  height: 100%;
+  margin: 0;
+  background-color: #f0f2f5;
+}
+
+#root {
+  height: 100%;
+  width: 100%;
+}
+
+.App {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.chat-container {
+  width: 100%;
+  height: 100%;
+  font-family: Roboto, sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+--------------------------------------------------
+File: ./src/ParkSharing.Reservation.Client/src/OwnerPage.css
+--------------------------------------------------
+.owner-page {
+  padding: 20px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.spot-card {
+  background: white;
+  padding: 20px;
+  margin-bottom: 20px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgb(0 0 0 / 10%);
+}
+
+.availabilities {
+  margin-top: 10px;
+}
+
+.availability {
+  background: #f9f9f9;
+  padding: 10px;
+  margin-bottom: 5px;
+  border-radius: 4px;
+}
+
+.new-availability {
+  margin-top: 20px;
+}
+
+.new-availability label {
+  display: block;
+  margin-bottom: 10px;
+}
+
+.new-availability input, .new-availability select {
+  margin-left: 10px;
+}
+
 --------------------------------------------------
 File: ./src/ParkSharing.Reservation.Client/src/App.js
 --------------------------------------------------
 import React from 'react';
-import CustomChatbot from './CustomChatbot';
+import CustomChat from './CustomChat';
 import './index.css'; // Make sure to import the CSS file
 
 function App() {
   return (
     <div className="App">
       <div className="chat-container">
-        <CustomChatbot />
+        <CustomChat />
       </div>
     </div>
   );
@@ -37,34 +1912,74 @@ test('renders learn react link', () => {
 --------------------------------------------------
 File: ./src/ParkSharing.Reservation.Client/src/config.js
 --------------------------------------------------
-// File: src/ParkSharing/client-app/src/config.js
+import React from 'react';
+import CustomChat from './CustomChat';
+import './index.css'; // Make sure to import the CSS file
 
-import { createChatBotMessage } from 'react-chatbot-kit';
+function App() {
+  return (
+    <div className="App">
+      <div className="chat-container">
+        <CustomChat />
+      </div>
+    </div>
+  );
+}
 
-const config = {
-  botName: "ParkSharing",
-  initialMessages: [createChatBotMessage(`Sdílení a rezervace parkovacích míst ve Velvarii! 🚗
-  Nabízejte svá parkovací místa, když je nepoužíváte.
-  Rezervujte parkování.
-  
-  Stačí napsat co potřebujete.
-  `)],
-  customStyles: {
-    botMessageBox: {
-      backgroundColor: "#376B7E",
-    },
-    chatButton: {
-      backgroundColor: "#5ccc9d",
-    },
-  },
-  state: {
-    userType: null, // Add a state property to track user type
-  },
-  customComponents: {},
-  widgets: [],
+export default App;
+
+--------------------------------------------------
+File: ./src/ParkSharing.Reservation.Client/src/CustomChat.js
+--------------------------------------------------
+import React, { useState } from 'react';
+import { Widget, addResponseMessage } from 'react-chat-widget';
+import 'react-chat-widget/lib/styles.css';
+import axios from 'axios';
+import './CustomChat.css';
+
+const apiServerUrl = process.env.REACT_APP_API_SERVER_URL;
+console.log('API Server URL:', process.env.REACT_APP_API_SERVER_URL);
+
+const CustomChat = () => {
+  const [isBotTyping, setIsBotTyping] = useState(false);
+
+  const handleNewUserMessage = async (newMessage) => {
+    setIsBotTyping(true);
+
+    // Send the message to the backend
+    try {
+      const response = await axios.post(`${apiServerUrl}/parking`, {
+        input: newMessage,
+      }, {
+        withCredentials: true,
+      });
+      addResponseMessage(response.data.reply);
+    } catch (error) {
+      console.error('Error sending message:', error);
+      addResponseMessage('Sorry, something went wrong with your request.');
+    } finally {
+      setIsBotTyping(false);
+    }
+  };
+
+  // Add initial message
+  React.useEffect(() => {
+    addResponseMessage('Sdílení a rezervace parkovacích míst ve Velvarii! 🚗');
+  }, []);
+
+  return (
+    <div className="chat-container">
+      <Widget
+        handleNewUserMessage={handleNewUserMessage}
+        title="ParkSharing"
+        subtitle="How can I assist you?"
+      />
+      {isBotTyping && <div className="typing-indicator">Bot is typing...</div>}
+    </div>
+  );
 };
 
-export default config;
+export default CustomChat;
 
 --------------------------------------------------
 File: ./src/ParkSharing.Reservation.Client/src/CustomChatbot.js
@@ -230,65 +2145,61 @@ File: ./src/ParkSharing.Reservation.Client/src/setupTests.js
 // learn more: https://github.com/testing-library/jest-dom
 import '@testing-library/jest-dom';
 
-----------------------------
-File: src\ParkSharing.Reservation.Client\webpack.config.js
-----------------------------
+--------------------------------------------------
+File: ./src/ParkSharing.Reservation.Client/webpack.config.js
+--------------------------------------------------
+const path = require('path');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 
-----------------------------
-File: src/ParkSharing.Reservation.Client/package.json
-----------------------------
-{
-  "name": "parking-chat-client",
-  "version": "0.1.0",
-  "private": true,
-  "dependencies": {
-    "@chatscope/chat-ui-kit-react": "^2.0.3",
-    "@testing-library/jest-dom": "^5.17.0",
-    "@testing-library/react": "^13.4.0",
-    "@testing-library/user-event": "^13.5.0",
-    "axios": "^1.6.8",
-    "botui": "^1.1.3",
-    "devlop": "^1.1.0",
-    "node-html-parser": "^6.1.13",
-    "react": "^18.3.1",
-    "react-chatbot-kit": "^2.2.2",
-    "react-dom": "^18.3.1",
-    "react-markdown": "^9.0.1",
-    "react-router-dom": "^6.0.0",
-    "react-scripts": "^5.0.1",
-    "react-simple-chatbot": "^0.5.0",
-    "uuid": "^9.0.1",
-    "vue": "^3.4.27",
-    "vue-loader": "^17.4.2",
-    "web-vitals": "^2.1.4"
-  },
-  "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build && mv build ../wwwroot/",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
-  },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
-  },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
-  },
-  "devDependencies": {
-    "@babel/core": "^7.24.5",
-    "@babel/plugin-proposal-nullish-coalescing-operator": "^7.18.6"
-  }
-}
+module.exports = (env) => {
+    return {
+        entry: './src/index.js',
+        output: {
+            filename: 'bundle.js',
+            path: path.resolve(__dirname, 'dist'),
+            publicPath: '/'
+        },
+        module: {
+            rules: [
+                {
+                    test: /\.(js|jsx)$/,
+                    exclude: /node_modules/,
+                    use: {
+                        loader: 'babel-loader',
+                    }
+                },
+                {
+                    test: /\.css$/,
+                    use: ['style-loader', 'css-loader']
+                }
+            ]
+        },
+        resolve: {
+            extensions: ['.js', '.jsx']
+        },
+        plugins: [
+            new CleanWebpackPlugin(),
+            new HtmlWebpackPlugin({
+                template: './public/index.html',
+                filename: 'index.html'
+            })
+        ],
+        devServer: {
+            historyApiFallback: true,
+            static: './', // Updated from contentBase to static
+            hot: true,
+            port: env.PORT || 4001,
+            proxy: [
+                {
+                  context: ["/api"],  
+                  target:
+                    process.env.services__reservationserver__http__0,
+                  pathRewrite: { "^/api": "" },
+                  secure: false,
+                },
+              ],
+        }
+    }
+};
 

@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Nelibur.ObjectMapper;
 using System;
 
-[Route("api/[controller]")]
+[Route("[controller]")]
 [ApiController]
 public class AvaliabilityController : ControllerBase
 {
@@ -48,10 +48,10 @@ public class AvaliabilityController : ControllerBase
             {
                 res.Availability.Add(new AvailabilityDto()
                 {
-                    Id = a.Id,
+                    PublicId = a.PublicId,
                     DayOfWeek = a.DayOfWeek,
-                    End = a.EndDate == null ? DateTime.UtcNow.Add(a.EndTime) : a.EndDate.Value.Add(a.EndTime),
-                    Start = a.StartDate == null ? DateTime.UtcNow.Add(a.StartTime) : a.StartDate.Value.Add(a.StartTime),
+                    End = a.EndDate == null ? DateTime.UtcNow.Date.Add(a.EndTime) : a.EndDate.Value.Date,
+                    Start = a.StartDate == null ? DateTime.UtcNow.Date.Add(a.StartTime) : a.StartDate.Value.Date,
                     Recurrence = a.Recurrence
                 });
             }
@@ -92,7 +92,16 @@ public class AvaliabilityController : ControllerBase
         spot.Availability = new List<Availability>();
         foreach (var av in updatedSpot)
         {
-            spot.Availability.Add(TinyMapper.Map<Availability>(av));
+            spot.Availability.Add(new Availability()
+            {
+                DayOfWeek = av.DayOfWeek,
+                EndDate = av.End.Date,
+                StartDate = av.Start.Date,
+                EndTime = av.End.TimeOfDay,
+                StartTime = av.Start.TimeOfDay,
+                PublicId = av.PublicId,
+                Recurrence = av.Recurrence
+            });
         }
 
         await _parkingSpotService.UpdateAvailabilityByUser(userId, spot.Availability);

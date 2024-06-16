@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Nelibur.ObjectMapper;
 using ParkSharing.Contracts;
 
-[Route("api/[controller]")]
+[Route("[controller]")]
 [ApiController]
 public class ReservationController : ControllerBase
 {
@@ -32,9 +32,10 @@ public class ReservationController : ControllerBase
             .ToList();
         return result;
     }
+
     [Authorize]
     [HttpPut("reject")]
-    public async Task<IActionResult> Reject(string reservationId)
+    public async Task<IActionResult> Reject([FromQuery] string reservationId)
     {
         var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
         if (userId == null)
@@ -48,43 +49,15 @@ public class ReservationController : ControllerBase
             return NotFound();
         }
 
-        var reservation = spot.Reservations.FirstOrDefault(r => r.Id == reservationId);
+        var reservation = spot.Reservations.FirstOrDefault(r => r.PublicId == reservationId);
 
         if (reservation == null)
         {
             return NotFound();
         }
 
-        reservation.State = ReservationState.Rejected; // Assuming 1 is the state for rejected
-                                            //TODO SAVE in db
-        return NoContent();
-    }
-
-    [Authorize]
-    [HttpPut("allow")]
-    public async Task<IActionResult> Allow(string reservationId)
-    {
-        var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-        if (userId == null)
-        {
-            return Unauthorized();
-        }
-
-        var spot = await _parkingSpotService.GetSpotByUser(userId);
-        if (spot == null)
-        {
-            return NotFound();
-        }
-
-        var reservation = spot.Reservations.FirstOrDefault(r => r.Id == reservationId);
-
-        if (reservation == null)
-        {
-            return NotFound();
-        }
-
-        reservation.State = ReservationState.Created; // Assuming 0 is the state for allowed
-                                           //TODO SAVE in db
+        reservation.State = ReservationState.Rejected;
+        await _parkingSpotService.RemoveReservation(reservation.PublicId);
         return NoContent();
     }
 }
