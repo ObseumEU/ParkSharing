@@ -1,9 +1,10 @@
 ﻿using App.Context.Models;
 using MassTransit;
 using MongoDB.Driver;
-using Nelibur.ObjectMapper;
 using ParkSharing.Contracts;
 using System.Diagnostics;
+using System.Linq;
+using System.Threading.Tasks;
 
 public class AdminConsumer : IConsumer<ParkSpotCreatedOrUpdatedEvent>
 {
@@ -12,13 +13,16 @@ public class AdminConsumer : IConsumer<ParkSpotCreatedOrUpdatedEvent>
     public AdminConsumer(IMongoDbContext context)
     {
         _parkingSpotsCollection = context.ParkingSpots;
-
     }
 
     public async Task Consume(ConsumeContext<ParkSpotCreatedOrUpdatedEvent> context)
     {
         Debug.WriteLine($"Received: {System.Text.Json.JsonSerializer.Serialize(context.Message)}");
         var msg = context.Message;
+
+        var filter = Builders<ParkingSpot>.Filter.Eq(ps => ps.PublicId, msg.PublicId);
+        var existingSpot = await _parkingSpotsCollection.Find(filter).FirstOrDefaultAsync();
+
         var newParkingSpot = new ParkingSpot()
         {
             Availability = msg.Availability.Select(a => new Availability
@@ -36,6 +40,22 @@ public class AdminConsumer : IConsumer<ParkSpotCreatedOrUpdatedEvent>
             PricePerHour = msg.PricePerHour,
             PublicId = msg.PublicId
         };
-        await _parkingSpotsCollection.InsertOneAsync(newParkingSpot);
+
+        if (existingSpot != null)
+        {
+            // Update the existing parking spot
+            var update = Builders<ParkingSpot>.Update
+                .Set(ps => ps.Availability, newParkingSpot.Availability)
+                .Set(ps => ps.BankAccount, newParkingSpot.BankAccount)
+                .Set(ps => ps.Name, newParkingSpot.Name)
+                .Set(ps => ps.PricePerHour, newParkingSpot.PricePerHour);
+
+            await _parkingSpotsCollection.UpdateOneAsync(filter, update);
+        }
+        else
+        {
+            // Insert a new parking spot
+            await _parkingSpotsCollection.InsertOneAsync(newParkingSpot);
+        }
     }
 }

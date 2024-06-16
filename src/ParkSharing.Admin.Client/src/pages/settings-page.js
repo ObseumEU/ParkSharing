@@ -62,7 +62,7 @@ export const SettingsPage = () => {
           <h2>Bankovní účet</h2>
           <input
             type="text"
-            placeholder="Číslo bankovní účetu"
+            placeholder="např. 22223111/0100"
             value={bankAccount}
             onChange={(e) => setBankAccount(e.target.value)}
             className="input-field"

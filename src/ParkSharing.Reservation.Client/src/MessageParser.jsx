@@ -2,13 +2,14 @@
 
 import axios from 'axios'; // Added missing import statement
 
+
 class MessageParser {
     constructor(actionProvider) {
         this.actionProvider = actionProvider;
     }
 
     parse(message) {
-        axios.post(`api/parking`, { input: message }, {
+        axios.post(`${apiServerUrl}/parking`, { input: message }, {
             withCredentials: true // This ensures cookies are sent along with the request
         })
             .then(response => {

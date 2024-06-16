@@ -87,14 +87,14 @@ builder.Host.ConfigureServices((services) =>
 
 var app = builder.Build();
 
-using (var scope = app.Services.CreateScope())
-{
-    var seedData = scope.ServiceProvider.GetRequiredService<DebugSeedData>();
-    var bus = scope.ServiceProvider.GetRequiredService<IBusControl>();
-    await bus.StartAsync();
-    await bus.StopAsync();
-    await seedData.InitializeAsync();
-}
+//using (var scope = app.Services.CreateScope())
+//{
+//    var seedData = scope.ServiceProvider.GetRequiredService<DebugSeedData>();
+//    var bus = scope.ServiceProvider.GetRequiredService<IBusControl>();
+//    await bus.StartAsync();
+//    await bus.StopAsync();
+//    await seedData.InitializeAsync();
+//}
 
 // Validate Configuration Variables
 var requiredVars = new string[] {

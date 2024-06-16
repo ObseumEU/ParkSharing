@@ -20,13 +20,14 @@ var admin = builder.AddProject<Projects.ParkSharing_Admin_Server>(ServicesNames.
     .WithEnvironment("CLIENT_ORIGIN_URL", "localhost")
     .WithEnvironment("AUTH0_AUDIENCE", "https://parksharing.obseum.cloud")
     .WithEnvironment("AUTH0_DOMAIN", "dev-j8mvyoxwsvvvkvs6.eu.auth0.com")
-    .WithEnvironment("ASPNETCORE_URLS", "http://+:8080")
+    //.WithEnvironment("ASPNETCORE_URLS", "http://+:8080")
     .WithExternalHttpEndpoints();
 
 builder.AddNpmApp(ServicesNames.ReservationClient, "../ParkSharing.Reservation.Client")
     .WithReference(reservation)
     .WithEnvironment("BROWSER", "none")
     .WithHttpEndpoint(env: "PORT", port: 4224)
+    .WithEnvironment("REACT_APP_API_SERVER_URL", "http://localhost:5084")
     .WithExternalHttpEndpoints()
     .PublishAsDockerFile();
 
@@ -37,13 +38,7 @@ builder.AddNpmApp(ServicesNames.AdminClient, "../ParkSharing.Admin.Client")
     .WithEnvironment("REACT_APP_AUTH0_DOMAIN", "dev-j8mvyoxwsvvvkvs6.eu.auth0.com")
     .WithEnvironment("REACT_APP_AUTH0_CLIENT_ID", "b7ZPBulSPQXCzgolfNAWkxERDPGDTZoz")
     .WithEnvironment("REACT_APP_AUTH0_CALLBACK_URL", "http://localhost:4225/callback")
-#if DEBUG
     .WithEnvironment("REACT_APP_API_SERVER_URL", "http://localhost:4355")
-#else
-    .WithEnvironment("REACT_APP_API_SERVER_URL", "./api)
-
-    .WithEnvironment("REACT_APP_API_SERVER_URL", "https://localhost:4355")
-#endif
 
     .WithEnvironment("REACT_APP_AUTH0_AUDIENCE", "https://parksharing.obseum.cloud")
     .WithHttpEndpoint(env: "PORT", port: 4225)

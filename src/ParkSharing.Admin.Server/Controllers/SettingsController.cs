@@ -1,4 +1,6 @@
-﻿using App.Services;
+﻿using App.Context.Models;
+using App.Services;
+using Auth0.ManagementApi;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Nelibur.ObjectMapper;
@@ -24,12 +26,22 @@ public class SettingsController : ControllerBase
         try
         {
             var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-            if (userId == null)
+         
+
+            var spot = await _parkingSpotService.GetSpotByUser(userId);
+
+            if (spot == null)
             {
+                spot = new ParkingSpot()
+                {
+                    Availability = new List<Availability>(),
+                    PublicId = Guid.NewGuid().ToString(),
+                    UserId = userId
+                };
+                await _parkingSpotService.InsertSpot(spot);
                 return Unauthorized();
             }
 
-            var spot = await _parkingSpotService.GetSpotByUser(userId);
             return new SettingsDto()
             {
                 BankAccount = spot.BankAccount,
