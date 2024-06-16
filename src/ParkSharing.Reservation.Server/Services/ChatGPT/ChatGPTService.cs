@@ -80,9 +80,12 @@ namespace ParkSharing.Services.ChatGPT
             messages.Insert(0, ChatMessage.FromSystem($"Aktualni datum {DateTime.Now.ToString("dd. MMMM yyyy")}"));
             messages.Insert(0, ChatMessage.FromSystem($"Pokud chce nekdo rezervovat misto, vyber mu nahodne jedno znich a nech si potvrdit ze to je ok nez ho rezervujes."));
             messages.Insert(0, ChatMessage.FromSystem($"Podpora whatsapp 724 676 829"));
+            messages.Insert(0, ChatMessage.FromSystem($"Neodpovídej na nic co se netýká rezervace a dostupnosti míst, nebo neni tady napsáno."));
             messages.Insert(0, ChatMessage.FromSystem($"Vsechna parkovani jsou venkovni. Nic neni v garazi"));
             messages.Insert(0, ChatMessage.FromSystem($"FAQ: Penize prijdou na ucet majitele parkovaciho stani"));
             messages.Insert(0, ChatMessage.FromSystem($"Jsi assisten co pomaha s parkovanim. S nicim jinym nepomahas. Pokud neni nic volného, navrhni at vyhledá jiný čas."));
+            messages.Insert(0, ChatMessage.FromSystem($"Nikdy si nevymýšlej odpověd funkcí."));
+            messages.Insert(0, ChatMessage.FromSystem($"FAQ: Pokud chce nekdo pronajimat sve misto at se registruje na https://parksharing-admin.obseum.cloud/"));
 
             var req = new ChatCompletionCreateRequest
             {

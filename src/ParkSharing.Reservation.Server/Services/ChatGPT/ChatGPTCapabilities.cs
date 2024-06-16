@@ -17,7 +17,7 @@ namespace ParkSharing.Services.ChatGPT
             _messageBroker = messageBroker;
         }
 
-        [FunctionDescription("Rezervace parkovacího místa. Neni dovoleno rezervova na delsi dobu nez 3 dny, neni dovoleno rezervovat misto pokud neni volne. Navratova hodnota je Nazev parkovaciho mista. Rezervovat lze jen volna mista ziskane funkci AvaliableSpots. Sam vyber nahodne nektere misto. Povolene jsou rezervovat jen cele hodiny")]
+        [FunctionDescription("Rezervace parkovacího místa. Neni dovoleno rezervova na delsi dobu nez 3 dny, neni dovoleno rezervovat misto pokud neni volne. Navratova hodnota je Nazev parkovaciho mista a celkova cena. Rezervovat lze jen volna mista ziskane funkci AvaliableSpots. Sam vyber nahodne nektere misto. Povolene jsou rezervovat jen cele hodiny")]
         public async Task<string> ReserveSpot(
             [ParameterDescription("Datetime format yyyy-mm-dd HH:00")] string from,
             [ParameterDescription("Datetime format yyyy-mm-dd HH:00")] string to, 
@@ -56,7 +56,7 @@ namespace ParkSharing.Services.ChatGPT
             return $"Reservation created TotalPrice:{totalPrice} BankAccount To pay:{spot.BankAccount}";
         }
 
-        [FunctionDescription("Tato metoda vrací možné volné termíny. Povolene jsou jen cele hodiny, například od 13:00 do 15:00. Pokud je zdarma napiš to.")]
+        [FunctionDescription("Tato metoda vrací možné volné termíny a jejich cenu za hodinu. Povolene jsou jen cele hodiny, například od 13:00 do 15:00. Pokud je zdarma napiš to.")]
         public async Task<string> GetAllOpenSlots(
           [ParameterDescription("Datetime format yyyy-mm-dd HH:00")] string from,
           [ParameterDescription("Datetime format yyyy-mm-dd HH:00")] string to)
@@ -71,9 +71,15 @@ namespace ParkSharing.Services.ChatGPT
                 return "Invalid 'to' date format.";
             }
 
-             
+            if ((toDateTime - fromDateTime).Days > 3)
+            {
+                return "From - to range is too big. Max search range 4 days.";
+            }
+
             var freeSlots = await _reservation.GetAllOpenSlots(fromDateTime, toDateTime);
             var cetZone = TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time");
+
+           
 
             var res = freeSlots.Select(f =>
             {
@@ -81,6 +87,12 @@ namespace ParkSharing.Services.ChatGPT
                 var toCET = TimeZoneInfo.ConvertTimeFromUtc(f.To, cetZone);
                 return $"{fromCET.ToString("dd MMM yyyy HH:mm")}-{toCET.ToString("dd MMM yyyy HH:mm")},{f.SpotName},PricePerHour:{f.PricePerHour}:";
             }).ToList();
+
+            if(res.Count == 0)
+            {
+                return "Not found";
+            }
+
             return string.Join('\n',res);
         }
 

@@ -1,22 +1,40 @@
+# Stage 1: Build the React app
 FROM node:20 as build
 
 WORKDIR /app
 
-COPY package.json package.json
-COPY package-lock.json package-lock.json
+COPY package.json package-lock.json ./
 
-RUN npm install
+# Use --legacy-peer-deps to resolve dependency conflicts
+RUN npm install --legacy-peer-deps
 
 COPY . .
-
 RUN npm run build
 
+# Stage 2: Serve the React app with nginx
 FROM nginx:alpine
 
-COPY --from=build /app/default.conf.template /etc/nginx/templates/default.conf.template
-COPY --from=build /app/dist /usr/share/nginx/html
+COPY --from=build /app/build /usr/share/nginx/html
+
+# If you have a custom nginx config, uncomment the following lines and ensure the default.conf.template exists
+# COPY --from=build /app/default.conf.template /etc/nginx/templates/default.conf.template
+
+ARG REACT_APP_AUTH0_DOMAIN
+ENV REACT_APP_AUTH0_DOMAIN=$REACT_APP_DEBUG
+
+ARG REACT_APP_AUTH0_CLIENT_ID
+ENV REACT_APP_AUTH0_CLIENT_ID=$REACT_APP_AUTH0_CLIENT_ID
+
+ARG REACT_APP_AUTH0_CALLBACK_URL
+ENV REACT_APP_AUTH0_CALLBACK_URL=$REACT_APP_CALLBACK_URL
+
+ARG REACT_APP_API_SERVER_URL
+ENV REACT_APP_API_SERVER_URL=$REACT_APP_API_SERVER_URL
+
+ARG REACT_APP_AUTH0_AUDIENCE
+ENV REACT_APP_AUTH0_AUDIENCE=$REACT_APP_AUTH0_AUDIENCE
 
 # Expose the default nginx port
 EXPOSE 80
 
-CMD ["nginx", "-g", "daemon off;"]  
+CMD ["nginx", "-g", "daemon off;"]
