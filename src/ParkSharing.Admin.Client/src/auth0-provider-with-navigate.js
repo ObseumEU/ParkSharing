@@ -11,7 +11,7 @@ export const Auth0ProviderWithNavigate = ({ children }) => {
   const audience = process.env.REACT_APP_AUTH0_AUDIENCE;
 
   const onRedirectCallback = (appState) => {
-    navigate(appState?.returnTo || window.location.pathname);
+    navigate('/settings');
   };
 
   if (!(domain && clientId && redirectUri && audience)) {

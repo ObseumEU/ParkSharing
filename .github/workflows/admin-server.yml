@@ -1,4 +1,5 @@
-name: ci
+name: admin-server
+
 on:
   push:
     branches:
@@ -12,14 +13,15 @@ jobs:
         with:
           submodules: recursive
           token: ${{ secrets.ACCESS_TOKEN }}
-  docker-admin-server:
-    uses: ObseumEU/github-workflows/.github/workflows/build-and-push.yml@master
+
+  docker:
+    uses: ObseumEU/github-workflows/.github/workflows/build-and-push-v2.yml@master
     with:
-      image: "davidrosko/parksharing-admin-server"
-      dockerfile: ./src/ParkSharing.Admin.Server/Dockerfile
-      context: ./src/ParkSharing.Admin.Server/
-      tests: true
+      project_path: src/ParkSharing.Admin.Server/ParkSharing.Admin.Server.csproj  # Context directory for the build
+      image-name: smixers/parksharing-admin-server
+      servicename: admin-server
     secrets:
       ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
-      DOCKER_USER: ${{ secrets.DOCKER_USER }}
-      DOCKER_PASS: ${{ secrets.DOCKER_PASS }}
+      DOCKER_USER: ${{ secrets.DOCKER_SMIXERS_USER }}
+      DOCKER_PASS: ${{ secrets.DOCKER_SMIXERS_SECRET }}
+

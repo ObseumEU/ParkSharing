@@ -6,9 +6,11 @@ using App.Services;
 using dotenv.net;
 using MassTransit;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.Net.Http.Headers;
 using MongoDB.Driver;
+using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
 var config = builder.Configuration;
@@ -27,9 +29,7 @@ builder.Services.AddScoped<IMongoDbContext, MongoDbContext>(sp =>
 
 builder.Services.AddScoped<DebugSeedData>(); // Register SeedData service
 
-builder.ConfigureMassTransit(config.GetConnectionString("rabbitmq"), 
-    typeof(ReservationConsumer)
-    );
+builder.ConfigureMassTransit(config.GetConnectionString("rabbitmq"), Assembly.GetExecutingAssembly());
 
 // Add Configuration
 builder.Host.ConfigureAppConfiguration((configBuilder) =>
@@ -48,8 +48,10 @@ builder.WebHost.ConfigureKestrel(serverOptions =>
 // Add Services to the Container
 builder.Services.AddScoped<IMessageService, MessageService>();
 builder.Services.AddScoped<IParkingSpotService, ParkingSpotServiceMongo>();
-builder.Services.AddControllers();
-
+builder.Services.AddControllers().AddJsonOptions(options =>
+{
+    options.JsonSerializerOptions.Converters.Add(new NullableDayOfWeekConverter());
+});
 // Configure CORS
 builder.Services.AddCors(options =>
 {
@@ -64,41 +66,38 @@ builder.Services.AddCors(options =>
               .SetPreflightMaxAge(TimeSpan.FromSeconds(86400));
     });
 });
+IdentityModelEventSource.ShowPII = true;
 
 // Configure Authentication
 builder.Host.ConfigureServices((services) =>
     services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         .AddJwtBearer(options =>
         {
-            var audience = builder.Configuration.GetValue<string>("AUTH0_AUDIENCE");
             options.Authority = $"https://{builder.Configuration.GetValue<string>("AUTH0_DOMAIN")}/";
-            options.Audience = audience;
+            options.Audience = builder.Configuration.GetValue<string>("AUTH0_AUDIENCE");
             options.TokenValidationParameters = new TokenValidationParameters
             {
                 ValidateAudience = true,
-                ValidateIssuerSigningKey = true
+                ValidateIssuerSigningKey = true,
+                ValidIssuer = $"https://{builder.Configuration.GetValue<string>("AUTH0_DOMAIN")}/",
+                ValidAudience = builder.Configuration.GetValue<string>("AUTH0_AUDIENCE")
             };
         })
 );
 
 var app = builder.Build();
 
-#if DEBUG
-#if DEBUG
-using (var scope = app.Services.CreateScope())
-{
-    var seedData = scope.ServiceProvider.GetRequiredService<DebugSeedData>();
-    var bus = scope.ServiceProvider.GetRequiredService<IBusControl>();
-    await bus.StartAsync();
-    await bus.StopAsync();
-    await seedData.InitializeAsync();
-}
-#endif
-#endif
+//using (var scope = app.Services.CreateScope())
+//{
+//    var seedData = scope.ServiceProvider.GetRequiredService<DebugSeedData>();
+//    var bus = scope.ServiceProvider.GetRequiredService<IBusControl>();
+//    await bus.StartAsync();
+//    await bus.StopAsync();
+//    await seedData.InitializeAsync();
+//}
 
 // Validate Configuration Variables
 var requiredVars = new string[] {
-    "PORT",
     "CLIENT_ORIGIN_URL",
     "AUTH0_DOMAIN",
     "AUTH0_AUDIENCE",
@@ -114,7 +113,7 @@ foreach (var key in requiredVars)
     }
 }
 
-app.Urls.Add($"http://+:{app.Configuration.GetValue<string>("PORT")}");
+//app.Urls.Add($"http://+:{app.Configuration.GetValue<string>("PORT")}");
 
 // Middleware Configuration
 app.UseErrorHandler();

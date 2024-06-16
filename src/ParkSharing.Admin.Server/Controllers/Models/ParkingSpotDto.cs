@@ -2,7 +2,7 @@
 
 public class AvailabilityDto
 {
-    public string? Id { get; set; }
+    public string? PublicId { get; set; }
     public DateTime Start { get; set; }
     public DateTime End { get; set; }
     public AvailabilityRecurrence? Recurrence { get; set; }
@@ -70,6 +70,7 @@ public class SettingsDto
 {
     public string? Name { get; set; }
     public string? BankAccount { get; set; }
+    public decimal? PricePerHour { get; set; }
 }
 
 

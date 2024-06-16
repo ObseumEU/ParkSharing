@@ -6,11 +6,12 @@ namespace App.Context.Models
 {
     public class Availability
     {
-        public string Id { get; set; }
+        public string PublicId { get; set; }
         public TimeSpan StartTime { get; set; }
         public TimeSpan EndTime { get; set; }
         public DateTime? StartDate { get; set; }
         public DateTime? EndDate { get; set; }
+        [BsonRepresentation(BsonType.String)]
         public AvailabilityRecurrence? Recurrence { get; set; }
         public DayOfWeek? DayOfWeek { get; set; }
     }
@@ -39,6 +40,7 @@ namespace App.Context.Models
         public DateTime? Start { get; set; }
         public DateTime? End { get; set; }
         public decimal Price { get; set; }
+        [BsonRepresentation(BsonType.String)]
         public ReservationState State { get; set; }
     }
 }

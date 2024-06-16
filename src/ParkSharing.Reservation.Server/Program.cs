@@ -2,6 +2,7 @@ using MassTransit;
 using MongoDB.Driver;
 using OpenAI.Extensions;
 using ParkSharing.Services.ChatGPT;
+using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
 ParkSharing.Reservation.Server.Mapper.BindMaps();
@@ -20,7 +21,7 @@ builder.Services.AddScoped<IMongoDbContext, MongoDbContext>(sp =>
 
 builder.Services.AddScoped<DebugSeedData>(); // Register SeedData service
 
-builder.ConfigureMassTransit(config.GetConnectionString("rabbitmq"), typeof(AdminConsumer));
+builder.ConfigureMassTransit(config.GetConnectionString("rabbitmq"), Assembly.GetExecutingAssembly());
 
 // Add Configuration
 builder.Host.ConfigureAppConfiguration((configBuilder) =>
@@ -44,21 +45,20 @@ builder.Services.AddScoped<SessionService>();
 builder.Services.AddScoped<ChatGPTService>();
 builder.Services.AddScoped<ChatGPTCapabilities>();
 
-
 builder.Services.AddOpenAIService();
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddControllers();
 
-
-// Configure CORS
+// Configure CORS to allow all
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("CustomCorsPolicy", policy =>
-        policy.WithOrigins("http://localhost:3000", "http://localhost:5239", "https://parking.obseum.cloud")
+    options.AddPolicy("AllowSpecificOrigin", policy =>
+        policy.WithOrigins("http://localhost:4224") // Add your frontend URL here
                .AllowAnyHeader()
                .AllowAnyMethod()
                .AllowCredentials());
 });
+
 
 // Configure Session
 builder.Services.AddSession(options =>
@@ -71,19 +71,6 @@ builder.Services.AddSession(options =>
 });
 
 var app = builder.Build();
-
-
-#if DEBUG
-using (var scope = app.Services.CreateScope())
-{
-    var seedData = scope.ServiceProvider.GetRequiredService<DebugSeedData>();
-    var bus = scope.ServiceProvider.GetRequiredService<IBusControl>();
-    await bus.StartAsync();
-    await bus.StopAsync();
-    await seedData.InitializeAsync();
-}
-
-#endif
 
 // Middleware Configuration
 app.Use(async (context, next) =>
@@ -107,8 +94,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
-app.UseCors("CustomCorsPolicy");
+//app.UseHttpsRedirection();
+app.UseCors("AllowSpecificOrigin");
+
 app.UseStaticFiles();
 app.UseRouting();
 app.UseSession();

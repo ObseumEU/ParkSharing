@@ -13,6 +13,7 @@ namespace App.Services
         Task UpdateSpot(ParkingSpot spot);
         Task<List<Availability>> UpdateAvailabilityByUser(string userId, List<Availability> availability);
         Task InsertSpot(ParkingSpot spot);
+        Task RemoveReservation(string reservationPublicId);
     }
 
     public class ParkingSpotServiceMongo : IParkingSpotService
@@ -66,6 +67,28 @@ namespace App.Services
             var options = new FindOneAndUpdateOptions<ParkingSpot> { ReturnDocument = ReturnDocument.After };
             var updatedSpot = await _parkingSpots.FindOneAndUpdateAsync(filter, update, options);
             return updatedSpot?.Availability ?? new List<Availability>();
+        }
+
+        public async Task RemoveReservation(string reservationPublicId)
+        {
+            // Find the parking spot that contains the reservation with the given PublicId
+            var filter = Builders<ParkingSpot>.Filter.ElemMatch(spot => spot.Reservations, reservation => reservation.PublicId == reservationPublicId);
+            var update = Builders<ParkingSpot>.Update.PullFilter(spot => spot.Reservations, reservation => reservation.PublicId == reservationPublicId);
+
+            // Apply the update
+            var result = await _parkingSpots.UpdateOneAsync(filter, update);
+
+            //Emit event
+            await _messageBroker.Publish(new ReservationRemovedEvent()
+            {
+                PublicId = reservationPublicId
+            });
+
+            // Check if the update was successful
+            if (result.ModifiedCount == 0)
+            {
+                throw new Exception("Reservation not found or removal failed.");
+            }
         }
     }
 }

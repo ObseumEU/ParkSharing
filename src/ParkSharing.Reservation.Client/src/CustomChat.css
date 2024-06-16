@@ -1,0 +1,32 @@
+/* CustomChat.css */
+.chat-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: white;
+  z-index: 1000;
+}
+
+.rcw-conversation-container {
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none !important;
+  max-height: none !important;
+  border-radius: 0 !important;
+}
+
+.rcw-header,
+.rcw-messages-container,
+.rcw-new-message {
+  width: 100% !important;
+  height: auto !important;
+}
+
+.rcw-messages-container {
+  height: calc(100% - 120px) !important;
+}

@@ -44,7 +44,6 @@ module.exports = (env) => {
                 {
                   context: ["/api"],  
                   target:
-                    process.env.services__reservationserver__https__0 ||
                     process.env.services__reservationserver__http__0,
                   pathRewrite: { "^/api": "" },
                   secure: false,

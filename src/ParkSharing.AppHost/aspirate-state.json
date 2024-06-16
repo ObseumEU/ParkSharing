@@ -1,0 +1,34 @@
+{
+  "projectPath": ".",
+  "inputPath": "aspirate-output",
+  "outputPath": "aspirate-output",
+  "containerImageTags": [
+    "latest"
+  ],
+  "containerBuilder": "docker",
+  "outputFormat": "compose",
+  "privateRegistryEmail": "aspir8@aka.ms",
+  "secrets": {
+    "salt": "FqcOdqOyKlSifQEB",
+    "hash": "UlJP8c7MgQ9U6MzWJXGQ9xkUEleTWiIE3SIlDXiQBOw=",
+    "secrets": {
+      "rabbitmq-password": {
+        "value": "FqcOdqOyKlSifQEBxqGkMbypewaWvcGLKqQDAdZDug69vox1pGDWQ/rdT1TLdMB2O/g="
+      },
+      "mongo": {},
+      "mongodb": {},
+      "rabbitmq": {},
+      "reservationserver": {
+        "ConnectionStrings__mongodb": "FqcOdqOyKlSifQEBUBjsvmdT7mho6RjPL9hlSM5Nu1jrmaYiwTiCafr1SASfD8QJW8SqGtPOsgw=",
+        "ConnectionStrings__rabbitmq": "FqcOdqOyKlSifQEB3npSqkd2yZA7OTtMCugHb8JPpE\u002B\u002B0ut/m3Kccq7nRlGcBrVyGeOyTfHPmQaUX5eFX7lgpQw\u002BC3ma\u002BcLuz3jVk5Q="
+      },
+      "adminserver": {
+        "ConnectionStrings__mongodb": "FqcOdqOyKlSifQEBUBjsvmdT7mho6RjPL9hlSM5Nu1jrmaYiwTiCafr1SASfD8QJW8SqGtPOsgw=",
+        "ConnectionStrings__rabbitmq": "FqcOdqOyKlSifQEB3npSqkd2yZA7OTtMCugHb8JPpE\u002B\u002B0ut/m3Kccq7nRlGcBrVyGeOyTfHPmQaUX5eFX7lgpQw\u002BC3ma\u002BcLuz3jVk5Q="
+      },
+      "reservationclient": {},
+      "adminclient": {}
+    }
+  },
+  "processAllComponents": true
+}
