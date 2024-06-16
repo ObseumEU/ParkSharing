@@ -9,9 +9,7 @@ export const HeroBanner = () => {
 
   return (
     <div className="hero-banner hero-banner--pink-yellow">
-      <div className="hero-banner__logo">
-        <img className="hero-banner__image" src={logo} alt="Logo" />
-      </div>
+        <img className="hero-banner__image" src={`${process.env.PUBLIC_URL}/logo.svg`} alt="Logo" />
       <h1 className="hero-banner__headline">Sdílej svoje parkovací místo!</h1>
       <div className="hero-banner__buttons">
         {/* <SignupButton /> */}
