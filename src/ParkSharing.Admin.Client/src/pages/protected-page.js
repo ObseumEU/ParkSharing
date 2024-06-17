@@ -23,7 +23,9 @@ const recurrenceReverseMap = {
 export const ProtectedPage = () => {
   const { getAccessTokenSilently } = useAuth0();
   const [availability, setAvailability] = useState([]);
+  const [editIndex, setEditIndex] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [editData, setEditData] = useState(null);
   const newItemRef = useRef(null);
 
   const fetchSpot = useCallback(async () => {
@@ -52,10 +54,10 @@ export const ProtectedPage = () => {
   }, [fetchSpot]);
 
   const saveAvailability = useCallback(
-    async (newAvailability) => {
+    async (newAvailabilityList) => {
       try {
         const token = await getAccessTokenSilently();
-        const updatedAvailability = newAvailability.map((slot) => ({
+        const updatedAvailability = newAvailabilityList.map((slot) => ({
           ...slot,
           recurrence: recurrenceMap[slot.recurrence],
         }));
@@ -67,29 +69,41 @@ export const ProtectedPage = () => {
     [getAccessTokenSilently]
   );
 
-  const handleAddAvailability = async () => {
-    const newAvailability = [
-      ...availability,
-      { start: new Date(), end: new Date(), recurrence: "Jednorázové" },
-    ];
-    setAvailability(newAvailability);
-    await saveAvailability(newAvailability);
-    if (newItemRef.current) {
-      newItemRef.current.scrollIntoView({ behavior: "smooth" });
+  const handleAddAvailability = () => {
+    setEditData({
+      start: new Date(),
+      end: new Date(),
+      recurrence: "Jednorázové",
+    });
+    setEditIndex(availability.length); // Set editIndex to the length of availability to denote a new item
+  };
+
+  const handleSaveAvailability = async () => {
+    let updatedAvailability = [...availability];
+    if (editIndex !== null && editIndex < availability.length) {
+      updatedAvailability[editIndex] = editData;
+    } else {
+      updatedAvailability.push(editData);
     }
+    setAvailability(updatedAvailability);
+    setEditIndex(null);
+    setEditData(null);
+    await saveAvailability(updatedAvailability);
   };
 
-  const handleRemoveAvailability = async (index) => {
-    const newAvailability = availability.filter((_, i) => i !== index);
-    setAvailability(newAvailability);
-    await saveAvailability(newAvailability);
+  const handleChangeEditData = (key, value) => {
+    setEditData((prev) => ({ ...prev, [key]: value }));
   };
 
-  const handleChangeAvailability = async (index, key, value) => {
-    const newAvailability = [...availability];
-    newAvailability[index][key] = value;
-    setAvailability(newAvailability);
-    await saveAvailability(newAvailability);
+  const handleEditAvailability = (index) => {
+    setEditData(availability[index]);
+    setEditIndex(index);
+  };
+
+  const handleDeleteAvailability = (index) => {
+    const updatedAvailability = availability.filter((_, i) => i !== index);
+    setAvailability(updatedAvailability);
+    saveAvailability(updatedAvailability);
   };
 
   if (loading) {
@@ -115,19 +129,138 @@ export const ProtectedPage = () => {
                 timeout={500}
                 classNames="availability-item"
               >
-                <div
-                  className="availability-item"
-                  ref={index === availability.length - 1 ? newItemRef : null}
-                >
-                  <div className="availability-item__header">
-                    <h3>Dostupnost {index + 1}</h3>
-                  </div>
+                <div className="availability-item">
+                  {editIndex === index ? (
+                    <div className="availability-item__body">
+                      <label>Opakování:</label>
+                      <select
+                        value={editData.recurrence}
+                        onChange={(e) =>
+                          handleChangeEditData("recurrence", e.target.value)
+                        }
+                        className="input-field"
+                      >
+                        <option>Jednorázové</option>
+                        <option>Denně</option>
+                        <option>Týdně</option>
+                        <option>Pracovní dny (Po-Pá)</option>
+                      </select>
+                      {editData.recurrence === "Týdně" && (
+                        <>
+                          <label>Den v týdnu:</label>
+                          <select
+                            value={editData.dayOfWeek || ""}
+                            onChange={(e) =>
+                              handleChangeEditData("dayOfWeek", e.target.value)
+                            }
+                            className="input-field"
+                          >
+                            <option value="">Vyberte den</option>
+                            <option value="Sunday">Neděle</option>
+                            <option value="Monday">Pondělí</option>
+                            <option value="Tuesday">Úterý</option>
+                            <option value="Wednesday">Středa</option>
+                            <option value="Thursday">Čtvrtek</option>
+                            <option value="Friday">Pátek</option>
+                            <option value="Saturday">Sobota</option>
+                          </select>
+                        </>
+                      )}
+                      {editData.recurrence === "Jednorázové" ? (
+                        <>
+                          <label>Začátek:</label>
+                          <DatePicker
+                            selected={editData.start}
+                            onChange={(date) =>
+                              handleChangeEditData("start", date)
+                            }
+                            showTimeSelect
+                            dateFormat="dd/MM/yyyy HH:mm"
+                            className="input-field"
+                          />
+                          <label>Konec:</label>
+                          <DatePicker
+                            selected={editData.end}
+                            onChange={(date) =>
+                              handleChangeEditData("end", date)
+                            }
+                            showTimeSelect
+                            dateFormat="dd/MM/yyyy HH:mm"
+                            className="input-field"
+                          />
+                        </>
+                      ) : (
+                        <>
+                          <label>Od:</label>
+                          <DatePicker
+                            selected={editData.start}
+                            onChange={(date) =>
+                              handleChangeEditData("start", date)
+                            }
+                            showTimeSelect
+                            showTimeSelectOnly
+                            timeIntervals={15}
+                            timeCaption="Čas"
+                            dateFormat="HH:mm"
+                            className="input-field"
+                          />
+                          <label>Do:</label>
+                          <DatePicker
+                            selected={editData.end}
+                            onChange={(date) =>
+                              handleChangeEditData("end", date)
+                            }
+                            showTimeSelect
+                            showTimeSelectOnly
+                            timeIntervals={15}
+                            timeCaption="Čas"
+                            dateFormat="HH:mm"
+                            className="input-field"
+                          />
+                        </>
+                      )}
+                      <div className="button-container-right">
+                        <button onClick={handleSaveAvailability} className="button">
+                          Uložit dostupnost
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="availability-item__body">
+                      <p>Opakování: {slot.recurrence}</p>
+                      {slot.recurrence === "Týdně" && (
+                        <p>Den v týdnu: {slot.dayOfWeek}</p>
+                      )}
+                      <p>Začátek: {slot.start.toLocaleString()}</p>
+                      <p>Konec: {slot.end.toLocaleString()}</p>
+                      <div className="button-container-right">
+                        <button
+                          onClick={() => handleEditAvailability(index)}
+                          className="button button-edit"
+                        >
+                          ✎
+                        </button>
+                        <button
+                          onClick={() => handleDeleteAvailability(index)}
+                          className="button button-delete"
+                        >
+                          ✖
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </CSSTransition>
+            ))}
+            {editIndex === availability.length && (
+              <CSSTransition timeout={500} classNames="availability-item">
+                <div className="availability-item" ref={newItemRef}>
                   <div className="availability-item__body">
                     <label>Opakování:</label>
                     <select
-                      value={slot.recurrence}
+                      value={editData.recurrence}
                       onChange={(e) =>
-                        handleChangeAvailability(index, "recurrence", e.target.value)
+                        handleChangeEditData("recurrence", e.target.value)
                       }
                       className="input-field"
                     >
@@ -136,13 +269,13 @@ export const ProtectedPage = () => {
                       <option>Týdně</option>
                       <option>Pracovní dny (Po-Pá)</option>
                     </select>
-                    {slot.recurrence === "Týdně" && (
+                    {editData.recurrence === "Týdně" && (
                       <>
                         <label>Den v týdnu:</label>
                         <select
-                          value={slot.dayOfWeek || ""}
+                          value={editData.dayOfWeek || ""}
                           onChange={(e) =>
-                            handleChangeAvailability(index, "dayOfWeek", e.target.value)
+                            handleChangeEditData("dayOfWeek", e.target.value)
                           }
                           className="input-field"
                         >
@@ -157,13 +290,13 @@ export const ProtectedPage = () => {
                         </select>
                       </>
                     )}
-                    {slot.recurrence === "Jednorázové" ? (
+                    {editData.recurrence === "Jednorázové" ? (
                       <>
                         <label>Začátek:</label>
                         <DatePicker
-                          selected={slot.start}
+                          selected={editData.start}
                           onChange={(date) =>
-                            handleChangeAvailability(index, "start", date)
+                            handleChangeEditData("start", date)
                           }
                           showTimeSelect
                           dateFormat="dd/MM/yyyy HH:mm"
@@ -171,9 +304,9 @@ export const ProtectedPage = () => {
                         />
                         <label>Konec:</label>
                         <DatePicker
-                          selected={slot.end}
+                          selected={editData.end}
                           onChange={(date) =>
-                            handleChangeAvailability(index, "end", date)
+                            handleChangeEditData("end", date)
                           }
                           showTimeSelect
                           dateFormat="dd/MM/yyyy HH:mm"
@@ -184,9 +317,9 @@ export const ProtectedPage = () => {
                       <>
                         <label>Od:</label>
                         <DatePicker
-                          selected={slot.start}
+                          selected={editData.start}
                           onChange={(date) =>
-                            handleChangeAvailability(index, "start", date)
+                            handleChangeEditData("start", date)
                           }
                           showTimeSelect
                           showTimeSelectOnly
@@ -197,9 +330,9 @@ export const ProtectedPage = () => {
                         />
                         <label>Do:</label>
                         <DatePicker
-                          selected={slot.end}
+                          selected={editData.end}
                           onChange={(date) =>
-                            handleChangeAvailability(index, "end", date)
+                            handleChangeEditData("end", date)
                           }
                           showTimeSelect
                           showTimeSelectOnly
@@ -210,20 +343,21 @@ export const ProtectedPage = () => {
                         />
                       </>
                     )}
-                    <button
-                      onClick={() => handleRemoveAvailability(index)}
-                      className="button button-remove"
-                    >
-                      Odstranit
-                    </button>
+                    <div className="button-container-right">
+                      <button onClick={handleSaveAvailability} className="button">
+                        Uložit dostupnost
+                      </button>
+                    </div>
                   </div>
                 </div>
               </CSSTransition>
-            ))}
+            )}
           </TransitionGroup>
-          <button onClick={handleAddAvailability} className="button">
-            Přidat dostupnost
-          </button>
+          {editIndex === null && (
+            <button onClick={handleAddAvailability} className="button">
+              Přidat dostupnost
+            </button>
+          )}
         </div>
       </div>
     </PageLayout>
