@@ -50,8 +50,8 @@ public class AvaliabilityController : ControllerBase
                 {
                     PublicId = a.PublicId,
                     DayOfWeek = a.DayOfWeek,
-                    End = a.EndDate == null ? DateTime.UtcNow.Date.Add(a.EndTime) : a.EndDate.Value.Date,
-                    Start = a.StartDate == null ? DateTime.UtcNow.Date.Add(a.StartTime) : a.StartDate.Value.Date,
+                    End = a.EndDate == null ? DateTime.UtcNow.Date.Add(a.EndTime) : a.EndDate.Value.Date.Add(a.EndTime),
+                    Start = a.StartDate == null ? DateTime.UtcNow.Date.Add(a.StartTime) : a.StartDate.Value.Date.Add(a.StartTime),
                     Recurrence = a.Recurrence
                 });
             }
