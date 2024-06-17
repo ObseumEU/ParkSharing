@@ -11,11 +11,13 @@ public class ParkingController : ControllerBase
     private readonly HttpClient _httpClient;
     ChatGPTService _gpt;
     static List<ChatMessage> messages = new List<ChatMessage>();
+    ILogger<ParkingController> _log;
 
-    public ParkingController(HttpClient httpClient, ChatGPTService gpt)
+    public ParkingController(HttpClient httpClient, ChatGPTService gpt, ILogger<ParkingController> log)
     {
         _httpClient = httpClient;
         _gpt = gpt;
+        _log = log;
     }
 
     [HttpPost]
@@ -30,7 +32,8 @@ public class ParkingController : ControllerBase
         }
         catch (Exception ex)
         {
-            return BadRequest($"Error processing your request: {ex.Message}");
+            _log.LogError(ex, "Cannot receive messher");
+            throw new Exception(); 
         }
     }
 

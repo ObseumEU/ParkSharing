@@ -77,7 +77,7 @@ namespace ParkSharing.Services.ChatGPT
             }
 
             var freeSlots = await _reservation.GetAllOpenSlots(fromDateTime, toDateTime);
-            var cetZone = TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time");
+            var cetZone = TimeZoneInfo.FindSystemTimeZoneById("Europe/Berlin");
 
            
 
