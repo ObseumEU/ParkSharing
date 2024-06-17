@@ -194,3 +194,125 @@
 
 
 
+.availability-item__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #ccc; /* Add a delimiter between items */
+  padding-bottom: 8px;
+}
+
+.button-container {
+  display: flex;
+  gap: 10px;
+}
+
+.button-edit, .button-delete {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.2em;
+  margin-left: 10px;
+}
+
+.button-edit {
+  color: #4CAF50; /* Green */
+}
+
+.button-delete {
+  color: #f44336; /* Red */
+}
+
+.availability-item {
+  padding: 10px 0; /* Add padding between items */
+}
+
+.availability-item__body {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.input-field {
+  margin-top: 5px;
+  margin-bottom: 10px;
+  padding: 5px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 1em;
+}
+
+.button:hover {
+  background-color: #0056b3;
+}
+
+
+.availability-item__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.button-container-right {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.availability-item__body {
+  flex: 1;
+}
+
+.availability-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #ccc;
+  padding: 10px 0;
+}
+
+.availability-item__body {
+  flex-grow: 1;
+}
+
+.button-container-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.button-container-right {
+  display: flex;
+  flex-direction: row;
+  gap: 10px; /* Adjust the gap between buttons as needed */
+  justify-content: flex-start; /* Align buttons to the left */
+}
+
+.button-edit,
+.button-delete {
+  padding: 10px 20px;
+  cursor: pointer;
+  border: none;
+  background-color: #007bff;
+  color: white;
+  border-radius: 4px;
+  transition: background-color 0.3s;
+}
+
+.button-edit:hover {
+  background-color: #4CAF50; /* Green hover effect for Edit */
+}
+
+.button-delete:hover {
+  background-color: #f44336; /* Red hover effect for Delete */
+}

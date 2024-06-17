@@ -64,7 +64,7 @@ builder.Services.AddCors(options =>
 builder.Services.AddSession(options =>
 {
     options.Cookie.Name = "WhyAreYouLookingAtThat";
-    options.IdleTimeout = TimeSpan.FromDays(10000);
+    options.IdleTimeout = TimeSpan.FromMinutes(30);
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
     options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
