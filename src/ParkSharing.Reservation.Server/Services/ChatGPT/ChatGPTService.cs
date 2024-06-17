@@ -87,10 +87,12 @@ namespace ParkSharing.Services.ChatGPT
             messages.Insert(0, ChatMessage.FromSystem($"Nikdy si nevymýšlej odpověd funkcí."));
             messages.Insert(0, ChatMessage.FromSystem($"FAQ: Pokud chce nekdo pronajimat sve misto at se registruje na https://parksharing-admin.obseum.cloud/"));
 
+
+
             var req = new ChatCompletionCreateRequest
             {
                 Tools = toolDefinitions,
-                Messages = messages.ToList(),
+                Messages = messages.Where(m => m != null).ToList(),
                 Model = "gpt_4o",
                 MaxTokens = 200
             };
