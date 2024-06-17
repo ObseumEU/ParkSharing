@@ -26,21 +26,8 @@ public class SettingsController : ControllerBase
         try
         {
             var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-         
 
-            var spot = await _parkingSpotService.GetSpotByUser(userId);
-
-            if (spot == null)
-            {
-                spot = new ParkingSpot()
-                {
-                    Availability = new List<Availability>(),
-                    PublicId = Guid.NewGuid().ToString(),
-                    UserId = userId
-                };
-                await _parkingSpotService.InsertSpot(spot);
-                return Unauthorized();
-            }
+            var spot = await _parkingSpotService.GetOrCreateSpotByUser(userId);
 
             return new SettingsDto()
             {
