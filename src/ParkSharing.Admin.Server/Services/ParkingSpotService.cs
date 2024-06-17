@@ -9,6 +9,7 @@ namespace App.Services
     public interface IParkingSpotService
     {
         Task<ParkingSpot> GetSpotByUser(string userId);
+        Task<ParkingSpot> GetOrCreateSpotByUser(string userId);
         Task<List<Availability>> GetAvailabilityByUser(string userId);
         Task UpdateSpot(ParkingSpot spot);
         Task<List<Availability>> UpdateAvailabilityByUser(string userId, List<Availability> availability);
@@ -32,6 +33,23 @@ namespace App.Services
         {
             var filter = Builders<ParkingSpot>.Filter.Eq(s => s.UserId, userId);
             return await _parkingSpots.Find(filter).FirstOrDefaultAsync();
+        }
+
+        public async Task<ParkingSpot> GetOrCreateSpotByUser(string userId)
+        {
+            var spot = await GetSpotByUser(userId);
+
+            if(spot == null)
+            {
+                spot = new ParkingSpot()
+                {
+                    Availability = new List<Availability>(),
+                    PublicId = Guid.NewGuid().ToString(),
+                    UserId = userId
+                };
+                await InsertSpot(spot);
+            }
+            return spot;
         }
 
         public async Task<List<Availability>> GetAvailabilityByUser(string userId)

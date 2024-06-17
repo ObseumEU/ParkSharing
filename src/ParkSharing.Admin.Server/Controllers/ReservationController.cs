@@ -25,7 +25,7 @@ public class ReservationController : ControllerBase
             return Unauthorized();
         }
 
-        var spot = await _parkingSpotService.GetSpotByUser(userId);
+        var spot = await _parkingSpotService.GetOrCreateSpotByUser(userId);
         var result = spot.Reservations?
             .Select(r => TinyMapper.Map<ReservationDto>(r))
             .OrderBy(r => r.Start)

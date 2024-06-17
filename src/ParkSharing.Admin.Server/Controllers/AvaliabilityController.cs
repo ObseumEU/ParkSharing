@@ -25,7 +25,7 @@ public class AvaliabilityController : ControllerBase
             return Unauthorized();
         }
 
-        var spot = await _parkingSpotService.GetSpotByUser(userId);
+        var spot = await _parkingSpotService.GetOrCreateSpotByUser(userId);
 
         if(spot == null)
         {
