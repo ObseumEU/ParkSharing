@@ -31,7 +31,7 @@ const CustomChat = () => {
 
   // Add initial message and open the chat widget
   useEffect(() => {
-    addResponseMessage('Sdílení a rezervace parkovacích míst ve Velvarii! 🚗');
+    addResponseMessage('Sdílení a rezervace parkovacích míst ve Velvarii! 🚗 Stačí napsat na kdy chcete místo rezervovat.');
     toggleWidget(); // Open the chat widget
   }, []);
 
