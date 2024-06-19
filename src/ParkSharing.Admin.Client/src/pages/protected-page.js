@@ -176,7 +176,7 @@ export const ProtectedPage = () => {
                             }
                             showTimeSelect
                             dateFormat="dd/MM/yyyy HH:mm"
-                            className="input-field"
+                            className="input-field custom-datepicker"
                           />
                           <label>Konec:</label>
                           <DatePicker
@@ -186,7 +186,7 @@ export const ProtectedPage = () => {
                             }
                             showTimeSelect
                             dateFormat="dd/MM/yyyy HH:mm"
-                            className="input-field"
+                            className="input-field custom-datepicker"
                           />
                         </>
                       ) : (
@@ -202,7 +202,7 @@ export const ProtectedPage = () => {
                             timeIntervals={15}
                             timeCaption="Čas"
                             dateFormat="HH:mm"
-                            className="input-field"
+                            className="input-field custom-datepicker"
                           />
                           <label>Do:</label>
                           <DatePicker
@@ -215,7 +215,7 @@ export const ProtectedPage = () => {
                             timeIntervals={15}
                             timeCaption="Čas"
                             dateFormat="HH:mm"
-                            className="input-field"
+                            className="input-field custom-datepicker"
                           />
                         </>
                       )}
@@ -300,7 +300,7 @@ export const ProtectedPage = () => {
                           }
                           showTimeSelect
                           dateFormat="dd/MM/yyyy HH:mm"
-                          className="input-field"
+                          className="input-field custom-datepicker"
                         />
                         <label>Konec:</label>
                         <DatePicker
@@ -310,7 +310,7 @@ export const ProtectedPage = () => {
                           }
                           showTimeSelect
                           dateFormat="dd/MM/yyyy HH:mm"
-                          className="input-field"
+                          className="input-field custom-datepicker"
                         />
                       </>
                     ) : (
@@ -326,7 +326,7 @@ export const ProtectedPage = () => {
                           timeIntervals={15}
                           timeCaption="Čas"
                           dateFormat="HH:mm"
-                          className="input-field"
+                          className="input-field custom-datepicker"
                         />
                         <label>Do:</label>
                         <DatePicker
@@ -339,7 +339,7 @@ export const ProtectedPage = () => {
                           timeIntervals={15}
                           timeCaption="Čas"
                           dateFormat="HH:mm"
-                          className="input-field"
+                          className="input-field custom-datepicker"
                         />
                       </>
                     )}

@@ -316,3 +316,15 @@
 .button-delete:hover {
   background-color: #f44336; /* Red hover effect for Delete */
 }
+
+.button-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+  gap: 20px;
+}
+
+.home-button {
+  font-size: 1.2rem;
+  padding: 10px 20px;
+}
