@@ -3,7 +3,7 @@ import React from "react";
 import { Route, Routes } from "react-router-dom";
 import { PageLoader } from "./components/page-loader";
 import { AuthenticationGuard } from "./components/authentication-guard";
-// import { AdminPage } from "./pages/admin-page";
+import { AdminPage } from "./pages/admin-page";
 import { CallbackPage } from "./pages/callback-page";
 import { HomePage } from "./pages/home-page";
 import { NotFoundPage } from "./pages/not-found-page";
@@ -45,11 +45,11 @@ export const App = () => {
         path="/settings"
         element={<AuthenticationGuard component={SettingsPage} />}
       />
-      {/* <Route
+      <Route path="/callback" element={<CallbackPage />} />
+      <Route
         path="/admin"
         element={<AuthenticationGuard component={AdminPage} />}
-      /> */}
-      <Route path="/callback" element={<CallbackPage />} />
+      />
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );

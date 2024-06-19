@@ -1,11 +1,14 @@
 using App;
+using App.Authorization;
 using App.Consumers;
 using App.Context.Models;
 using App.Middlewares;
+using App.Requirement;
 using App.Services;
 using dotenv.net;
 using MassTransit;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.Net.Http.Headers;
@@ -70,6 +73,7 @@ IdentityModelEventSource.ShowPII = true;
 
 // Configure Authentication
 builder.Host.ConfigureServices((services) =>
+{
     services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         .AddJwtBearer(options =>
         {
@@ -80,9 +84,20 @@ builder.Host.ConfigureServices((services) =>
                 ValidateAudience = true,
                 ValidateIssuerSigningKey = true,
                 ValidIssuer = $"https://{builder.Configuration.GetValue<string>("AUTH0_DOMAIN")}/",
-                ValidAudience = builder.Configuration.GetValue<string>("AUTH0_AUDIENCE")
+                ValidAudience = builder.Configuration.GetValue<string>("AUTH0_AUDIENCE"),
             };
-        })
+        });
+
+    services.AddAuthorization(options =>
+    {
+        options.AddPolicy("read:admin-reservations", policy =>
+        {
+            policy.Requirements.Add(new RbacRequirement("read:admin-reservations"));
+        });
+    });
+
+    services.AddSingleton<IAuthorizationHandler, RbacHandler>();
+}
 );
 
 var app = builder.Build();
