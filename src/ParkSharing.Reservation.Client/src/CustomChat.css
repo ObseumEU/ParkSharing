@@ -107,24 +107,24 @@ body {
 }
 
 html {
-  font-size: 10px;
+  font-size: 15px;
   text-rendering: geometricPrecision;
   -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
 }
 
 .rcw-response {
-  font-size: 14px;
+  font-size: 15px;
   color: var(--black);
 }
 
 .rcw-message-text {
-  font-size: 14px;
+  font-size: 15px;
   color: var(--black);
   font-family: "Space Grotesk", sans-serif;
 }
 
 .rcw-input {
-  font-size: 14px;
+  font-size: 15px;
   font-family: "Space Grotesk", sans-serif;
 }
 
