@@ -334,7 +334,7 @@
 
 .reservations-page {
   padding: 20px;
-  background-color: #1e1e1e;
+  background-color: #000000;
   color: #fff;
   font-family: Arial, sans-serif;
 }
@@ -382,12 +382,12 @@
 }
 
 .reservation-item {
-  font-size: 1.5rem; 
+  font-size: 1.5rem; /* Increase the font size */
   padding: 10px;
   margin: 10px 0;
   border: 1px solid #000000;
   border-radius: 4px;
-  background-color: #5b5b5b;
+  background-color: #2d2d2d;
 }
 
 .button-reject {
@@ -417,15 +417,19 @@
   }
 
   .MuiDialogTitle-root {
-      font-size: 3.5em;
+      font-size: 1.5em;
   }
 
   .MuiDialogContent-root {
-      font-size: 3.2em;
+      font-size: 1.2em;
+  }
+
+  .MuiDialogContentText-root{
+      font-size: 1.2em;
   }
 
   .MuiDialogActions-root button {
-      font-size: 3.2em;
+      font-size: 1.2em;
       padding: 10px;
   }
 }

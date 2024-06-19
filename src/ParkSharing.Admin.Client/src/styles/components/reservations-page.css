@@ -1,6 +1,6 @@
 .reservations-page {
     padding: 20px;
-    background-color: #1e1e1e;
+    background-color: #000000;
     color: #fff;
     font-family: Arial, sans-serif;
   }
@@ -58,7 +58,7 @@
     margin: 10px 0;
     border: 1px solid #ddd;
     border-radius: 4px;
-    background-color: #060606;
+    background-color: #828282;
   }
   
   .reservation-rejected {
