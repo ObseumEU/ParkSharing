@@ -3,6 +3,7 @@ using MassTransit;
 using OpenAI.Utilities.FunctionCalling;
 using System;
 using System.Globalization;
+using System.Runtime.InteropServices;
 using System.Text.Json;
 
 namespace ParkSharing.Services.ChatGPT
@@ -77,9 +78,16 @@ namespace ParkSharing.Services.ChatGPT
             }
 
             var freeSlots = await _reservation.GetAllOpenSlots(fromDateTime, toDateTime);
-            var cetZone = TimeZoneInfo.FindSystemTimeZoneById("Europe/Berlin");
 
-           
+            TimeZoneInfo cetZone;
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                cetZone = TimeZoneInfo.FindSystemTimeZoneById("W. Europe Standard Time");
+            }
+            else
+            {
+                cetZone = TimeZoneInfo.FindSystemTimeZoneById("Europe/Berlin");
+            }
 
             var res = freeSlots.Select(f =>
             {
