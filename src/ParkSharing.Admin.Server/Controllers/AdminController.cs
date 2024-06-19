@@ -37,8 +37,8 @@ namespace App.Controllers
                 Availability = spot.Availability?.Select(a => new AvailabilityDto
                 {
                     PublicId = a.PublicId,
-                    Start = a.StartDate ?? DateTime.UtcNow.Date.Add(a.StartTime),
-                    End = a.EndDate ?? DateTime.UtcNow.Date.Add(a.EndTime),
+                    Start = a.StartDate == null ? DateTime.UtcNow.Date.Add(a.StartTime) : a.StartDate.Value.Add(a.StartTime),
+                    End = a.EndDate == null ? DateTime.UtcNow.Date.Add(a.EndTime) : a.EndDate.Value.Add(a.EndTime),
                     Recurrence = a.Recurrence,
                     DayOfWeek = a.DayOfWeek
                 }).ToList(),
