@@ -1,7 +1,9 @@
 ﻿using ParkSharing.Contracts;
+using System.ComponentModel.DataAnnotations;
 
 public class AvailabilityDto
 {
+    [StringLength(100, MinimumLength = 1)]
     public string? PublicId { get; set; }
     public DateTime Start { get; set; }
     public DateTime End { get; set; }
@@ -11,9 +13,17 @@ public class AvailabilityDto
 
 public class ParkingSpotDto
 {
+    [StringLength(100, MinimumLength = 1)]
     public string Id { get; set; }
+
+    [StringLength(100, MinimumLength = 1)]
     public string PublicId { get; set; }
+
+    [StringLength(100, MinimumLength = 1)]
     public string Name { get; set; }
+
+
+    [StringLength(60, MinimumLength = 5)]
     public string BankAccount { get; set; }
     public List<AvailabilityDto> Availability { get; set; }
     public List<ReservationDto> Reservations { get; set; }
@@ -22,8 +32,13 @@ public class ParkingSpotDto
 
 public class ReservationDto
 {
+    [StringLength(60, MinimumLength = 5)]
     public string Id { get; set; }
+
+    [StringLength(60, MinimumLength = 5)]
     public string PublicId { get; set; }
+
+    [StringLength(60, MinimumLength = 5)]
     public string Phone { get; set; }
     public DateTime? Start { get; set; }
     public DateTime? End { get; set; }
@@ -33,43 +48,14 @@ public class ReservationDto
 
 
 
-
-//public class AvailabilityDto
-//{
-//    public DateTime? Start { get; set; }
-//    public DateTime? End { get; set; }
-//    public string? Recurrence { get; set; }
-//    public string? DayOfWeek { get; set; }
-//}
-
-//public class ParkingSpotDto
-//{
-//    public string? Name { get; set; }
-//    public string? BankAccount { get; set; }
-//    public List<AvailabilityDto>? Availability { get; set; }
-//    public List<ReservationDto>? Reservations { get; set; }
-//}
-
-//public class ReservationDto
-//{
-//    public string Id { get; set; }
-//    public string Phone { get; set; }
-//    public DateTime? Start { get; set; }
-//    public DateTime? End { get; set; }
-//    public int Price { get; set; }
-//    public StateDto State { get; set; }
-//}
-
-//public enum StateDto
-//{
-//    Created,
-//    Rejected
-//}
-
 public class SettingsDto
 {
+    [StringLength(60, MinimumLength = 3)]
     public string? Name { get; set; }
+
+    [StringLength(60, MinimumLength = 3)]
     public string? BankAccount { get; set; }
+
     public decimal? PricePerHour { get; set; }
 }
 

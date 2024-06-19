@@ -1,10 +1,12 @@
-﻿using App.Context.Models;
+﻿using App;
+using App.Context.Models;
 using App.Services;
 using Auth0.ManagementApi;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Nelibur.ObjectMapper;
 using System;
+using System.Text;
 
 [Route("[controller]")]
 [ApiController]
@@ -28,11 +30,10 @@ public class SettingsController : ControllerBase
             var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
 
             var spot = await _parkingSpotService.GetOrCreateSpotByUser(userId);
-
             return new SettingsDto()
             {
-                BankAccount = spot.BankAccount,
-                Name = spot.Name,
+                BankAccount = Helpers.SanitizeHtml(spot.BankAccount),
+                Name = Helpers.SanitizeHtml(spot.Name),
                 PricePerHour = spot.PricePerHour
             };
         }
@@ -59,8 +60,8 @@ public class SettingsController : ControllerBase
             return NotFound();
         }
 
-        spot.Name = dto.Name;
-        spot.BankAccount = dto.BankAccount;
+        spot.Name = Helpers.SanitizeHtml(dto.Name);
+        spot.BankAccount = Helpers.SanitizeHtml(dto.BankAccount);
         spot.PricePerHour = dto.PricePerHour.Value;
         await _parkingSpotService.UpdateSpot(spot);
         return NoContent();

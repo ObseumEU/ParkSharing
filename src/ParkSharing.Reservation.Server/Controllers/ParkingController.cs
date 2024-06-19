@@ -26,7 +26,7 @@ public class ParkingController : ControllerBase
         var sessionId = GetOrCreateSessionId();
         try
         {
-            messages.Add(ChatMessage.FromUser(input.Input));
+            messages.Add(ChatMessage.FromUser(Helpers.SanitizeHtml(input.Input)));
             messages = await _gpt.Send(messages);
             return Ok(new { reply = messages.LastOrDefault().Content });
         }
