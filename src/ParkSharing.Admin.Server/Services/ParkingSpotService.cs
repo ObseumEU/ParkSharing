@@ -15,6 +15,7 @@ namespace App.Services
         Task<List<Availability>> UpdateAvailabilityByUser(string userId, List<Availability> availability);
         Task InsertSpot(ParkingSpot spot);
         Task RemoveReservation(string reservationPublicId);
+        Task<List<ParkingSpot>> GetAllSpots();
     }
 
     public class ParkingSpotServiceMongo : IParkingSpotService
@@ -33,6 +34,11 @@ namespace App.Services
         {
             var filter = Builders<ParkingSpot>.Filter.Eq(s => s.UserId, userId);
             return await _parkingSpots.Find(filter).FirstOrDefaultAsync();
+        }
+
+        public async Task<List<ParkingSpot>> GetAllSpots()
+        {
+            return await _parkingSpots.Find(_ => true).ToListAsync();
         }
 
         public async Task<ParkingSpot> GetOrCreateSpotByUser(string userId)
