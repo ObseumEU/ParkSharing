@@ -23,6 +23,7 @@
   --font-primary: "Inter", sans-serif;
   --font-secondary: "Space Grotesk", sans-serif;
   --font-mono: "Fira Code", monospace;
+  font-family: "Space Grotesk", sans-serif;
 }
 
 .chat-container {
@@ -116,10 +117,12 @@ text-rendering: geometricPrecision;
 .rcw-message-text{
   font-size: 14px;
   color: var(--black);
+  font-family: "Space Grotesk", sans-serif;
 }
 
 .rcw-input{
   font-size: 14px;
+  font-family: "Space Grotesk", sans-serif;
 }
 
 /* .rcw-sender{
@@ -128,12 +131,15 @@ text-rendering: geometricPrecision;
 
 .rcw-sender{
   color: #000000;
+  font-family: "Space Grotesk", sans-serif;
 }
 
 .rcw-picker-btn{
   display: none !important; /* Hide the close button */
+  font-family: "Space Grotesk", sans-serif;
 }
 
 .rcw-send{
   background-color: transparent;
+  font-family: "Space Grotesk", sans-serif;
 }
