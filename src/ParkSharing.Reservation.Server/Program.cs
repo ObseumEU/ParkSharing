@@ -72,6 +72,18 @@ builder.Services.AddSession(options =>
 
 var app = builder.Build();
 
+#if DEBUG
+using (var scope = app.Services.CreateScope())
+{
+    var seedData = scope.ServiceProvider.GetRequiredService<DebugSeedData>();
+    var bus = scope.ServiceProvider.GetRequiredService<IBusControl>();
+    await bus.StartAsync();
+    await bus.StopAsync();
+    await seedData.InitializeAsync();
+}
+#endif
+
+
 // Middleware Configuration
 app.Use(async (context, next) =>
 {

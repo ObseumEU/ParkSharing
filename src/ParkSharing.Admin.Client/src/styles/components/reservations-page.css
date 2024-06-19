@@ -52,3 +52,29 @@
     background-color: #894e4e; /* Light red background for rejected reservations */
   }
 
+  .reservation-item {
+    font-size: 1.5rem; /* Increase the font size */
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: #f9f9f9;
+  }
+  
+  .reservation-rejected {
+    background-color: #ffdddd;
+  }
+  
+  .button-reject {
+    background-color: #ff4d4d;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    cursor: pointer;
+    border-radius: 4px;
+  }
+  
+  .button-reject:hover {
+    background-color: #ff0000;
+  }
+  
