@@ -90,7 +90,11 @@ namespace App.Services
             var update = Builders<ParkingSpot>.Update.Set(s => s.Availability, availability);
             var options = new FindOneAndUpdateOptions<ParkingSpot> { ReturnDocument = ReturnDocument.After };
             var updatedSpot = await _parkingSpots.FindOneAndUpdateAsync(filter, update, options);
+
+            await _messageBroker.Publish(TinyMapper.Map<ParkSpotCreatedOrUpdatedEvent>(updatedSpot));
+
             return updatedSpot?.Availability ?? new List<Availability>();
+
         }
 
         public async Task RemoveReservation(string reservationPublicId)

@@ -2,22 +2,20 @@
 using MassTransit;
 using MongoDB.Driver;
 using ParkSharing.Contracts;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
-
 public class AdminConsumer : IConsumer<ParkSpotCreatedOrUpdatedEvent>
 {
     private readonly IMongoCollection<ParkingSpot> _parkingSpotsCollection;
+    private readonly ILogger<AdminConsumer> _log;
 
-    public AdminConsumer(IMongoDbContext context)
+    public AdminConsumer(IMongoDbContext context, ILogger<AdminConsumer> log)
     {
         _parkingSpotsCollection = context.ParkingSpots;
+        _log = log;
     }
 
     public async Task Consume(ConsumeContext<ParkSpotCreatedOrUpdatedEvent> context)
     {
-        Debug.WriteLine($"Received: {System.Text.Json.JsonSerializer.Serialize(context.Message)}");
+        _log.LogInformation($"Received: {System.Text.Json.JsonSerializer.Serialize(context.Message)}");
         var msg = context.Message;
 
         var filter = Builders<ParkingSpot>.Filter.Eq(ps => ps.PublicId, msg.PublicId);
