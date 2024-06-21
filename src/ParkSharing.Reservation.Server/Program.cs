@@ -8,6 +8,7 @@ var builder = WebApplication.CreateBuilder(args);
 ParkSharing.Reservation.Server.Mapper.BindMaps();
 // Add Service Defaults
 builder.AddServiceDefaults();
+
 builder.AddMongoDBClient("mongodb");
 var config = builder.Configuration;
 
