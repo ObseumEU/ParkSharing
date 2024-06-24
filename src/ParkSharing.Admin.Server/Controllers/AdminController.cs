@@ -19,13 +19,6 @@ namespace App.Controllers
         [Authorize("read:admin-reservations")]
         public async Task<ActionResult<List<ParkingSpotDto>>> GetParkingSpots()
         {
-
-            var name = User.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value;
-
-            var email = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
-
-            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-
             var spots = await _parkingSpotService.GetAllSpots();
             var spotDtos = spots.Select(spot => new ParkingSpotDto
             {

@@ -36,6 +36,11 @@ public class ReservationService : IReservationService
         }
     }
 
+    public async Task<List<ParkingSpot>> GetAllSpots()
+    {
+        return await _parkingSpotsCollection.Find(_ => true).ToListAsync();
+    }
+
     public async Task<List<ReservationSpot>> GetReservationsAsync(string name, DateTime fromUtc, DateTime toUtc)
     {
         // Define the filter to match the parking spot by name

@@ -8,4 +8,5 @@ public interface IReservationService
     Task<bool> RemoveReservationAsync(Guid reservationId);
     Task<bool> ReserveAsync(string spotName, ReservationSpot reservation, bool force = false);
     Task<List<FreeSlot>> GetAllOpenSlots(DateTime fromUtc, DateTime toUtc);
+    Task<List<ParkingSpot>> GetAllSpots();
 }
