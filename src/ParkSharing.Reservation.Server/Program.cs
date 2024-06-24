@@ -1,6 +1,7 @@
 using MassTransit;
 using MongoDB.Driver;
 using OpenAI.Extensions;
+using ParkSharing.Reservation.Server.Services.Session;
 using ParkSharing.Services.ChatGPT;
 using System.Reflection;
 
@@ -42,10 +43,10 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddScoped<IReservationService, ReservationService>();
-builder.Services.AddScoped<SessionService>();
+builder.Services.AddScoped<ChatGPTSessionService>();
 builder.Services.AddScoped<ChatGPTService>();
 builder.Services.AddScoped<ChatGPTCapabilities>();
-
+builder.Services.AddScoped<ISessionService, SessionService>();
 builder.Services.AddOpenAIService();
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddControllers();

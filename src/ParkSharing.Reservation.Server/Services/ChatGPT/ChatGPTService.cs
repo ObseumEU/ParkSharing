@@ -15,7 +15,7 @@ namespace ParkSharing.Services.ChatGPT
         public List<ChatMessage> Activities { get; set; }
     }
 
-    public class SessionService
+    public class ChatGPTSessionService
     {
         public ConcurrentDictionary<string, Session> Sessions = new ConcurrentDictionary<string, Session>();
 
@@ -35,10 +35,10 @@ namespace ParkSharing.Services.ChatGPT
         private readonly IOpenAIService _openAI;
         private readonly ILogger<ChatGPTService> _logger;
         private readonly IReservationService _reservationService;
-        private readonly SessionService _sessions;
+        private readonly ChatGPTSessionService _sessions;
         private readonly ChatGPTCapabilities _capabilities;
 
-        public ChatGPTService(ILogger<ChatGPTService> logger, IReservationService reservationService, SessionService sessions, ChatGPTCapabilities capabilities)
+        public ChatGPTService(ILogger<ChatGPTService> logger, IReservationService reservationService, ChatGPTSessionService sessions, ChatGPTCapabilities capabilities)
         {
             _openAI = new OpenAIService(new OpenAiOptions
             {
