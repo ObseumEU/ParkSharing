@@ -20,8 +20,8 @@ namespace ParkSharing.Services.ChatGPT
 
         [FunctionDescription("Rezervace parkovacího místa. Neni dovoleno rezervova na delsi dobu nez 3 dny, neni dovoleno rezervovat misto pokud neni volne. Navratova hodnota je Nazev parkovaciho mista a celkova cena. Rezervovat lze jen volna mista ziskane funkci AvaliableSpots. Sam vyber nahodne nektere misto. Povolene jsou rezervovat jen cele hodiny")]
         public async Task<string> ReserveSpot(
-            [ParameterDescription("Datetime format yyyy-mm-dd HH:00")] string from,
-            [ParameterDescription("Datetime format yyyy-mm-dd HH:00")] string to, 
+            [ParameterDescription("Datetime format yyyy-mm-dd HH:00. From user input Europe/Berlin is converted to UTC as argument")] string from,
+            [ParameterDescription("Datetime format yyyy-mm-dd HH:00. From user input Europe/Berlin is converted to UTC as argument")] string to, 
             string spotName,
             [ParameterDescription("Telefon pro kontakt")] string phone)
         {
@@ -59,8 +59,8 @@ namespace ParkSharing.Services.ChatGPT
 
         [FunctionDescription("Tato metoda vrací možné volné termíny a jejich cenu za hodinu. Povolene jsou jen cele hodiny, například od 13:00 do 15:00. Pokud je zdarma napiš to.")]
         public async Task<string> GetAllOpenSlots(
-          [ParameterDescription("Datetime format yyyy-mm-dd HH:00")] string from,
-          [ParameterDescription("Datetime format yyyy-mm-dd HH:00")] string to)
+          [ParameterDescription("Datetime format yyyy-mm-dd HH:00. From user input Europe/Berlin is converted to UTC as argument")] string from,
+          [ParameterDescription("Datetime format yyyy-mm-dd HH:00. From user input Europe/Berlin is converted to UTC as argument")] string to)
         {
             if (!TryParseDateTime(from, out DateTime fromDateTime))
             {
