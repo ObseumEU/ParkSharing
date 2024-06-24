@@ -1,8 +1,10 @@
 ﻿using MongoDB.Driver;
+using ParkSharing.Reservation.Server.Services.Session;
 
 public interface IMongoDbContext
 {
     IMongoCollection<ParkingSpot> ParkingSpots { get; }
+    IMongoCollection<ParkSharing.Reservation.Server.Services.Session.Model.Session> Sessions { get; }
 }
 
 public class MongoDbContext : IMongoDbContext
@@ -15,4 +17,6 @@ public class MongoDbContext : IMongoDbContext
     }
 
     public IMongoCollection<ParkingSpot> ParkingSpots => _database.GetCollection<ParkingSpot>("ReservationParkingSpots");
+    public IMongoCollection<ParkSharing.Reservation.Server.Services.Session.Model.Session> Sessions => _database.GetCollection<ParkSharing.Reservation.Server.Services.Session.Model.Session>("Sessions");
+
 }
