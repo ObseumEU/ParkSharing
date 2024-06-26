@@ -68,10 +68,12 @@ namespace Microsoft.Extensions.Hosting
 
             if (useAspireTelemetry)
             {
+                Console.WriteLine("Start local OpenTelemetry");
                 builder.Services.AddOpenTelemetry().UseOtlpExporter();
             }
             else
             {
+                Console.WriteLine("Start remote OpenTelemetry");
                 builder.AddObservability();
             }
 
