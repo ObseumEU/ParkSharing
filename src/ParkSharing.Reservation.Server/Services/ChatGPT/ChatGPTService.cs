@@ -121,7 +121,7 @@ namespace ParkSharing.Services.ChatGPT
                     reply = await _openAI.ChatCompletion.CreateCompletion(req, "gpt-4o");
                     response = reply?.Choices?.First()?.Message;
                     req.Messages.Add(response);
-                } while (response.ToolCalls != null);
+                } while (response?.ToolCalls != null);
                 req.Messages.Add(response); //Add answer from assistent
 
             }
