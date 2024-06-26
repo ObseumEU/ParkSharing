@@ -9,8 +9,7 @@ namespace App.Consumers
         private readonly IMongoCollection<ParkingSpot> _parkingSpotsCollection;
         ILogger<ReservationConsumer> _logger;
         IMongoClient mongoClient;
-
-
+        
         public ReservationConsumer(IMongoClient mongoClient, ILogger<ReservationConsumer> logger)
         {
             var database = mongoClient.GetDatabase("AdminParkSharing");
