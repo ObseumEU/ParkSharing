@@ -1,8 +1,8 @@
-﻿using System.Globalization;
-using System.Text.Json;
-using MassTransit;
+﻿using MassTransit;
 using Moq;
 using ParkSharing.Services.ChatGPT;
+using System.Globalization;
+using System.Text.Json;
 
 namespace ParkSharing.Reservation.Server.Tests
 {

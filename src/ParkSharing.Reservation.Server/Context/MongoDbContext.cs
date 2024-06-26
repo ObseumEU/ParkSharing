@@ -1,5 +1,4 @@
 ﻿using MongoDB.Driver;
-using ParkSharing.Reservation.Server.Services.Session;
 
 public interface IMongoDbContext
 {

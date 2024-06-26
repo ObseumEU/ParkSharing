@@ -4,11 +4,9 @@ using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
-using OpenTelemetry;
-using OpenTelemetry.Metrics;
-using OpenTelemetry.Trace;
-using System.Reflection;
 using Obseum.Telemetry;
+using OpenTelemetry;
+using System.Reflection;
 
 namespace Microsoft.Extensions.Hosting
 {
@@ -21,10 +19,8 @@ namespace Microsoft.Extensions.Hosting
         {
             //builder.ConfigureOpenTelemetry();
             builder.AddDefaultHealthChecks();
-
+            builder.AddOpenTelemetryExporters();
             builder.Services.AddServiceDiscovery();
-
-
 
             builder.Services.ConfigureHttpClientDefaults(http =>
             {
@@ -34,12 +30,6 @@ namespace Microsoft.Extensions.Hosting
                 // Turn on service discovery by default
                 http.AddServiceDiscovery();
             });
-
-            // Uncomment the following to restrict the allowed schemes for service discovery.
-            // builder.Services.Configure<ServiceDiscoveryOptions>(options =>
-            // {
-            //     options.AllowedSchemes = ["https"];
-            // });
 
             return builder;
         }
@@ -54,7 +44,7 @@ namespace Microsoft.Extensions.Hosting
 
             builder.Services.AddMassTransit(x =>
             {
-                foreach(var consumer in consumers)
+                foreach (var consumer in consumers)
                 {
                     x.AddConsumer(consumer);
                 }
@@ -72,34 +62,6 @@ namespace Microsoft.Extensions.Hosting
             return builder;
         }
 
-        public static IHostApplicationBuilder ConfigureOpenTelemetry(this IHostApplicationBuilder builder)
-        {
-            builder.Logging.AddOpenTelemetry(logging =>
-            {
-                logging.IncludeFormattedMessage = true;
-                logging.IncludeScopes = true;
-            });
-
-            builder.Services.AddOpenTelemetry()
-                .WithMetrics(metrics =>
-                {
-                    metrics.AddAspNetCoreInstrumentation()
-                        .AddHttpClientInstrumentation()
-                        .AddRuntimeInstrumentation();
-                })
-                .WithTracing(tracing =>
-                {
-                    tracing.AddAspNetCoreInstrumentation()
-                        // Uncomment the following line to enable gRPC instrumentation (requires the OpenTelemetry.Instrumentation.GrpcNetClient package)
-                        .AddGrpcClientInstrumentation();
-                        //.AddHttpClientInstrumentation();
-                });
-
-            builder.AddOpenTelemetryExporters();
-
-            return builder;
-        }
-
         private static IHostApplicationBuilder AddOpenTelemetryExporters(this IHostApplicationBuilder builder)
         {
             var useAspireTelemetry = !string.IsNullOrWhiteSpace(builder.Configuration["Otl"]);
@@ -112,12 +74,6 @@ namespace Microsoft.Extensions.Hosting
             {
                 builder.AddObservability();
             }
-            // Uncomment the following lines to enable the Azure Monitor exporter (requires the Azure.Monitor.OpenTelemetry.AspNetCore package)
-            //if (!string.IsNullOrEmpty(builder.Configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"]))
-            //{
-            //    builder.Services.AddOpenTelemetry()
-            //       .UseAzureMonitor();
-            //}
 
             return builder;
         }
@@ -150,5 +106,4 @@ namespace Microsoft.Extensions.Hosting
             return app;
         }
     }
-
 }

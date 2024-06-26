@@ -1,6 +1,6 @@
 ﻿using App.Context.Models;
-using MassTransit;
 using App.Services;
+using MassTransit;
 using ParkSharing.Contracts;
 
 public class DebugSeedData
