@@ -168,7 +168,6 @@ namespace ParkSharing.Reservation.Server.Reservation
                 }
             }
         }
-
         private static List<FreeSlot> MergeOverlappingSlots(List<FreeSlot> slots)
         {
             if (slots == null || slots.Count == 0)
@@ -187,18 +186,27 @@ namespace ParkSharing.Reservation.Server.Reservation
                 else
                 {
                     var lastSlot = mergedSlots.Last();
-                    mergedSlots[mergedSlots.Count - 1] = new FreeSlot
+                    if (lastSlot.To == slot.From || lastSlot.To > slot.From)
                     {
-                        From = lastSlot.From,
-                        To = lastSlot.To > slot.To ? lastSlot.To : slot.To,
-                        SpotName = lastSlot.SpotName,
-                        SpotPublicId = lastSlot.SpotPublicId
-                    };
+                        mergedSlots[mergedSlots.Count - 1] = new FreeSlot
+                        {
+                            From = lastSlot.From,
+                            To = lastSlot.To > slot.To ? lastSlot.To : slot.To,
+                            SpotName = lastSlot.SpotName,
+                            SpotPublicId = lastSlot.SpotPublicId,
+                            PricePerHour = lastSlot.PricePerHour == slot.PricePerHour ? lastSlot.PricePerHour : throw new InvalidOperationException("Merging slots with different prices is not supported.")
+                        };
+                    }
+                    else
+                    {
+                        mergedSlots.Add(slot);
+                    }
                 }
             }
 
             return mergedSlots;
         }
+
     }
 }
 public record FreeSlot
