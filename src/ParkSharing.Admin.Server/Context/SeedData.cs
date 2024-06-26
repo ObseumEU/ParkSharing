@@ -1,18 +1,15 @@
 ﻿using App.Context.Models;
-using MongoDB.Driver;
-using System.Numerics;
-using System;
 using MassTransit;
 using App.Services;
 using ParkSharing.Contracts;
 
 public class DebugSeedData
 {
-    private readonly IParkingSpotService _context;
+    private readonly IParkingSpotService _parkingSpotService;
     IBus _bus;
-    public DebugSeedData(IBus bus, IParkingSpotService context)
+    public DebugSeedData(IBus bus, IParkingSpotService parkingSpotService)
     {
-        _context = context;
+        _parkingSpotService = parkingSpotService;
         _bus = bus;
     }
 
@@ -21,11 +18,12 @@ public class DebugSeedData
         _ = Task.Run(async () =>
         {
             await Task.Delay(3000);
-            ParkingSpot newParkSpot = new ParkingSpot()
-            {
-                PublicId = "ADebugSpot",
-                BankAccount = "NL22ABNA0123456789",
-                Availability = new List<Availability>
+
+            var newSpot = await _parkingSpotService.GetOrCreateSpotByUser("google-oauth2|106383545592871849353");
+
+            newSpot.PublicId = "ADebugSpot";
+            newSpot.BankAccount = "NL22ABNA0123456789";
+            newSpot.Availability = new List<Availability>
                     {
                         new Availability
                         {
@@ -49,13 +47,11 @@ public class DebugSeedData
                             EndDate = new DateTime(DateTime.UtcNow.Year, DateTime.UtcNow.Month + 1, DateTime.UtcNow.Day, 18,0,0),
                             Recurrence= AvailabilityRecurrence.Once
                         }
-                    },
-                Name = "GS22",
-                PricePerHour = 30,
-                UserId = "google-oauth2|106383545592871849353"
-            };
-
-            await _context.InsertSpot(newParkSpot);
+                    };
+            newSpot.Name = "GS22";
+            newSpot.PricePerHour = 30;
+            newSpot.UserId = "google-oauth2|106383545592871849353";
+            await _parkingSpotService.UpdateSpot(newSpot);
         });
     }
 }

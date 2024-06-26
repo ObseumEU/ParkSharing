@@ -20,8 +20,8 @@ namespace ParkSharing.Services.ChatGPT
 
         [FunctionDescription("Rezervace parkovacího místa. Neni dovoleno rezervova na delsi dobu nez 3 dny, neni dovoleno rezervovat misto pokud neni volne. Navratova hodnota je Nazev parkovaciho mista a celkova cena. Rezervovat lze jen volna mista ziskane funkci AvaliableSpots. Sam vyber nahodne nektere misto. Povolene jsou rezervovat jen cele hodiny")]
         public async Task<string> ReserveSpot(
-            [ParameterDescription("Datetime format yyyy-mm-dd HH:00. From user input Europe/Berlin is converted to UTC as argument")] string from,
-            [ParameterDescription("Datetime format yyyy-mm-dd HH:00. From user input Europe/Berlin is converted to UTC as argument")] string to, 
+            [ParameterDescription("Datetime format yyyy-mm-dd HH:00")] string from,
+            [ParameterDescription("Datetime format yyyy-mm-dd HH:00")] string to,
             string spotName,
             [ParameterDescription("Telefon pro kontakt")] string phone)
         {
@@ -34,6 +34,9 @@ namespace ParkSharing.Services.ChatGPT
             {
                 return "Invalid 'to' date format.";
             }
+
+            fromDateTime = DateTime.SpecifyKind(fromDateTime, DateTimeKind.Local).ToUniversalTime();
+            toDateTime = DateTime.SpecifyKind(toDateTime, DateTimeKind.Local).ToUniversalTime();
 
             var spot = await _reservation.GetParkingSpotByNameAsync(spotName);
 
@@ -49,7 +52,7 @@ namespace ParkSharing.Services.ChatGPT
                 PublicId = id
             });
 
-            if(result == false)
+            if (result == false)
             {
                 return $"Reservation not created, spot is already reserved for this time.";
             }
@@ -57,11 +60,21 @@ namespace ParkSharing.Services.ChatGPT
             return $"Reservation created TotalPrice:{totalPrice} BankAccount To pay:{spot.BankAccount}";
         }
 
-        [FunctionDescription("Tato metoda vrací možné volné termíny a jejich cenu za hodinu. Povolene jsou jen cele hodiny, například od 13:00 do 15:00. Pokud je zdarma napiš to.")]
+        [FunctionDescription("Tata metoda vrací možné volné termíny a jejich cenu za hodinu. Povolene jsou jen cele hodiny, například od 13:00 do 15:00. Pokud je zdarma napiš to.")]
         public async Task<string> GetAllOpenSlots(
-          [ParameterDescription("Datetime format yyyy-mm-dd HH:00. From user input Europe/Berlin is converted to UTC as argument")] string from,
-          [ParameterDescription("Datetime format yyyy-mm-dd HH:00. From user input Europe/Berlin is converted to UTC as argument")] string to)
+          [ParameterDescription("Datetime format yyyy-mm-dd HH:00")] string from,
+          [ParameterDescription("Datetime format yyyy-mm-dd HH:00")] string to)
         {
+              TimeZoneInfo cetZone;
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                cetZone = TimeZoneInfo.FindSystemTimeZoneById("W. Europe Standard Time");
+            }
+            else
+            {
+                cetZone = TimeZoneInfo.FindSystemTimeZoneById("Europe/Berlin");
+            }
+
             if (!TryParseDateTime(from, out DateTime fromDateTime))
             {
                 return "Invalid 'from' date format.";
@@ -72,6 +85,9 @@ namespace ParkSharing.Services.ChatGPT
                 return "Invalid 'to' date format.";
             }
 
+            fromDateTime = DateTime.SpecifyKind(fromDateTime, DateTimeKind.Local).ToUniversalTime();
+            toDateTime = DateTime.SpecifyKind(toDateTime, DateTimeKind.Local).ToUniversalTime();
+
             if ((toDateTime - fromDateTime).Days > 3)
             {
                 return "From - to range is too big. Max search range 4 days.";
@@ -79,37 +95,28 @@ namespace ParkSharing.Services.ChatGPT
 
             var freeSlots = await _reservation.GetAllOpenSlots(fromDateTime, toDateTime);
 
-            TimeZoneInfo cetZone;
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                cetZone = TimeZoneInfo.FindSystemTimeZoneById("W. Europe Standard Time");
-            }
-            else
-            {
-                cetZone = TimeZoneInfo.FindSystemTimeZoneById("Europe/Berlin");
-            }
-
+          
             var res = freeSlots.Select(f =>
             {
-                var fromCET = TimeZoneInfo.ConvertTimeFromUtc(f.From, cetZone);
-                var toCET = TimeZoneInfo.ConvertTimeFromUtc(f.To, cetZone);
+                var fromCET = f.From.ToLocalTime();
+                var toCET = f.To.ToLocalTime();
+
                 return $"{fromCET.ToString("dd MMM yyyy HH:mm")}-{toCET.ToString("dd MMM yyyy HH:mm")},{f.SpotName},PricePerHour:{f.PricePerHour}:";
             }).ToList();
 
-            if(res.Count == 0)
+            if (res.Count == 0)
             {
                 return "Not found";
             }
 
-            return string.Join('\n',res);
+            return string.Join('\n', res);
         }
 
         private bool TryParseDateTime(string input, out DateTime dateTime)
         {
-            string[] formats = { "yyyy-MM-dd HH:00" };
+            string[] formats = { "yyyy-MM-dd H:mm", "yyyy-MM-dd HH:mm" };
             return DateTime.TryParseExact(input, formats, CultureInfo.InvariantCulture, DateTimeStyles.None, out dateTime);
         }
-
 
         [FunctionDescription("Detail o parkovacim miste. Zobrazit vzdy pri potvrzeni rezervace")]
         public async Task<string> SpotDetail(string spot)
