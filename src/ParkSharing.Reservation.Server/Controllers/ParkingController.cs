@@ -32,6 +32,7 @@ public class ParkingController : ControllerBase
             session.Messages.Add(ChatMessage.FromUser(Helpers.SanitizeHtml(input.Input)));
             var newMessages = await _gpt.Send(session.Messages);
             await _sessionsService.UpdateAllMessages(session.PublicId, newMessages);
+            
             return Ok(new { reply = newMessages.LastOrDefault().Content });
         }
         catch (Exception ex)

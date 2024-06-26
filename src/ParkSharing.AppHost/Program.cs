@@ -1,5 +1,4 @@
 using ParkSharing.AppHost;
-using static System.Net.WebRequestMethods;
 
 var builder = DistributedApplication.CreateBuilder(args);
 
