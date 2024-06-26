@@ -1,12 +1,7 @@
 ﻿using App;
-using App.Context.Models;
 using App.Services;
-using Auth0.ManagementApi;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Nelibur.ObjectMapper;
-using System;
-using System.Text;
 
 [Route("[controller]")]
 [ApiController]
@@ -37,7 +32,7 @@ public class SettingsController : ControllerBase
                 PricePerHour = spot.PricePerHour
             };
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             _log.LogError(ex, "Failed Get settings");
             throw ex;

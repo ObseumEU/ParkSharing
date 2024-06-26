@@ -99,7 +99,6 @@ namespace ParkSharing.Services.ChatGPT
                 MaxTokens = 200
             };
 
-            ;
             var reply = await _openAI.ChatCompletion.CreateCompletion(req, "gpt-4o");
             if (!reply.Successful)
             {
@@ -120,7 +119,7 @@ namespace ParkSharing.Services.ChatGPT
                     string stringResponse = await ExecuteFunction(response);
                     req.Messages.Add(ChatMessage.FromTool(stringResponse, response.ToolCalls[0].Id));
                     reply = await _openAI.ChatCompletion.CreateCompletion(req, "gpt-4o");
-                    response = reply.Choices.First().Message;
+                    response = reply?.Choices?.First()?.Message;
                     req.Messages.Add(response);
                 } while (response.ToolCalls != null);
                 req.Messages.Add(response); //Add answer from assistent
@@ -130,7 +129,6 @@ namespace ParkSharing.Services.ChatGPT
             {
                 return req.Messages.ToList();
             }
-
 
             return req.Messages.ToList();
         }

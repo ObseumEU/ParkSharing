@@ -1,5 +1,4 @@
-﻿using Azure;
-using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Options;
 using ParkSharing.Services.ChatGPT.Helpers;
 using System.Net.Http.Headers;
 using System.Text;

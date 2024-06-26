@@ -1,5 +1,4 @@
-﻿using App.Context.Models;
-using App.Services;
+﻿using App.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Nelibur.ObjectMapper;
