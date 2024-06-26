@@ -19,6 +19,8 @@ namespace Microsoft.Extensions.Hosting
         {
             //builder.ConfigureOpenTelemetry();
             builder.AddDefaultHealthChecks();
+
+            Console.WriteLine("OpenTelemetry: ");
             builder.AddOpenTelemetryExporters();
             builder.Services.AddServiceDiscovery();
 
@@ -64,8 +66,9 @@ namespace Microsoft.Extensions.Hosting
 
         private static IHostApplicationBuilder AddOpenTelemetryExporters(this IHostApplicationBuilder builder)
         {
+            Console.WriteLine("UseAspireTelemetry ? ");
             var useAspireTelemetry = !string.IsNullOrWhiteSpace(builder.Configuration["Otl"]);
-
+            Console.Write($" {useAspireTelemetry}");
             if (useAspireTelemetry)
             {
                 Console.WriteLine("Start local OpenTelemetry");
