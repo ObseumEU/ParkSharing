@@ -60,12 +60,12 @@ namespace ParkSharing.Services.ChatGPT
             return $"Reservation created TotalPrice:{totalPrice} BankAccount To pay:{spot.BankAccount}";
         }
 
-        [FunctionDescription("Tata metoda vrací možné volné termíny a jejich cenu za hodinu. Povolene jsou jen cele hodiny, například od 13:00 do 15:00. Pokud je zdarma napiš to.")]
+        [FunctionDescription("Tata metoda vrací možné volné termíny a jejich cenu za hodinu. Povolene jsou jen cele hodiny, například od 13:00 do 15:00. Pokud je zdarma napiš to. Návratová hodnota možnosti výběru")]
         public async Task<string> GetAllOpenSlots(
           [ParameterDescription("Datetime format yyyy-mm-dd HH:00")] string from,
           [ParameterDescription("Datetime format yyyy-mm-dd HH:00")] string to)
         {
-              TimeZoneInfo cetZone;
+            TimeZoneInfo cetZone;
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 cetZone = TimeZoneInfo.FindSystemTimeZoneById("W. Europe Standard Time");
@@ -95,13 +95,19 @@ namespace ParkSharing.Services.ChatGPT
 
             var freeSlots = await _reservation.GetAllOpenSlots(fromDateTime, toDateTime);
 
-          
+
             var res = freeSlots.Select(f =>
             {
                 var fromCET = f.From.ToLocalTime();
                 var toCET = f.To.ToLocalTime();
-
-                return $"{fromCET.ToString("dd MMM yyyy HH:mm")}-{toCET.ToString("dd MMM yyyy HH:mm")},{f.SpotName},PricePerHour:{f.PricePerHour}:";
+                var result = new
+                {
+                    From = fromCET.ToString("dd MMM yyyy HH:mm"),
+                    To = toCET.ToString("dd MMM yyyy HH:mm"),
+                    SpotName = f.SpotName,
+                    PricePerHour = f.PricePerHour
+                };
+                return result;
             }).ToList();
 
             if (res.Count == 0)
@@ -109,7 +115,11 @@ namespace ParkSharing.Services.ChatGPT
                 return "Not found";
             }
 
-            return string.Join('\n', res);
+            var serialized = JsonSerializer.Serialize(new
+            {
+                Options = res
+            });
+            return serialized;
         }
 
         private bool TryParseDateTime(string input, out DateTime dateTime)

@@ -80,6 +80,7 @@ namespace ParkSharing.Services.ChatGPT
             messages.Insert(0, ChatMessage.FromSystem("Pouzivas v odpovedich markdown. Český chatbot pro sdílení a rezervaci parkovacích míst. Umožňuje majitelům nabízet místa když je nepoužívají a ostatním je rezervovat a platit přes bankovní účet. Uživatelé mohou registrovat místa, nastavovat dostupnost a spravovat nabídky, rezervace omezeny na dvě denně. Komunikace v češtině, pokud uživatel mluvi jinou reci mluvi jinou reci. Nevyplňuj nejasné funkce bez dotazu. Pokud uzivatel zadal email, pouzij jej pro kazdej dotaz. Pokud uzivatel zadal platny kod, pouzij jej pro kazdy dotaz. Pokud chce uzivatel pridavat, menit, mazat svoje parkovaci misto musi se nejdrive identifikovat."));
             messages.Insert(0, ChatMessage.FromSystem($"Aktualni datum {DateTime.Now.ToString("dd. MMMM yyyy")}"));
             messages.Insert(0, ChatMessage.FromSystem($"Pokud chce nekdo rezervovat misto, vyber mu nahodne jedno znich a nech si potvrdit ze to je ok nez ho rezervujes."));
+            messages.Insert(0, ChatMessage.FromSystem($"Nelze rezervovat vice casu najendou. Pouze jeden po jednom."));
             messages.Insert(0, ChatMessage.FromSystem($"Podpora whatsapp 724 676 829"));
             messages.Insert(0, ChatMessage.FromSystem($"Neodpovídej na nic co se netýká rezervace a dostupnosti míst, nebo neni tady napsáno."));
             messages.Insert(0, ChatMessage.FromSystem($"Vsechna parkovani jsou venkovni. Nic neni v garazi"));
