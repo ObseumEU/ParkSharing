@@ -1,5 +1,4 @@
-﻿using App.Context.Models;
-using MassTransit;
+﻿using MassTransit;
 using MongoDB.Driver;
 using ParkSharing.Contracts;
 public class AdminConsumer : IConsumer<ParkSpotCreatedOrUpdatedEvent>

@@ -17,14 +17,16 @@ class ErrorHandlerMiddleware
 
             if (context.Response is HttpResponse response && response.StatusCode == 404)
             {
-                await response.WriteAsJsonAsync(new {
+                await response.WriteAsJsonAsync(new
+                {
                     message = "Not Found"
                 });
             }
             else if (context.Response is HttpResponse unauthorizedResponse && unauthorizedResponse.StatusCode == 401)
             {
                 await unauthorizedResponse.WriteAsJsonAsync(
-                    new {
+                    new
+                    {
                         message = context.Request.Headers.ContainsKey("Authorization")
                                         ? "Bad credentials"
                                         : "Requires authentication"
@@ -40,7 +42,8 @@ class ErrorHandlerMiddleware
     private async Task HandleException(HttpContext context, Exception ex)
     {
         context.Response.StatusCode = 500;
-        await context.Response.WriteAsJsonAsync(new {
+        await context.Response.WriteAsJsonAsync(new
+        {
             message = "Internal Server Error."
         });
     }

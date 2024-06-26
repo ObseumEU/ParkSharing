@@ -5,7 +5,7 @@ namespace ParkSharing.Integration.Tests.Tests
 {
     public class IntegrationTest1
     {
-         [Fact]
+        [Fact]
         public async Task GetWebResourceRootReturnsOkStatusCode()
         {
             // Arrange

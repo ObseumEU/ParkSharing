@@ -1,9 +1,6 @@
 ﻿using App.Context.Models;
 using MassTransit;
 using MongoDB.Driver;
-using System.Diagnostics;
-using System.IO.Pipelines;
-using System.Numerics;
 
 namespace App.Consumers
 {

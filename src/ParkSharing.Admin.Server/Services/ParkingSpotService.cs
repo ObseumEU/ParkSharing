@@ -23,7 +23,7 @@ namespace App.Services
         private readonly IMongoCollection<ParkingSpot> _parkingSpots;
         IBus _messageBroker;
 
-        public ParkingSpotServiceMongo(IMongoClient mongoClient, IBus messageBroker )
+        public ParkingSpotServiceMongo(IMongoClient mongoClient, IBus messageBroker)
         {
             var database = mongoClient.GetDatabase("AdminParkSharing");
             _parkingSpots = database.GetCollection<ParkingSpot>("ParkingSpots");
@@ -45,7 +45,7 @@ namespace App.Services
         {
             var spot = await GetSpotByUser(userId);
 
-            if(spot == null)
+            if (spot == null)
             {
                 spot = new ParkingSpot()
                 {
