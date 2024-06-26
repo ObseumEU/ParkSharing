@@ -1,6 +1,4 @@
-﻿using App.Context.Models;
-
-public interface IReservationService
+﻿public interface IReservationService
 {
     Task<List<ParkingSpot>> GetAvailableSpotsAsync(DateTime fromUtc, DateTime toUtc);
     Task<ParkingSpot> GetParkingSpotAsync(Guid parkingSpotId);

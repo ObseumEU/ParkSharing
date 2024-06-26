@@ -2,8 +2,6 @@
 using App.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Nelibur.ObjectMapper;
-using System;
 
 [Route("[controller]")]
 [ApiController]
@@ -27,7 +25,7 @@ public class AvaliabilityController : ControllerBase
 
         var spot = await _parkingSpotService.GetOrCreateSpotByUser(userId);
 
-        if(spot == null)
+        if (spot == null)
         {
             return NotFound();
         }
@@ -41,7 +39,7 @@ public class AvaliabilityController : ControllerBase
             Id = spot.Id,
         };
 
-        if(spot.Availability != null)
+        if (spot.Availability != null)
         {
             res.Availability = new List<AvailabilityDto>();
             foreach (var a in spot.Availability)

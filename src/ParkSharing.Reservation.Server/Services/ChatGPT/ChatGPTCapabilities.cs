@@ -1,7 +1,5 @@
-﻿using App.Context.Models;
-using MassTransit;
+﻿using MassTransit;
 using OpenAI.Utilities.FunctionCalling;
-using System;
 using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Text.Json;

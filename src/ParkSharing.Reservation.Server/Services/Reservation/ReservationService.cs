@@ -3,7 +3,6 @@ using MassTransit;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using ParkSharing.Contracts;
-using Deedle;
 using ParkSharing.Reservation.Server.Reservation;
 
 public class ReservationService : IReservationService
@@ -91,7 +90,7 @@ public class ReservationService : IReservationService
         var filter = Builders<ParkingSpot>.Filter.Eq(ps => ps.Name, spotName);
         var parkingSpot = await _parkingSpotsCollection.Find(filter).FirstOrDefaultAsync();
 
-        if(parkingSpot == null)
+        if (parkingSpot == null)
         {
             return false;
         }

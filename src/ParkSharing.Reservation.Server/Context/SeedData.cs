@@ -1,5 +1,4 @@
-﻿using App.Context.Models;
-using MassTransit;
+﻿using MassTransit;
 
 public class DebugSeedData
 {
@@ -13,10 +12,11 @@ public class DebugSeedData
 
     public async Task InitializeAsync()
     {
-        Task.Run(async () => {
+        Task.Run(async () =>
+        {
             bool res = false;
 
-            for(int i = 0; i < 4 && res == false; i++)
+            for (int i = 0; i < 4 && res == false; i++)
             {
                 await Task.Delay(3000);
                 res = await _reservation.ReserveAsync("GS22", new ReservationSpot()
