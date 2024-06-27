@@ -46,6 +46,7 @@ class ErrorHandlerMiddleware
         {
             message = "Internal Server Error."
         });
+        throw ex;
     }
 }
 

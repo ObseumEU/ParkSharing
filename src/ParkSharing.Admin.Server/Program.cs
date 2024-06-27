@@ -11,7 +11,9 @@ using Microsoft.IdentityModel.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.Net.Http.Headers;
 using MongoDB.Driver;
+using System.Diagnostics;
 using System.Reflection;
+
 
 var builder = WebApplication.CreateBuilder(args);
 var config = builder.Configuration;
@@ -131,7 +133,7 @@ foreach (var key in requiredVars)
 //app.Urls.Add($"http://+:{app.Configuration.GetValue<string>("PORT")}");
 
 // Middleware Configuration
-app.UseErrorHandler();
+//app.UseErrorHandler();
 app.UseSecureHeaders();
 app.UseCors();
 app.UseAuthentication();

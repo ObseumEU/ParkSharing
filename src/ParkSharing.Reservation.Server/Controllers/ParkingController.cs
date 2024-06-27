@@ -24,13 +24,14 @@ public class ParkingController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Post([FromBody] UserInputModel input)
     {
+        
         var session = await GetOrCreateSession();
         try
         {
             session.Messages.Add(ChatMessage.FromUser(Helpers.SanitizeHtml(input.Input)));
             var newMessages = await _gpt.Send(session.Messages);
             await _sessionsService.UpdateAllMessages(session.PublicId, newMessages);
-
+            session.Messages.RemoveAll(m => m == null);
             return Ok(new { reply = newMessages.LastOrDefault().Content });
         }
         catch (Exception ex)

@@ -6,6 +6,8 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
 using Obseum.Telemetry;
 using OpenTelemetry;
+using OpenTelemetry.Trace;
+using System.Diagnostics;
 using System.Reflection;
 
 namespace Microsoft.Extensions.Hosting
