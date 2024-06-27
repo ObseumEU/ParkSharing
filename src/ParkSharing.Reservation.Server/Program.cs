@@ -1,3 +1,4 @@
+using App.Middlewares;
 using MassTransit;
 using MongoDB.Driver;
 using OpenAI.Extensions;
@@ -98,8 +99,7 @@ app.Use(async (context, next) =>
 
     await next();
 });
-
-app.UseExceptionHandler("/Error");
+//app.UseErrorHandler();
 
 // Configure the HTTP Request Pipeline
 if (app.Environment.IsDevelopment())

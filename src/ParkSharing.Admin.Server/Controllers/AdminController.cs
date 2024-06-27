@@ -9,10 +9,11 @@ namespace App.Controllers
     public class AdminController : ControllerBase
     {
         private readonly IParkingSpotService _parkingSpotService;
-
-        public AdminController(IParkingSpotService parkingSpotService)
+        private readonly ILogger<AdminController> _log;
+        public AdminController(IParkingSpotService parkingSpotService, ILogger<AdminController> log)
         {
             _parkingSpotService = parkingSpotService;
+            _log = log;
         }
 
         [HttpGet("spots")]
