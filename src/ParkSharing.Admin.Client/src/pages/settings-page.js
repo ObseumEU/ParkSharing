@@ -6,6 +6,7 @@ import { getSettings, updateSettings } from "../services/api.service";
 export const SettingsPage = () => {
   const { getAccessTokenSilently } = useAuth0();
   const [bankAccount, setBankAccount] = useState("");
+  const [phone, setPhone] = useState("");
   const [parkingSpotName, setParkingSpotName] = useState("");
   const [pricePerHour, setPricePerHour] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -18,6 +19,7 @@ export const SettingsPage = () => {
         setBankAccount(data.bankAccount);
         setParkingSpotName(data.name);
         setPricePerHour(data.pricePerHour);
+        setPhone(data.phone);
       }
     } catch (error) {
       console.error("Failed to fetch settings:", error);
@@ -36,7 +38,8 @@ export const SettingsPage = () => {
       await updateSettings(token, {
         bankAccount,
         name: parkingSpotName,
-        pricePerHour
+        pricePerHour,
+        phone
       });
     } catch (error) {
       console.error("Failed to update settings:", error);
@@ -65,6 +68,16 @@ export const SettingsPage = () => {
             placeholder="např. 22223111/0100"
             value={bankAccount}
             onChange={(e) => setBankAccount(e.target.value)}
+            className="input-field"
+          />
+        </div>
+        <div className="section">
+          <h2>Telefon</h2>
+          <input
+            type="text"
+            placeholder="např. 724 764 298"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
             className="input-field"
           />
         </div>

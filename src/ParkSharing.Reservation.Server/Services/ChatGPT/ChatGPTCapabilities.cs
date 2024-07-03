@@ -16,7 +16,7 @@ namespace ParkSharing.Services.ChatGPT
             _messageBroker = messageBroker;
         }
 
-        [FunctionDescription("Rezervace parkovacího místa. Neni dovoleno rezervova na delsi dobu nez 3 dny, neni dovoleno rezervovat misto pokud neni volne. Navratova hodnota je Nazev parkovaciho mista a celkova cena. Rezervovat lze jen volna mista ziskane funkci AvaliableSpots. Sam vyber nahodne nektere misto. Povolene jsou rezervovat jen cele hodiny")]
+        [FunctionDescription("Rezervace parkovacího místa. Neni dovoleno rezervova na delsi dobu nez 3 dny, neni dovoleno rezervovat misto pokud nebyla overena jeho dostupnost metodou GetAllOpenSlots. Navratova hodnota je Nazev parkovaciho mista a celkova cena. Povolene jsou rezervovat jen cele hodiny.")]
         public async Task<string> ReserveSpot(
             [ParameterDescription("Datetime format yyyy-mm-dd HH:00")] string from,
             [ParameterDescription("Datetime format yyyy-mm-dd HH:00")] string to,
@@ -58,7 +58,7 @@ namespace ParkSharing.Services.ChatGPT
             return $"Reservation created TotalPrice:{totalPrice} BankAccount To pay:{spot.BankAccount}";
         }
 
-        [FunctionDescription("Tata metoda vrací možné volné termíny a jejich cenu za hodinu. Povolene jsou jen cele hodiny, například od 13:00 do 15:00. Pokud je zdarma napiš to. Návratová hodnota možnosti výběru")]
+        [FunctionDescription("Tata metoda vrací možné volné termíny a jejich cenu za hodinu. Povolene jsou jen cele hodiny, například od 13:00 do 15:00. Pokud je zdarma napiš to. Návratová hodnota jsou možnosti výběru. Nelze rezervovat více slotů najednou.")]
         public async Task<string> GetAllOpenSlots(
           [ParameterDescription("Datetime format yyyy-mm-dd HH:00")] string from,
           [ParameterDescription("Datetime format yyyy-mm-dd HH:00")] string to)
@@ -115,7 +115,7 @@ namespace ParkSharing.Services.ChatGPT
 
             var serialized = JsonSerializer.Serialize(new
             {
-                Options = res
+                NotOcupiedTimesOptions = res
             });
             return serialized;
         }
