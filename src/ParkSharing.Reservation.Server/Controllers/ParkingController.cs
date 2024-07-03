@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using OpenAI.ObjectModels.RequestModels;
+using ParkSharing;
 using ParkSharing.Reservation.Server.Services.Session;
 using ParkSharing.Services.ChatGPT;
 using System.Security.Cryptography;
@@ -28,16 +29,17 @@ public class ParkingController : ControllerBase
         var session = await GetOrCreateSession();
         try
         {
-            session.Messages.Add(ChatMessage.FromUser(Helpers.SanitizeHtml(input.Input)));
-            var newMessages = await _gpt.Send(session.Messages);
+            _log.LogInformation($"Session PublicId: {session.PublicId} User Input: {input.Input} ");
+            var newMessages = await _gpt.Send( session.Messages, HtmlHelpers.SanitizeHtml(input.Input));
             await _sessionsService.UpdateAllMessages(session.PublicId, newMessages);
             session.Messages.RemoveAll(m => m == null);
+            newMessages.RemoveAll(m => m == null);
             return Ok(new { reply = newMessages.LastOrDefault().Content });
         }
         catch (Exception ex)
         {
             _log.LogError(ex, "Cannot receive message");
-            throw new Exception();
+            throw ex;
         }
     }
 

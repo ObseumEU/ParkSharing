@@ -29,7 +29,8 @@ public class SettingsController : ControllerBase
             {
                 BankAccount = Helpers.SanitizeHtml(spot.BankAccount),
                 Name = Helpers.SanitizeHtml(spot.Name),
-                PricePerHour = spot.PricePerHour
+                PricePerHour = spot.PricePerHour,
+                Phone = spot.Phone
             };
         }
         catch (Exception ex)

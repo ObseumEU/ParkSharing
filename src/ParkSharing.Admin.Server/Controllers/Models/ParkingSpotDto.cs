@@ -57,6 +57,7 @@ public class SettingsDto
     public string? BankAccount { get; set; }
 
     public decimal? PricePerHour { get; set; }
+    public string? Phone { get; set; }
 }
 
 
