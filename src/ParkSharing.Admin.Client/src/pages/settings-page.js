@@ -10,6 +10,7 @@ export const SettingsPage = () => {
   const [parkingSpotName, setParkingSpotName] = useState("");
   const [pricePerHour, setPricePerHour] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [settingsChanged, setSettingsChanged] = useState(false);
 
   const fetchSettings = useCallback(async () => {
     try {
@@ -41,10 +42,16 @@ export const SettingsPage = () => {
         pricePerHour,
         phone
       });
+      setSettingsChanged(false);
     } catch (error) {
       console.error("Failed to update settings:", error);
       alert("Failed to update settings.");
     }
+  };
+
+  const handleChange = (setter) => (event) => {
+    setter(event.target.value);
+    setSettingsChanged(true);
   };
 
   if (loading) {
@@ -67,7 +74,7 @@ export const SettingsPage = () => {
             type="text"
             placeholder="např. 22223111/0100"
             value={bankAccount}
-            onChange={(e) => setBankAccount(e.target.value)}
+            onChange={handleChange(setBankAccount)}
             className="input-field"
           />
         </div>
@@ -77,7 +84,7 @@ export const SettingsPage = () => {
             type="text"
             placeholder="např. 724 764 298"
             value={phone}
-            onChange={(e) => setPhone(e.target.value)}
+            onChange={handleChange(setPhone)}
             className="input-field"
           />
         </div>
@@ -87,7 +94,7 @@ export const SettingsPage = () => {
             type="text"
             placeholder="např. CS453"
             value={parkingSpotName}
-            onChange={(e) => setParkingSpotName(e.target.value)}
+            onChange={handleChange(setParkingSpotName)}
             className="input-field"
           />
         </div>
@@ -97,13 +104,18 @@ export const SettingsPage = () => {
             type="number"
             placeholder="40"
             value={pricePerHour}
-            onChange={(e) => setPricePerHour(parseFloat(e.target.value))}
+            onChange={(e) => {
+              setPricePerHour(parseFloat(e.target.value));
+              setSettingsChanged(true);
+            }}
             className="input-field"
           />
         </div>
-        <button onClick={handleSaveSettings} className="button">
-          Uložit
-        </button>
+        {settingsChanged && (
+          <button onClick={handleSaveSettings} className="button">
+            Uložit
+          </button>
+        )}
       </div>
     </PageLayout>
   );
