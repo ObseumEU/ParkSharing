@@ -35,7 +35,8 @@ public class AdminConsumer : IConsumer<ParkSpotCreatedOrUpdatedEvent>
             BankAccount = msg.BankAccount,
             Name = msg.Name,
             PricePerHour = msg.PricePerHour,
-            PublicId = msg.PublicId
+            PublicId = msg.PublicId,
+            Phone = msg.Phone
         };
 
         if (existingSpot != null)

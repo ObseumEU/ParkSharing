@@ -36,6 +36,8 @@ public class ParkingSpot
     public string UserId { get; set; }
     [Required]
     public decimal PricePerHour { get; set; }
+    [Required]
+    public string Phone { get; set; }
 }
 
 public class ReservationSpot
