@@ -13,6 +13,8 @@ namespace ParkSharing.Contracts
         public List<AvailabilityCreatedOrUpdatedEvent> Availability { get; set; }
         [property: Required]
         public decimal PricePerHour { get; set; }
+        [property: Required]
+        public string Phone { get; set; }
     }
 
     public record AvailabilityCreatedOrUpdatedEvent
