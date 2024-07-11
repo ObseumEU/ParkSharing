@@ -55,7 +55,7 @@ namespace ParkSharing.Services.ChatGPT
                 return $"Reservation not created, spot is already reserved for this time.";
             }
 
-            return $"Reservation created TotalPrice:{totalPrice} BankAccount To pay:{spot.BankAccount}";
+            return $"Reservation created TotalPrice:{totalPrice} BankAccount To pay:{spot.BankAccount} Owner Phone:{spot.Phone}";
         }
 
         [FunctionDescription("Tata metoda vrací možné volné termíny a jejich cenu za hodinu. Povolene jsou jen cele hodiny, například od 13:00 do 15:00. Pokud je zdarma napiš to. Návratová hodnota jsou možnosti výběru. Nelze rezervovat více slotů najednou.")]
@@ -86,12 +86,17 @@ namespace ParkSharing.Services.ChatGPT
             fromDateTime = DateTime.SpecifyKind(fromDateTime, DateTimeKind.Local).ToUniversalTime();
             toDateTime = DateTime.SpecifyKind(toDateTime, DateTimeKind.Local).ToUniversalTime();
 
+            if (fromDateTime < DateTime.UtcNow || toDateTime < DateTime.UtcNow)
+            {
+                return "Cannot reserve into history";
+            }
+
             if ((toDateTime - fromDateTime).Days > 3)
             {
                 return "From - to range is too big. Max search range 4 days.";
             }
 
-            var freeSlots = await _reservation.GetAllOpenSlots(fromDateTime, toDateTime);
+            var freeSlots = await _reservation.GetAllOpenSlots(fromDateTime.AddDays(-1), toDateTime.AddDays(1));
 
 
             var res = freeSlots.Select(f =>

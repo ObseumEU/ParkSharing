@@ -1,6 +1,6 @@
 ﻿public interface IReservationService
 {
-    Task<List<ParkingSpot>> GetAvailableSpotsAsync(DateTime fromUtc, DateTime toUtc);
+    Task<bool> CheckAvaliabilitySpot(DateTime fromUtc, DateTime toUtc, string spotName);
     Task<ParkingSpot> GetParkingSpotAsync(Guid parkingSpotId);
     Task<ParkingSpot> GetParkingSpotByNameAsync(string name);
     Task<bool> RemoveReservationAsync(Guid reservationId);
