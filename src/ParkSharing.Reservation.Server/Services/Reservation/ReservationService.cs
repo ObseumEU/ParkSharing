@@ -16,23 +16,17 @@ public class ReservationService : IReservationService
         _broker = broker;
     }
 
-    public async Task<List<ParkingSpot>> GetAvailableSpotsAsync(DateTime fromUtc, DateTime toUtc)
+    public async Task<bool> CheckAvaliabilitySpot(DateTime fromUtc, DateTime toUtc, string spotName)
     {
-        var availabilityFilter = CreateAvailabilityFilter(fromUtc, toUtc);
-        var reservationFilter = CreateReservationFilter(fromUtc, toUtc);
-        var filter = Builders<ParkingSpot>.Filter.And(availabilityFilter, reservationFilter);
-
-        //var filter = Builders<ParkingSpot>.Filter.And(availabilityFilter, reservationFilter);
-
-        try
+        var freeSlots = await GetAllOpenSlots(fromUtc.AddDays(-1), toUtc.AddDays(+1));
+        foreach (var freeSlot in freeSlots.Where( f => f.SpotName == spotName))
         {
-            return await _parkingSpotsCollection.Find(filter).ToListAsync();
+            if (freeSlot.From <= fromUtc && toUtc <= freeSlot.To)
+            {
+                return true;
+            }
         }
-        catch (MongoCommandException ex)
-        {
-            Console.WriteLine($"MongoCommandException: {ex.Message}");
-            throw;
-        }
+        return false;
     }
 
     public async Task<List<ParkingSpot>> GetAllSpots()
@@ -81,8 +75,7 @@ public class ReservationService : IReservationService
     {
         ValidateReservation(reservation);
 
-        var existingReservation = await GetAvailableSpotsAsync(reservation.Start, reservation.End);
-        if (existingReservation?.Count == 0 && !force)
+        if (!await CheckAvaliabilitySpot(reservation.Start, reservation.End, spotName))
         {
             return false;
         }
@@ -99,6 +92,7 @@ public class ReservationService : IReservationService
         {
             parkingSpot.Reservations = new List<ReservationSpot>();
         }
+
         parkingSpot.Reservations.Add(reservation);
         var update = Builders<ParkingSpot>.Update.Set(ps => ps.Reservations, parkingSpot.Reservations);
         var result = await _parkingSpotsCollection.UpdateOneAsync(filter, update);

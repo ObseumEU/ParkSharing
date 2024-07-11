@@ -69,6 +69,7 @@ namespace App.Services
             var filter = Builders<ParkingSpot>.Filter.Eq(s => s.Id, spot.Id);
             var options = new ReplaceOptions { IsUpsert = true };
             await _parkingSpots.ReplaceOneAsync(filter, spot, options);
+            await _messageBroker.Publish(TinyMapper.Map<ParkSpotCreatedOrUpdatedEvent>(spot));
         }
 
         public async Task InsertSpot(ParkingSpot spot)

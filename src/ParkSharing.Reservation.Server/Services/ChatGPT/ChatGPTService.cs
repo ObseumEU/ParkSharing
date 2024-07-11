@@ -106,10 +106,25 @@ namespace ParkSharing.Services.ChatGPT
 
         private async Task<ChatMessage> GetResponse(List<ChatMessage> messages)
         {
+            var cleanedActivities = messages.ToList();
+
+            for(int i = 0; i < cleanedActivities.Count; i++)
+            {
+                if (cleanedActivities[0].ToolCalls != null || !string.IsNullOrEmpty(cleanedActivities[0].ToolCallId))
+                {
+                    cleanedActivities.RemoveAt(0);
+                    i--;
+                }
+                else
+                {
+                    break;
+                }
+            }
+
             var req = new ChatCompletionCreateRequest
             {
                 Tools = GetCapabilities(),
-                Messages = AddChatDescription(messages.ToList()),
+                Messages = AddChatDescription(cleanedActivities.ToList()),
                 Model = "gpt_4o",
                 MaxTokens = 200
             };
