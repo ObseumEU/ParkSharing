@@ -152,7 +152,15 @@ public class ReservationService : IReservationService
 
     public async Task<List<FreeSlot>> GetAllOpenSlots(DateTime fromUtc, DateTime toUtc)
     {
-        var allSpots = await _parkingSpotsCollection.Find(new BsonDocument()).ToListAsync();
+        var filter = 
+            Builders<ParkingSpot>.Filter.Ne(spot => spot.BankAccount, null) & 
+            Builders<ParkingSpot>.Filter.Ne(spot => spot.BankAccount, "") &
+            Builders<ParkingSpot>.Filter.Ne(spot => spot.Phone, null) &
+            Builders<ParkingSpot>.Filter.Ne(spot => spot.Phone, "") &
+            Builders<ParkingSpot>.Filter.Ne(spot => spot.Name, null) &
+            Builders<ParkingSpot>.Filter.Ne(spot => spot.Name, "");
+
+        var allSpots = await _parkingSpotsCollection.Find(filter).ToListAsync();
         var openSlots = new List<OpenSlot>();
         var openSpots = allSpots.GenerateAvaliableSlots(fromUtc, toUtc);
 
@@ -171,16 +179,5 @@ public class ReservationService : IReservationService
         {
             throw new ArgumentException("Reservation must have valid start and end times.");
         }
-    }
-
-    private bool IsSpotAvailable(ParkingSpot freeSpot, ReservationSpot reservation)
-    {
-        throw new NotImplementedException();
-        //return freeSpot.Availability.Any(a =>
-        //    (a.Recurrence == Recurrence.Daily && reservation.Start.Value.TimeOfDay >= a.Start && reservation.End.Value.TimeOfDay <= a.End) ||
-        //    (a.Recurrence == Recurrence.Weekly && a.DayOfWeek == reservation.Start.Value.DayOfWeek && reservation.Start.Value.TimeOfDay >= a.Start && reservation.End.Value.TimeOfDay <= a.End) ||
-        //    (a.Recurrence == Recurrence.Weekly && a.DayOfWeek == reservation.End.Value.DayOfWeek && reservation.Start.Value.TimeOfDay >= a.Start && reservation.End.Value.TimeOfDay <= a.End) ||
-        //    (a.Recurrence == Recurrence.Monthly && reservation.Start.Value.TimeOfDay >= a.Start && reservation.End.Value.TimeOfDay <= a.End)
-        //);
     }
 }
