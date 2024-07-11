@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using OpenAI.ObjectModels.RequestModels;
 using ParkSharing;
 using ParkSharing.Reservation.Server.Services.Session;
 using ParkSharing.Services.ChatGPT;
