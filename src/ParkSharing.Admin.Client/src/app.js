@@ -12,6 +12,7 @@ import { ProtectedPage } from "./pages/protected-page";
 import { PublicPage } from "./pages/public-page";
 import { ReservationsPage } from "./pages/reservations-page";
 import { SettingsPage } from "./pages/settings-page";
+import Policies from "./pages/policies-page";
 
 
 export const App = () => {
@@ -50,6 +51,7 @@ export const App = () => {
         path="/admin"
         element={<AuthenticationGuard component={AdminPage} />}
       />
+      <Route path="/policies" element={<Policies />} />
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );

@@ -23,6 +23,7 @@ public class DebugSeedData
 
             newSpot.PublicId = "ADebugSpot";
             newSpot.BankAccount = "NL22ABNA0123456789";
+            newSpot.Phone = "345342234";
             newSpot.Availability = new List<Availability>
                     {
                         new Availability

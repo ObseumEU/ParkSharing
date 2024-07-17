@@ -22,6 +22,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ParkSharing.AppHost\ParkSharing.AppHost.csproj" />
+    <ProjectReference Include="..\ParkSharing.Notification.Server\ParkSharing.Notification.Server.csproj" />
   </ItemGroup>
 
   <ItemGroup>
