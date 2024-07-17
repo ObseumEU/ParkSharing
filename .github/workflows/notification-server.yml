@@ -1,0 +1,27 @@
+name: notification-server
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  checkout:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          token: ${{ secrets.ACCESS_TOKEN }}
+
+  docker:
+    uses: ObseumEU/github-workflows/.github/workflows/build-and-push-v2.yml@master
+    with:
+      project_path: src/ParkSharing.Notification.Server/ParkSharing.Notification.Server.csproj  # Context directory for the build
+      image-name: smixers/parksharing-notification-server
+      servicename: notification-server
+    secrets:
+      ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+      DOCKER_USER: ${{ secrets.DOCKER_SMIXERS_USER }}
+      DOCKER_PASS: ${{ secrets.DOCKER_SMIXERS_SECRET }}
+
