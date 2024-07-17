@@ -91,7 +91,7 @@ const CustomChat = () => {
           type="text"
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          placeholder="Type a message..."
+          placeholder="Napsat zprávu..."
           disabled={!canSendMessage}
         />
         <button type="submit" className="rcw-send" disabled={!canSendMessage}>
