@@ -15,7 +15,6 @@ public class SettingsController : ControllerBase
         _log = log;
     }
 
-
     [HttpGet]
     [Authorize]
     public async Task<ActionResult<SettingsDto>> GetSettings()
