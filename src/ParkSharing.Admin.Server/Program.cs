@@ -11,7 +11,6 @@ using Microsoft.IdentityModel.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.Net.Http.Headers;
 using MongoDB.Driver;
-using System.Diagnostics;
 using System.Reflection;
 
 
@@ -49,7 +48,6 @@ builder.WebHost.ConfigureKestrel(serverOptions =>
 });
 
 // Add Services to the Container
-builder.Services.AddScoped<IMessageService, MessageService>();
 builder.Services.AddScoped<IParkingSpotService, ParkingSpotServiceMongo>();
 builder.Services.AddControllers().AddJsonOptions(options =>
 {
