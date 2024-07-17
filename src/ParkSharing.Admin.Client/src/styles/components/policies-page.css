@@ -1,0 +1,21 @@
+.policies-page {
+    padding: 20px;
+    max-width: 800px;
+    margin: 0 auto;
+    border-radius: 8px;
+  }
+  
+  .policies-page h1, .policies-page h2 {
+    color: white;
+  }
+  
+  .policies-page p, .policies-page li {
+    color: white;
+    background-color: transparent;
+    border: transparent;
+  }
+  
+  .policies-page ol {
+    padding-left: 20px;
+  }
+  
