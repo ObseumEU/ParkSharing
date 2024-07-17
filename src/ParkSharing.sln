@@ -27,6 +27,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DevOps", "DevOps", "{4AE602
 	ProjectSection(SolutionItems) = preProject
 		..\.github\workflows\admin-client.yml = ..\.github\workflows\admin-client.yml
 		..\.github\workflows\admin-server.yml = ..\.github\workflows\admin-server.yml
+		..\.github\workflows\notification-server.yml = ..\.github\workflows\notification-server.yml
 		..\.github\workflows\reservation-client.yml = ..\.github\workflows\reservation-client.yml
 		..\.github\workflows\reservation-server.yml = ..\.github\workflows\reservation-server.yml
 	EndProjectSection
@@ -37,6 +38,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
 	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ParkSharing.Notification.Server.Tests", "ParkSharing.Notification.Server.Tests\ParkSharing.Notification.Server.Tests.csproj", "{94178F5B-2FA1-4B21-BD2D-8B5FF09D6165}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ParkSharing.Notification.Server", "ParkSharing.Notification.Server\ParkSharing.Notification.Server.csproj", "{559265D0-3849-4BD4-B898-7B643AF003E6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -72,6 +77,14 @@ Global
 		{10C8E3FF-2C8F-4D7E-B963-FF524DCAFE38}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{10C8E3FF-2C8F-4D7E-B963-FF524DCAFE38}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{10C8E3FF-2C8F-4D7E-B963-FF524DCAFE38}.Release|Any CPU.Build.0 = Release|Any CPU
+		{94178F5B-2FA1-4B21-BD2D-8B5FF09D6165}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{94178F5B-2FA1-4B21-BD2D-8B5FF09D6165}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{94178F5B-2FA1-4B21-BD2D-8B5FF09D6165}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{94178F5B-2FA1-4B21-BD2D-8B5FF09D6165}.Release|Any CPU.Build.0 = Release|Any CPU
+		{559265D0-3849-4BD4-B898-7B643AF003E6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{559265D0-3849-4BD4-B898-7B643AF003E6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{559265D0-3849-4BD4-B898-7B643AF003E6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{559265D0-3849-4BD4-B898-7B643AF003E6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -87,6 +100,8 @@ Global
 		{FBBFD862-7D07-4B10-99A8-F8A3CF82F26D} = {CF448F23-4D0C-4E54-AB89-49AE2D3BB765}
 		{A20E7D85-B60D-47AF-8C57-E948FF904E5B} = {DAF453F5-601C-4A4F-A30C-285FCBD59152}
 		{10C8E3FF-2C8F-4D7E-B963-FF524DCAFE38} = {CF448F23-4D0C-4E54-AB89-49AE2D3BB765}
+		{94178F5B-2FA1-4B21-BD2D-8B5FF09D6165} = {CF448F23-4D0C-4E54-AB89-49AE2D3BB765}
+		{559265D0-3849-4BD4-B898-7B643AF003E6} = {CF448F23-4D0C-4E54-AB89-49AE2D3BB765}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {E8F57FA2-6280-4867-9E5B-0496548C34AB}
