@@ -18,6 +18,7 @@
 
 	<ItemGroup>
 	  <ProjectReference Include="..\ParkSharing.Admin.Server\ParkSharing.Admin.Server.csproj" />
+	  <ProjectReference Include="..\ParkSharing.Notification.Server\ParkSharing.Notification.Server.csproj" />
 	  <ProjectReference Include="..\ParkSharing.Reservation.Server\ParkSharing.Reservation.Server.csproj" />
 	</ItemGroup>
 
