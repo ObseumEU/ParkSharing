@@ -3,6 +3,10 @@ on:
   push:
     branches:
       - master
+    paths:
+      - 'src/ParkSharing.Admin.Client/**'
+      - 'src/ParkSharing.ServiceDefaults/**'
+      - 'src/ParkSharing.Shared/**'
 
 jobs:
   checkout:
