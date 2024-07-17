@@ -8,7 +8,7 @@ on:
       - 'src/ParkSharing.Admin.Server/**'
       - 'src/ParkSharing.ServiceDefaults/**'
       - 'src/ParkSharing.Shared/**'
-- 
+ 
 jobs:
   checkout:
     runs-on: ubuntu-latest
