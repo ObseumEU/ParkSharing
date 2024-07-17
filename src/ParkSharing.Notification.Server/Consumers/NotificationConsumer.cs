@@ -24,6 +24,6 @@ public class NotificationConsumer : IConsumer<ReservationCreatedEvent>
         values["end"] = context.Message.End.Value.ToLocalTime().ToString("d MMMM HH:mm");
         values["phone"] = context.Message.Phone;
         values["price"] = context.Message.Price.ToString();
-        await _emailService.SendTemplatedEmailAsync(userInfo.Email, "Místo bylo zarezervováno", "Reservation",values);
+        await _emailService.SendTemplatedEmailAsync(userInfo.Email, "Místo bylo zarezervováno", "Reservation", values);
     }
 }
