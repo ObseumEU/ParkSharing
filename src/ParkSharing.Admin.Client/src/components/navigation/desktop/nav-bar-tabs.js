@@ -6,7 +6,7 @@ export const NavBarTabs = () => {
   const { isAuthenticated } = useAuth0();
 
   const handleRoadmapClick = () => {
-    window.open("https://parksharingobseum.featurebase.app/roadmap", "_blank");
+    window.open("https://parksharingobseum.featurebase.app/", "_blank");
   };
 
   const handlePatreonClick = () => {
