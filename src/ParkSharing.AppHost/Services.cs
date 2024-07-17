@@ -3,6 +3,7 @@
     public static class ServicesNames
     {
         public const string AdminServer = "adminserver";
+        public const string NotificationServer = "notificationserver";
         public const string AdminClient = "adminclient";
         public const string ReservationServer = "reservationserver";
         public const string ReservationClient = "reservationclient";

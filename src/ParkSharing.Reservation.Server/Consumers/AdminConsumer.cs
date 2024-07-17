@@ -30,7 +30,7 @@ public class AdminConsumer : IConsumer<ParkSpotCreatedOrUpdatedEvent>
                 PublicId = a.PublicId,
                 Recurrence = a.Recurrence,
                 StartDate = a.StartDate,
-                StartTime = a.StartTime
+                StartTime = a.StartTime,
             }).ToList(),
             BankAccount = msg.BankAccount,
             Name = msg.Name,
@@ -46,7 +46,9 @@ public class AdminConsumer : IConsumer<ParkSpotCreatedOrUpdatedEvent>
                 .Set(ps => ps.Availability, newParkingSpot.Availability)
                 .Set(ps => ps.BankAccount, newParkingSpot.BankAccount)
                 .Set(ps => ps.Name, newParkingSpot.Name)
-                .Set(ps => ps.PricePerHour, newParkingSpot.PricePerHour);
+                .Set(ps => ps.PricePerHour, newParkingSpot.PricePerHour)
+                .Set(ps => ps.Phone, newParkingSpot.Phone)
+                .Set(ps => ps.UserId, newParkingSpot.UserId);
 
             await _parkingSpotsCollection.UpdateOneAsync(filter, update);
         }

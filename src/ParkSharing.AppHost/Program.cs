@@ -44,7 +44,7 @@ builder.AddNpmApp(ServicesNames.AdminClient, "../ParkSharing.Admin.Client")
     .WithExternalHttpEndpoints()
     .PublishAsDockerFile();
 
-builder.AddProject<Projects.ParkSharing_Notification_Server>("parksharing-notification")
+builder.AddProject<Projects.ParkSharing_Notification_Server>(ServicesNames.NotificationServer)
     .WithReference(messaging);
 
 

@@ -1,6 +1,6 @@
 ﻿namespace ParkSharing.Notification.Server.Email
 {
-    public class EmailConfig
+    public class SmtpOptions
     {
         public string SmtpServer { get; set; }
         public int SmtpPort { get; set; }
