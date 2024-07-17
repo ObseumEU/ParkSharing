@@ -29,6 +29,7 @@ namespace App.Context.Models
         public string UserId { get; set; }
         public decimal PricePerHour { get; set; }
         public string Phone { get; set; }
+        public string Email { get; set; }
     }
 
     public class Reservation

@@ -6,9 +6,9 @@ namespace ParkSharing.Notification.Server.Email
 {
     public class EmailClient : IEmailClient
     {
-        private readonly IOptionsMonitor<EmailConfig> _options;
+        private readonly IOptionsMonitor<SmtpOptions> _options;
 
-        public EmailClient(IOptionsMonitor<EmailConfig> options)
+        public EmailClient(IOptionsMonitor<SmtpOptions> options)
         {
             _options = options;
         }

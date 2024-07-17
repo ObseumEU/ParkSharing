@@ -23,8 +23,9 @@ public class SettingsController : ControllerBase
         try
         {
             var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            var email = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
 
-            var spot = await _parkingSpotService.GetOrCreateSpotByUser(userId);
+            var spot = await _parkingSpotService.GetOrCreateSpotByUser(userId, email);
             return new SettingsDto()
             {
                 BankAccount = Helpers.SanitizeHtml(spot.BankAccount),
@@ -45,6 +46,7 @@ public class SettingsController : ControllerBase
     public async Task<IActionResult> UpdateSettings(SettingsDto dto)
     {
         var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        var email = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
         if (userId == null)
         {
             return Unauthorized();
@@ -60,6 +62,8 @@ public class SettingsController : ControllerBase
         spot.BankAccount = Helpers.SanitizeHtml(dto.BankAccount);
         spot.PricePerHour = dto.PricePerHour.Value;
         spot.Phone = dto.Phone;
+        spot.Email = email;
+        spot.UserId = userId;
         await _parkingSpotService.UpdateSpot(spot);
         return NoContent();
     }

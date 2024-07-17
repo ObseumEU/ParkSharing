@@ -153,8 +153,6 @@ public class ReservationService : IReservationService
     public async Task<List<FreeSlot>> GetAllOpenSlots(DateTime fromUtc, DateTime toUtc)
     {
         var filter = 
-            Builders<ParkingSpot>.Filter.Ne(spot => spot.BankAccount, null) & 
-            Builders<ParkingSpot>.Filter.Ne(spot => spot.BankAccount, "") &
             Builders<ParkingSpot>.Filter.Ne(spot => spot.Phone, null) &
             Builders<ParkingSpot>.Filter.Ne(spot => spot.Phone, "") &
             Builders<ParkingSpot>.Filter.Ne(spot => spot.Name, null) &
