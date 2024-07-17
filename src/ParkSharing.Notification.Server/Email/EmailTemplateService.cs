@@ -4,7 +4,7 @@
     {
         private readonly Dictionary<string, string> _templates = new()
         {
-            {"Reservation", "<p>Proběhla rezervace vašeho parkovacího místa. Od {start} do {end}, cena {price}. <br/> Kontakt na pronajímatele {phone}</p>"},
+            {"Reservation", "<p>Proběhla rezervace vašeho parkovacího místa. Od {start} do {end}, cena {price}. <br/> Kontakt na parkujícího {phone}</p>"},
         };
 
         public Task<string> GetTemplateAsync(string templateName)
