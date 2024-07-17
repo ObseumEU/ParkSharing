@@ -18,7 +18,7 @@ export const SignupButton = () => {
 
   return (
     <button className="button__sign-up" onClick={handleSignUp}>
-      Sign Up
+      Registrace
     </button>
   );
 };
