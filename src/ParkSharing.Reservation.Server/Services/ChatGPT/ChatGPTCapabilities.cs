@@ -16,12 +16,12 @@ namespace ParkSharing.Services.ChatGPT
             _messageBroker = messageBroker;
         }
 
-        [FunctionDescription("Rezervace parkovacího místa. Neni dovoleno rezervova na delsi dobu nez 3 dny, neni dovoleno rezervovat misto pokud nebyla overena jeho dostupnost metodou GetAllOpenSlots. Navratova hodnota je Nazev parkovaciho mista a celkova cena. Povolene jsou rezervovat jen cele hodiny.")]
+        [FunctionDescription("Rezervace parkovacího místa. Neni dovoleno rezervova na delsi dobu nez 3 dny, neni dovoleno rezervovat misto pokud nebyla overena jeho dostupnost metodou GetAllOpenSlots. Navratova hodnota je Nazev parkovaciho mista a celkova cena. Povolene jsou rezervovat jen cele hodiny. Telefonní číslo je povinné a musí jej uživatel zadat.")]
         public async Task<string> ReserveSpot(
-            [ParameterDescription("Datetime format yyyy-mm-dd HH:00")] string from,
-            [ParameterDescription("Datetime format yyyy-mm-dd HH:00")] string to,
+            [ParameterDescription("Datetime format yyyy-mm-dd HH:00", Required = true)] string from,
+            [ParameterDescription("Datetime format yyyy-mm-dd HH:00", Required = true)] string to,
             string spotName,
-            [ParameterDescription("Telefon pro kontakt")] string phone)
+            [ParameterDescription("Telefon pro kontakt najemce", Required = true)] string phone)
         {
             if (!TryParseDateTime(from, out DateTime fromDateTime))
             {

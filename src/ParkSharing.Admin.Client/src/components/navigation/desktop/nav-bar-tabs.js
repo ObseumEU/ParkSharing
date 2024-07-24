@@ -19,7 +19,7 @@ export const NavBarTabs = () => {
       {/* <NavBarTab path="/public" label="Public" /> */}
       {isAuthenticated && (
         <>
-          <div className="nav-bar__tab" onClick={handlePatreonClick}>Nakrm vývojáře</div>
+          {/* <div className="nav-bar__tab" onClick={handlePatreonClick}>Nakrm vývojáře</div> */}
           <NavBarTab path="/reservations" label="Rezervace" />
           <NavBarTab path="/protected" label="Dostupnost" />
           <NavBarTab path="/settings" label="Nastavení" />
