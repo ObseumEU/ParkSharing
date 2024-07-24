@@ -3,6 +3,7 @@ using OpenAI.Utilities.FunctionCalling;
 using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 
 namespace ParkSharing.Services.ChatGPT
 {
@@ -14,6 +15,15 @@ namespace ParkSharing.Services.ChatGPT
         {
             _reservation = reservation;
             _messageBroker = messageBroker;
+        }
+
+        public static bool IsValidPhoneNumber(string phoneNumber)
+        {
+            // Regex pattern for Czech and Slovak phone numbers
+            string pattern = @"^(\+420|\+421)?\s?\d{3}\s?\d{3}\s?\d{3}$";
+
+            Regex regex = new Regex(pattern);
+            return regex.IsMatch(phoneNumber);
         }
 
         [FunctionDescription("Rezervace parkovacího místa. Neni dovoleno rezervova na delsi dobu nez 3 dny, neni dovoleno rezervovat misto pokud nebyla overena jeho dostupnost metodou GetAllOpenSlots. Navratova hodnota je Nazev parkovaciho mista a celkova cena. Povolene jsou rezervovat jen cele hodiny. Telefonní číslo je povinné a musí jej uživatel zadat.")]
@@ -31,6 +41,11 @@ namespace ParkSharing.Services.ChatGPT
             if (!TryParseDateTime(to, out DateTime toDateTime))
             {
                 return "Invalid 'to' date format.";
+            }
+
+            if (!IsValidPhoneNumber(phone))
+            {
+                return "Invalid Phone Number. Valid is for example 724 666 854";
             }
 
             fromDateTime = DateTime.SpecifyKind(fromDateTime, DateTimeKind.Local).ToUniversalTime();
