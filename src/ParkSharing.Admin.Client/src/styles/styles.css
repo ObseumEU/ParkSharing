@@ -129,7 +129,7 @@
 }
 
 .reservations-page h1 {
-  font-size: 2em;
+  font-size: 28px;
   margin-bottom: 20px;
   text-align: center;
   color: #ffffff;
@@ -340,7 +340,7 @@
 }
 
 .reservations-page h1 {
-  font-size: 2em;
+  font-size: 28px;
   margin-bottom: 20px;
   text-align: center;
   color: #ffffff;
@@ -488,4 +488,12 @@ li {
 
 .parking-spot{
   background-color: rgb(71, 71, 71);
+}
+
+p{
+  font-size: 15px;
+}
+
+.css-qfso29-MuiTypography-root-MuiDialogContentText-root{
+  font-size: 15px;
 }
