@@ -47,11 +47,11 @@ export const MobileNavBarTabs = ({ handleClick }) => {
             label="Feedback"
             handleClick={handleRoadmapClick}
           />
-          <MobileNavBarTab
+          {/* <MobileNavBarTab
             path="/"
             label="Nakrm vývojáře"
             handleClick={handlePatreonClick}
-          />
+          /> */}
           {/* <MobileNavBarTab
             path="/protected"
             label="Správa"
