@@ -1,0 +1,356 @@
+
+--------------------------------------------------
+File: ./src/ParkSharing.Notification.Server/Consumers/NotificationConsumer.cs
+--------------------------------------------------
+﻿using App.Context.Models;
+using MassTransit;
+using ParkSharing.Notification.Server.Email;
+using ParkSharing.Notification.Server.Services;
+
+public class NotificationConsumer : IConsumer<ReservationCreatedEvent>
+{
+    ILogger<NotificationConsumer> _logger;
+    IEmailService _emailService;
+    IUserInfoService _userService;
+    public NotificationConsumer(ILogger<NotificationConsumer> logger, IEmailService emailService, IUserInfoService userService)
+    {
+        _logger = logger;
+        _userService = userService;
+        _emailService = emailService;
+    }
+
+    public async Task Consume(ConsumeContext<ReservationCreatedEvent> context)
+    {
+        //There is for now, only one template called "ReservationCreated". Its harcoded in string variable.
+        var userInfo = await _userService.GetUserInfo(context.Message.PublicSpotId);
+        var values = new Dictionary<string, string>();
+        values["start"] = context.Message.Start.Value.ToLocalTime().ToString("d MMMM HH:mm");
+        values["end"] = context.Message.End.Value.ToLocalTime().ToString("d MMMM HH:mm");
+        values["phone"] = context.Message.Phone;
+        values["price"] = context.Message.Price.ToString();
+        await _emailService.SendTemplatedEmailAsync(userInfo.Email, "Místo bylo zarezervováno", "Reservation",values);
+    }
+}
+--------------------------------------------------
+File: ./src/ParkSharing.Notification.Server/Email/EmailClient.cs
+--------------------------------------------------
+﻿using Microsoft.Extensions.Options;
+using System.Net;
+using System.Net.Mail;
+
+namespace ParkSharing.Notification.Server.Email
+{
+    public class EmailClient : IEmailClient
+    {
+        private readonly IOptionsMonitor<EmailConfig> _options;
+
+        public EmailClient(IOptionsMonitor<EmailConfig> options)
+        {
+            _options = options;
+        }
+
+        public async Task SendEmailAsync(string receiver, string subject, string body)
+        {
+            using (var client = new SmtpClient(_options.CurrentValue.SmtpServer, _options.CurrentValue.SmtpPort))
+            {
+                client.Credentials = new NetworkCredential(_options.CurrentValue.SenderEmail, _options.CurrentValue.SenderPassword);
+                client.EnableSsl = true;
+
+                var mailMessage = new MailMessage
+                {
+                    From = new MailAddress(_options.CurrentValue.SenderEmail),
+                    Subject = subject,
+                    Body = body,
+                    IsBodyHtml = true
+                };
+                mailMessage.To.Add(receiver);
+
+                await client.SendMailAsync(mailMessage);
+            }
+        }
+    }
+}
+
+--------------------------------------------------
+File: ./src/ParkSharing.Notification.Server/Email/EmailOptions.cs
+--------------------------------------------------
+﻿namespace ParkSharing.Notification.Server.Email
+{
+    public class EmailConfig
+    {
+        public string SmtpServer { get; set; }
+        public int SmtpPort { get; set; }
+        public string SenderEmail { get; set; }
+        public string SenderPassword { get; set; }
+    }
+}
+
+--------------------------------------------------
+File: ./src/ParkSharing.Notification.Server/Email/EmailService.cs
+--------------------------------------------------
+﻿namespace ParkSharing.Notification.Server.Email
+{
+    public class EmailService : IEmailService
+    {
+        private readonly IEmailClient _emailClient;
+        private readonly IEmailTemplateService _templateService;
+
+        public EmailService(IEmailClient emailClient, IEmailTemplateService templateService)
+        {
+            _emailClient = emailClient;
+            _templateService = templateService;
+        }
+
+        public async Task SendTemplatedEmailAsync(string receiver, string subject, string templateName, IDictionary<string, string> values)
+        {
+            var template = await _templateService.GetTemplateAsync(templateName);
+            var body = ReplaceTemplateValues(template, values);
+            await _emailClient.SendEmailAsync(receiver, subject, body);
+        }
+
+        private string ReplaceTemplateValues(string template, IDictionary<string, string> values)
+        {
+            foreach (var (key, value) in values)
+            {
+                template = template.Replace("{" + key + "}", value);
+            }
+            return template;
+        }
+    }
+}
+
+--------------------------------------------------
+File: ./src/ParkSharing.Notification.Server/Email/EmailTemplateService.cs
+--------------------------------------------------
+﻿namespace ParkSharing.Notification.Server.Email
+{
+    public class EmailTemplateService : IEmailTemplateService
+    {
+        private readonly Dictionary<string, string> _templates = new()
+        {
+            {"Welcome", "<h1>Welcome, {name}!</h1><p>Thank you for joining us.</p>"},
+        };
+
+        public Task<string> GetTemplateAsync(string templateName)
+        {
+            _templates.TryGetValue(templateName, out var template);
+            return Task.FromResult(template ?? string.Empty);
+        }
+    }
+}
+
+--------------------------------------------------
+File: ./src/ParkSharing.Notification.Server/Email/IEmailClient.cs
+--------------------------------------------------
+﻿namespace ParkSharing.Notification.Server.Email
+{
+    public interface IEmailClient
+    {
+        Task SendEmailAsync(string receiver, string subject, string body);
+    }
+}
+
+--------------------------------------------------
+File: ./src/ParkSharing.Notification.Server/Email/IEmailService.cs
+--------------------------------------------------
+﻿
+namespace ParkSharing.Notification.Server.Email
+{
+    public interface IEmailService
+    {
+        Task SendTemplatedEmailAsync(string receiver, string subject, string templateName, IDictionary<string, string> values);
+    }
+}
+--------------------------------------------------
+File: ./src/ParkSharing.Notification.Server/Email/IEmailTemplateService.cs
+--------------------------------------------------
+﻿namespace ParkSharing.Notification.Server.Email
+{
+    public interface IEmailTemplateService
+    {
+        Task<string> GetTemplateAsync(string templateName);
+    }
+}
+
+--------------------------------------------------
+File: ./src/ParkSharing.Notification.Server/obj/Debug/net8.0/.NETCoreApp,Version=v8.0.AssemblyAttributes.cs
+--------------------------------------------------
+// <autogenerated />
+using System;
+using System.Reflection;
+[assembly: global::System.Runtime.Versioning.TargetFrameworkAttribute(".NETCoreApp,Version=v8.0", FrameworkDisplayName = ".NET 8.0")]
+
+--------------------------------------------------
+File: ./src/ParkSharing.Notification.Server/obj/Debug/net8.0/ParkSharing.Notification.AssemblyInfo.cs
+--------------------------------------------------
+//------------------------------------------------------------------------------
+// <auto-generated>
+//     This code was generated by a tool.
+//     Runtime Version:4.0.30319.42000
+//
+//     Changes to this file may cause incorrect behavior and will be lost if
+//     the code is regenerated.
+// </auto-generated>
+//------------------------------------------------------------------------------
+
+using System;
+using System.Reflection;
+
+[assembly: Microsoft.Extensions.Configuration.UserSecrets.UserSecretsIdAttribute("1d6d2980-8d3f-4efd-9c83-f14c31efe7e6")]
+[assembly: System.Reflection.AssemblyCompanyAttribute("ParkSharing.Notification")]
+[assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
+[assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+efe41e3ad52504ef7164a53f2684f5c4c0e41177")]
+[assembly: System.Reflection.AssemblyProductAttribute("ParkSharing.Notification")]
+[assembly: System.Reflection.AssemblyTitleAttribute("ParkSharing.Notification")]
+[assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
+
+// Generated by the MSBuild WriteCodeFragment class.
+
+
+--------------------------------------------------
+File: ./src/ParkSharing.Notification.Server/obj/Debug/net8.0/ParkSharing.Notification.GlobalUsings.g.cs
+--------------------------------------------------
+// <auto-generated/>
+global using global::Microsoft.AspNetCore.Builder;
+global using global::Microsoft.AspNetCore.Hosting;
+global using global::Microsoft.AspNetCore.Http;
+global using global::Microsoft.AspNetCore.Routing;
+global using global::Microsoft.Extensions.Configuration;
+global using global::Microsoft.Extensions.DependencyInjection;
+global using global::Microsoft.Extensions.Hosting;
+global using global::Microsoft.Extensions.Logging;
+global using global::System;
+global using global::System.Collections.Generic;
+global using global::System.IO;
+global using global::System.Linq;
+global using global::System.Net.Http;
+global using global::System.Net.Http.Json;
+global using global::System.Threading;
+global using global::System.Threading.Tasks;
+
+--------------------------------------------------
+File: ./src/ParkSharing.Notification.Server/obj/Debug/net8.0/ParkSharing.Notification.Server.AssemblyInfo.cs
+--------------------------------------------------
+//------------------------------------------------------------------------------
+// <auto-generated>
+//     This code was generated by a tool.
+//     Runtime Version:4.0.30319.42000
+//
+//     Changes to this file may cause incorrect behavior and will be lost if
+//     the code is regenerated.
+// </auto-generated>
+//------------------------------------------------------------------------------
+
+using System;
+using System.Reflection;
+
+[assembly: Microsoft.Extensions.Configuration.UserSecrets.UserSecretsIdAttribute("1d6d2980-8d3f-4efd-9c83-f14c31efe7e6")]
+[assembly: System.Reflection.AssemblyCompanyAttribute("ParkSharing.Notification.Server")]
+[assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
+[assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+2e3ee679d2a361826438c05987e577ee97a097d5")]
+[assembly: System.Reflection.AssemblyProductAttribute("ParkSharing.Notification.Server")]
+[assembly: System.Reflection.AssemblyTitleAttribute("ParkSharing.Notification.Server")]
+[assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
+
+// Generated by the MSBuild WriteCodeFragment class.
+
+
+--------------------------------------------------
+File: ./src/ParkSharing.Notification.Server/obj/Debug/net8.0/ParkSharing.Notification.Server.GlobalUsings.g.cs
+--------------------------------------------------
+// <auto-generated/>
+global using global::Microsoft.AspNetCore.Builder;
+global using global::Microsoft.AspNetCore.Hosting;
+global using global::Microsoft.AspNetCore.Http;
+global using global::Microsoft.AspNetCore.Routing;
+global using global::Microsoft.Extensions.Configuration;
+global using global::Microsoft.Extensions.DependencyInjection;
+global using global::Microsoft.Extensions.Hosting;
+global using global::Microsoft.Extensions.Logging;
+global using global::System;
+global using global::System.Collections.Generic;
+global using global::System.IO;
+global using global::System.Linq;
+global using global::System.Net.Http;
+global using global::System.Net.Http.Json;
+global using global::System.Threading;
+global using global::System.Threading.Tasks;
+
+--------------------------------------------------
+File: ./src/ParkSharing.Notification.Server/Program.cs
+--------------------------------------------------
+using ParkSharing.Notification.Server.Email;
+using ParkSharing.Notification.Server.Services;
+using System.Reflection;
+
+var builder = WebApplication.CreateBuilder(args);
+var config = builder.Configuration;
+
+builder.AddServiceDefaults();
+builder.ConfigureMassTransit(config.GetConnectionString("rabbitmq"), Assembly.GetExecutingAssembly());
+
+builder.Services.AddScoped<IEmailClient, EmailClient>();
+builder.Services.AddScoped<IEmailTemplateService, EmailTemplateService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<IUserInfoService, UserInfoService>();
+// Add services to the container.
+
+var app = builder.Build();
+
+var logger = app.Services.GetRequiredService<ILogger<Program>>();
+logger.LogInformation("Starting ParkSharing Notification Service");
+logger.LogInformation("Environment: {Environment}", builder.Environment.EnvironmentName);
+logger.LogInformation("Application Name: {AppName}", builder.Environment.ApplicationName);
+ 
+
+app.MapDefaultEndpoints();
+
+
+app.UseHttpsRedirection();
+
+app.Run();
+
+
+--------------------------------------------------
+File: ./src/ParkSharing.Notification.Server/Services/IUserInfoService.cs
+--------------------------------------------------
+﻿using ParkSharing.Contracts;
+
+namespace ParkSharing.Notification.Server.Services
+{
+    public interface IUserInfoService
+    {
+        Task<UserInfoResult> GetUserInfo(string publicSpotId);
+    }
+}
+--------------------------------------------------
+File: ./src/ParkSharing.Notification.Server/Services/UserInfoService.cs
+--------------------------------------------------
+﻿using MassTransit;
+using ParkSharing.Contracts;
+
+namespace ParkSharing.Notification.Server.Services
+{
+    public class UserInfoService : IUserInfoService
+    {
+        IRequestClient<GetUserInfo> _client;
+
+        public UserInfoService(IRequestClient<GetUserInfo> client)
+        {
+            _client = client;
+        }
+
+        public async Task<UserInfoResult> GetUserInfo(string publicSpotId)
+        {
+            var userInfo = await _client.GetResponse<UserInfoResult>(new GetUserInfo()
+            {
+                PublicSpotId = publicSpotId
+            });
+
+            return userInfo.Message;
+        }
+    }
+}
+
