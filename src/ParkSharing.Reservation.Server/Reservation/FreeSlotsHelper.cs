@@ -179,14 +179,14 @@ namespace ParkSharing.Reservation.Server.Reservation
 
             foreach (var slot in slots.OrderBy(s => s.From))
             {
-                if (!mergedSlots.Any() || mergedSlots.Last().To < slot.From)
+                if (!mergedSlots.Any() || mergedSlots.Last().To < slot.From || mergedSlots.Last().SpotPublicId != slot.SpotPublicId)
                 {
                     mergedSlots.Add(slot);
                 }
                 else
                 {
                     var lastSlot = mergedSlots.Last();
-                    if (lastSlot.To == slot.From || lastSlot.To > slot.From)
+                    if (lastSlot.To >= slot.From && lastSlot.SpotPublicId == slot.SpotPublicId)
                     {
                         mergedSlots[mergedSlots.Count - 1] = new FreeSlot
                         {
@@ -194,19 +194,14 @@ namespace ParkSharing.Reservation.Server.Reservation
                             To = lastSlot.To > slot.To ? lastSlot.To : slot.To,
                             SpotName = lastSlot.SpotName,
                             SpotPublicId = lastSlot.SpotPublicId,
-                            PricePerHour = lastSlot.PricePerHour == slot.PricePerHour ? lastSlot.PricePerHour : throw new InvalidOperationException("Merging slots with different prices is not supported.")
+                            PricePerHour = lastSlot.PricePerHour
                         };
-                    }
-                    else
-                    {
-                        mergedSlots.Add(slot);
                     }
                 }
             }
 
             return mergedSlots;
         }
-
     }
 }
 public record FreeSlot

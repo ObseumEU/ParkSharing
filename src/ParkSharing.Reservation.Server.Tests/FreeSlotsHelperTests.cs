@@ -5,6 +5,54 @@ namespace ParkSharing.Reservation.Server.Tests
 {
     public class FreeSlotsHelperTests
     {
+        [Fact]
+        public void GenerateAvaliableSlots_ShouldNotMergeSlots_FromDifferentParkingSpots()
+        {
+            // Arrange
+            var spots = new List<ParkingSpot>
+            {
+                new ParkingSpot
+                {
+                    PublicId = "spot1",
+                    Name = "Spot 1",
+                    Availability = new List<Availability>
+                    {
+                        new Availability
+                        {
+                            StartTime = new TimeSpan(8, 0, 0),
+                            EndTime = new TimeSpan(18, 0, 0),
+                            Recurrence = AvailabilityRecurrence.Daily
+                        }
+                    }
+                },
+                new ParkingSpot
+                {
+                    PublicId = "spot2",
+                    Name = "Spot 2",
+                    Availability = new List<Availability>
+                    {
+                        new Availability
+                        {
+                            StartTime = new TimeSpan(8, 0, 0),
+                            EndTime = new TimeSpan(18, 0, 0),
+                            Recurrence = AvailabilityRecurrence.Daily
+                        }
+                    }
+                }
+            };
+
+            var from = new DateTime(2024, 6, 9, 8, 0, 0);
+            var to = new DateTime(2024, 6, 9, 18, 0, 0);
+
+            // Act
+            var result = FreeSlotsHelper.GenerateAvaliableSlots(spots, from, to);
+
+            // Assert
+            Assert.Equal(2, result.Count);
+            Assert.Contains(result, fs => fs.SpotPublicId == "spot1" && fs.From == new DateTime(2024, 6, 9, 8, 0, 0) && fs.To == new DateTime(2024, 6, 9, 18, 0, 0));
+            Assert.Contains(result, fs => fs.SpotPublicId == "spot2" && fs.From == new DateTime(2024, 6, 9, 8, 0, 0) && fs.To == new DateTime(2024, 6, 9, 18, 0, 0));
+        }
+
         private List<ParkingSpot> CreateParkingSpots(string publicId, string name, List<Availability> availabilities)
         {
             return new List<ParkingSpot>

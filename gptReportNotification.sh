@@ -3,7 +3,7 @@
 echo ""
 
 
-search_directory="./src/ParkSharing.Notification"
+search_directory="./src/ParkSharing.Notification.Server"
 exclude_path1="./src/ParkSharing.Admin.Client/node_modules"
 exclude_path2="./src/ParkSharing.Admin.Client/build"
 find "$search_directory" -type d \( -path "$exclude_path1" -o -path "$exclude_path2" \) -prune -o -type f -name "*.cs" -print | while read -r file_path
