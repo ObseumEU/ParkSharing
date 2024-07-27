@@ -4,13 +4,13 @@ exclude_paths=("./src/ParkSharing.Reservation.Client/node_modules" "./src/ParkSh
 
 search_directory="./src/ParkSharing.Reservation.Server"
 
-find "$search_directory" -type d \( -path "${exclude_paths[0]}" -o -path "${exclude_paths[1]}" -o -path "${exclude_paths[2]}" \) -prune -o -type f -name "*.cs" -print | while read -r file_path; do
-    echo "--------------------------------------------------"
-    echo "File: $file_path"
-    echo "--------------------------------------------------"
-    cat "$file_path"  # Use cat to print the file content
-    echo  # Adds a newline for better readability between files
-done
+# find "$search_directory" -type d \( -path "${exclude_paths[0]}" -o -path "${exclude_paths[1]}" -o -path "${exclude_paths[2]}" \) -prune -o -type f -name "*.cs" -print | while read -r file_path; do
+#     echo "--------------------------------------------------"
+#     echo "File: $file_path"
+#     echo "--------------------------------------------------"
+#     cat "$file_path"  # Use cat to print the file content
+#     echo  # Adds a newline for better readability between files
+# done
 
 search_directory="./src/ParkSharing.Reservation.Client"
 

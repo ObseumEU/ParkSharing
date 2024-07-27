@@ -92,6 +92,10 @@ builder.Host.ConfigureServices((services) =>
         {
             policy.Requirements.Add(new RbacRequirement("read:admin-reservations"));
         });
+        options.AddPolicy("write:admin-deletesettings", policy =>
+        {
+            policy.Requirements.Add(new RbacRequirement("write:admin-deletesettings"));
+        });
     });
 
     services.AddSingleton<IAuthorizationHandler, RbacHandler>();

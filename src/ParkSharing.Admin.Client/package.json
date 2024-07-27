@@ -8,6 +8,7 @@
     "@emotion/styled": "^11.11.5",
     "@mui/material": "^5.15.19",
     "axios": "^0.27.2",
+    "jwt-decode": "^4.0.0",
     "react": "^18.2.0",
     "react-datepicker": "^6.9.0",
     "react-datetime": "^3.2.0",
