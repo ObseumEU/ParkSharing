@@ -5,7 +5,7 @@ var builder = DistributedApplication.CreateBuilder(args);
 var mongo = builder.AddMongoDB(ServicesNames.Mongo, 2023);
 var mongodb = mongo.AddDatabase(ServicesNames.MongoDb);
 
-var messaging = builder.AddRabbitMQ(ServicesNames.Rabbit);
+var messaging = builder.AddRabbitMQ(ServicesNames.Rabbit, port: 5672);
 
 var reservation = builder.AddProject<Projects.ParkSharing_Reservation_Server>(ServicesNames.ReservationServer)
     .WithReference(mongodb)
