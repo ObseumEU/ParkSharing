@@ -50,10 +50,10 @@ public class ReservationDto
 
 public class SettingsDto
 {
-    [StringLength(60, MinimumLength = 3)]
+    [StringLength(60, MinimumLength = 0)]
     public string? Name { get; set; }
 
-    [StringLength(60, MinimumLength = 3)]
+    [StringLength(60, MinimumLength = 0)]
     public string? BankAccount { get; set; }
 
     public decimal? PricePerHour { get; set; }

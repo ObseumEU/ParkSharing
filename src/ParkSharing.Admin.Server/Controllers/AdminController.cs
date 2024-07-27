@@ -1,6 +1,8 @@
-﻿using App.Services;
+﻿using App.Context.Models;
+using App.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using ParkSharing.Contracts;
 
 namespace App.Controllers
 {
@@ -14,6 +16,47 @@ namespace App.Controllers
         {
             _parkingSpotService = parkingSpotService;
             _log = log;
+        }
+
+        /// <summary>
+        /// This method is used for automated UI tests
+        /// </summary>
+        /// <returns></returns>
+        [HttpDelete("deletesettings")]
+        [Authorize("write:admin-deletesettings")]
+        public async Task<ActionResult> DeleteSettings()
+        {
+            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            var email = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
+            if (userId == null)
+            {
+                return Unauthorized();
+            }
+
+            var spot = await _parkingSpotService.GetSpotByUser(userId);
+            if (spot == null)
+            {
+                return NotFound();
+            }
+
+            spot.Name = "";
+            spot.BankAccount = "";
+            spot.PricePerHour = 0;
+            spot.Phone = "";
+            spot.Availability = new List<Availability>();
+            await _parkingSpotService.UpdateSpot(spot);
+            await _parkingSpotService.UpdateAvailabilityByUser(userId, spot.Availability);
+
+            if (spot.Reservations != null)
+            {
+                foreach (var reservation in spot.Reservations)
+                {
+                    reservation.State = ReservationState.Rejected;
+                    await _parkingSpotService.RemoveReservation(reservation.PublicId);
+                }
+            }
+
+            return Ok();
         }
 
         [HttpGet("spots")]
