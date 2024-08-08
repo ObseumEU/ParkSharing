@@ -22,6 +22,9 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ParkSharing.Admin.Server", "ParkSharing.Admin.Server\ParkSharing.Admin.Server.csproj", "{FBBFD862-7D07-4B10-99A8-F8A3CF82F26D}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Orchestration", "Orchestration", "{A20E7D85-B60D-47AF-8C57-E948FF904E5B}"
+	ProjectSection(SolutionItems) = preProject
+		ParkSharing.Reservation.Server.Tests\ChatGPTCapabilitiesTests.cs = ParkSharing.Reservation.Server.Tests\ChatGPTCapabilitiesTests.cs
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DevOps", "DevOps", "{4AE60263-854B-4910-B233-7C2EE31BA5E9}"
 	ProjectSection(SolutionItems) = preProject

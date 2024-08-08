@@ -20,10 +20,14 @@ public class NotificationConsumer : IConsumer<ReservationCreatedEvent>
         //There is for now, only one template called "ReservationCreated". Its harcoded in string variable.
         var userInfo = await _userService.GetUserInfo(context.Message.PublicSpotId);
         var values = new Dictionary<string, string>();
-        values["start"] = context.Message.Start.Value.ToLocalTime().ToString("d MMMM HH:mm");
-        values["end"] = context.Message.End.Value.ToLocalTime().ToString("d MMMM HH:mm");
+        values["start"] = context.Message.Start.Value.ToString("d MMMM HH:mm");
+        values["end"] = context.Message.End.Value.ToString("d MMMM HH:mm");
         values["phone"] = context.Message.Phone;
         values["price"] = context.Message.Price.ToString();
+
+#if !DEBUG
         await _emailService.SendTemplatedEmailAsync(userInfo.Email, "Místo bylo zarezervováno", "Reservation", values);
+#endif
+        _logger.LogInformation($"Email sent to {userInfo.Email}");
     }
 }

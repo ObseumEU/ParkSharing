@@ -1,4 +1,7 @@
-﻿using MassTransit;
+﻿using Amazon.Runtime.Internal.Util;
+using FluentAssertions;
+using MassTransit;
+using Microsoft.Extensions.Logging;
 using Moq;
 using ParkSharing.Services.ChatGPT;
 using System.Globalization;
@@ -11,12 +14,15 @@ namespace ParkSharing.Reservation.Server.Tests
         private readonly Mock<IReservationService> _mockReservationService;
         private readonly Mock<IBus> _mockMessageBroker;
         private readonly ChatGPTCapabilities _chatGPTCapabilities;
+        private readonly Mock<ILogger<ChatGPTCapabilities>> _mockIlogger;
 
         public ChatGPTCapabilitiesTests()
         {
             _mockReservationService = new Mock<IReservationService>();
             _mockMessageBroker = new Mock<IBus>();
-            _chatGPTCapabilities = new ChatGPTCapabilities(_mockReservationService.Object, _mockMessageBroker.Object);
+            _mockIlogger = new Mock<ILogger<ChatGPTCapabilities>>();
+
+            _chatGPTCapabilities = new ChatGPTCapabilities(_mockReservationService.Object, _mockMessageBroker.Object, _mockIlogger.Object);
         }
 
         [Fact]
@@ -137,7 +143,7 @@ namespace ParkSharing.Reservation.Server.Tests
         {
             string[] formats = { "yyyy-MM-dd H:mm", "yyyy-MM-dd HH:mm" };
             DateTime.TryParseExact(input, formats, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime dateTime);
-            return DateTime.SpecifyKind(dateTime, DateTimeKind.Local).ToUniversalTime();
+            return dateTime;
         }
 
         [Fact]
@@ -186,5 +192,29 @@ namespace ParkSharing.Reservation.Server.Tests
             // Assert
             Assert.Equal(expectedMessage, result);
         }
+
+        [Theory]
+        [InlineData("724 676 829", true)]
+        [InlineData("724676829", true)]
+        [InlineData("+420 724 676 829", true)]
+        [InlineData("+420724676829", true)]
+        [InlineData("+421 724 676 829", true)]
+        [InlineData("+421724676829", true)]
+        [InlineData("724 676 829 ", true)] // Trailing space
+        [InlineData("7246768290", false)]   // Extra digit
+        [InlineData("724 676829", true)]   // Missing space
+        [InlineData("724676 829", true)]   // Missing space
+        [InlineData("+422 724 676 829", false)] // Invalid country code
+        [InlineData("123 456 789", true)] // Invalid phone number
+        public void IsValidPhoneNumber_ShouldValidateCorrectly(string phoneNumber, bool expected)
+        {
+            // Arrange & Act
+            var result = ChatGPTCapabilities.IsValidPhoneNumber(phoneNumber);
+
+            // Assert
+            result.Should().Be(expected, $"because the phone number being tested is: {phoneNumber}");
+        }
+
+
     }
 }

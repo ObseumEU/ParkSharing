@@ -59,7 +59,7 @@ public class SettingsController : ControllerBase
 
         spot.Name = Helpers.SanitizeHtml(dto.Name);
         spot.BankAccount = Helpers.SanitizeHtml(dto.BankAccount);
-        spot.PricePerHour = dto.PricePerHour.Value;
+        spot.PricePerHour = dto.PricePerHour ?? 0;
         spot.Phone = dto.Phone;
         spot.Email = email;
         spot.UserId = userId;
