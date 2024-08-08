@@ -44,8 +44,8 @@ public class DebugSeedData
                         new Availability
                         {
                             PublicId = Guid.NewGuid().ToString(),
-                            StartDate = new DateTime(DateTime.UtcNow.Year, DateTime.UtcNow.Month + 1, DateTime.UtcNow.Day, 10,0,0),
-                            EndDate = new DateTime(DateTime.UtcNow.Year, DateTime.UtcNow.Month + 1, DateTime.UtcNow.Day, 18,0,0),
+                            StartDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month + 1, DateTime.Now.Day, 10,0,0),
+                            EndDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month + 1, DateTime.Now.Day, 18,0,0),
                             Recurrence= AvailabilityRecurrence.Once
                         }
                     };

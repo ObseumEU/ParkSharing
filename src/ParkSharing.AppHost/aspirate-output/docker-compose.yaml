@@ -43,7 +43,7 @@ services:
       ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"
       ConnectionStrings__mongodb: "mongodb://mongo:27017/mongodb"
       ConnectionStrings__rabbitmq: "amqp://guest:uao19CHmJw9EnOhjfK6LOQ@rabbitmq:5672"
-      CLIENT_ORIGIN_URL: "localhost"
+      CLIENT_ORIGIN_URL: "host"
       AUTH0_AUDIENCE: "https://parksharing.obseum.cloud"
       AUTH0_DOMAIN: "dev-j8mvyoxwsvvvkvs6.eu.auth0.com"
       ASPNETCORE_URLS: "http://+:8080"

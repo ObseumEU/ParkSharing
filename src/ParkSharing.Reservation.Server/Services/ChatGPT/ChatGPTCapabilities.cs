@@ -1,6 +1,7 @@
 ﻿using MassTransit;
 using OpenAI.Utilities.FunctionCalling;
 using System.Globalization;
+using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -11,14 +12,20 @@ namespace ParkSharing.Services.ChatGPT
     {
         IReservationService _reservation;
         IBus _messageBroker;
-        public ChatGPTCapabilities(IReservationService reservation, IBus messageBroker)
+        ILogger<ChatGPTCapabilities> _log;
+
+        public ChatGPTCapabilities(IReservationService reservation, IBus messageBroker, ILogger<ChatGPTCapabilities> log)
         {
             _reservation = reservation;
             _messageBroker = messageBroker;
+            _log = log;
         }
 
         public static bool IsValidPhoneNumber(string phoneNumber)
         {
+            // Normalize the phone number by removing leading and trailing whitespaces
+            phoneNumber = phoneNumber.Trim();
+
             // Regex pattern for Czech and Slovak phone numbers
             string pattern = @"^(\+420|\+421)?\s?\d{3}\s?\d{3}\s?\d{3}$";
 
@@ -35,21 +42,26 @@ namespace ParkSharing.Services.ChatGPT
         {
             if (!TryParseDateTime(from, out DateTime fromDateTime))
             {
+                _log.LogWarning($"{from} Invalid From Date");
+
                 return "Invalid 'from' date format.";
             }
 
             if (!TryParseDateTime(to, out DateTime toDateTime))
             {
+                _log.LogWarning($"{to} Invalid To Date");
+
                 return "Invalid 'to' date format.";
             }
 
             if (!IsValidPhoneNumber(phone))
             {
+                _log.LogWarning($"{phone} Invalid Phone Number");
                 return "Invalid Phone Number. Valid is for example 724 666 854";
             }
 
-            fromDateTime = DateTime.SpecifyKind(fromDateTime, DateTimeKind.Local).ToUniversalTime();
-            toDateTime = DateTime.SpecifyKind(toDateTime, DateTimeKind.Local).ToUniversalTime();
+            //fromDateTime = DateTime.SpecifyKind(fromDateTime, DateTimeKind.Local).ToUniversalTime();
+            //toDateTime = DateTime.SpecifyKind(toDateTime, DateTimeKind.Local).ToUniversalTime();
 
             var spot = await _reservation.GetParkingSpotByNameAsync(spotName);
 
@@ -98,10 +110,10 @@ namespace ParkSharing.Services.ChatGPT
                 return "Invalid 'to' date format.";
             }
 
-            fromDateTime = DateTime.SpecifyKind(fromDateTime, DateTimeKind.Local).ToUniversalTime();
-            toDateTime = DateTime.SpecifyKind(toDateTime, DateTimeKind.Local).ToUniversalTime();
+            fromDateTime = DateTime.SpecifyKind(fromDateTime, DateTimeKind.Local);
+            toDateTime = DateTime.SpecifyKind(toDateTime, DateTimeKind.Local);
 
-            if (fromDateTime < DateTime.UtcNow || toDateTime < DateTime.UtcNow)
+            if (fromDateTime < DateTime.Now || toDateTime < DateTime.Now)
             {
                 return "Cannot reserve into history";
             }
@@ -116,14 +128,19 @@ namespace ParkSharing.Services.ChatGPT
 
             var res = freeSlots.Select(f =>
             {
-                var fromCET = f.From.ToLocalTime();
-                var toCET = f.To.ToLocalTime();
+                var fromCET = f.From;
+                var fromCETStr = fromCET.TimeOfDay == new TimeSpan(0, 0, 0) ? fromCET.AddSeconds(1).ToString("dd MMM yyyy HH:mm") : fromCET.ToString("dd MMM yyyy HH:mm");
+                var toCET = f.To;
+                var toCETStr = toCET.TimeOfDay == new TimeSpan(0, 0, 0) ? toCET.AddSeconds(1).ToString("dd MMM yyyy HH:mm") : toCET.ToString("dd MMM yyyy HH:mm");
+
                 var result = new
                 {
-                    From = fromCET.ToString("dd MMM yyyy HH:mm"),
-                    To = toCET.ToString("dd MMM yyyy HH:mm"),
+                    From = fromCETStr,
+                    To = toCETStr,
                     SpotName = f.SpotName,
-                    PricePerHour = f.PricePerHour
+                    PricePerHour = f.PricePerHour,
+                    FromDayOfWeek = fromCET.DayOfWeek.ToString(),
+                    ToDayOfWeek = toCET.DayOfWeek.ToString()
                 };
                 return result;
             }).ToList();
@@ -140,10 +157,10 @@ namespace ParkSharing.Services.ChatGPT
             return serialized;
         }
 
-        private bool TryParseDateTime(string input, out DateTime dateTime)
+        public bool TryParseDateTime(string input, out DateTime dateTime)
         {
             string[] formats = { "yyyy-MM-dd H:mm", "yyyy-MM-dd HH:mm" };
-            return DateTime.TryParseExact(input, formats, CultureInfo.InvariantCulture, DateTimeStyles.None, out dateTime);
+            return DateTime.TryParseExact(input, formats, CultureInfo.CurrentCulture, DateTimeStyles.None, out dateTime);
         }
 
         [FunctionDescription("Detail o parkovacim miste. Zobrazit vzdy pri potvrzeni rezervace")]

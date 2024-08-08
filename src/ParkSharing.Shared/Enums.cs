@@ -10,6 +10,7 @@
         Once = 0,
         Daily = 1,
         Weekly = 2,
-        WeekDays = 3
+        WeekDays = 3,
+        Forever = 4
     }
 }
