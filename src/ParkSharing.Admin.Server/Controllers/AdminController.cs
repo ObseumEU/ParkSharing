@@ -33,26 +33,35 @@ namespace App.Controllers
                 return Unauthorized();
             }
 
-            var spot = await _parkingSpotService.GetSpotByUser(userId);
-            if (spot == null)
+            List<ParkingSpot> spots = new List<ParkingSpot>();
+
+#if !DEBUG
+            var selectedSpot = await _parkingSpotService.GetSpotByUser(userId);
+            if (selectedSpot == null)
             {
                 return NotFound();
             }
-
-            spot.Name = "";
-            spot.BankAccount = "";
-            spot.PricePerHour = 0;
-            spot.Phone = "";
-            spot.Availability = new List<Availability>();
-            await _parkingSpotService.UpdateSpot(spot);
-            await _parkingSpotService.UpdateAvailabilityByUser(userId, spot.Availability);
-
-            if (spot.Reservations != null)
+            spots.Add(selectedSpot);
+#else
+            spots = await _parkingSpotService.GetAllSpots();
+#endif
+            foreach (var spot in spots)
             {
-                foreach (var reservation in spot.Reservations)
+                spot.Name = "";
+                spot.BankAccount = "";
+                spot.PricePerHour = 0;
+                spot.Phone = "";
+                spot.Availability = new List<Availability>();
+                await _parkingSpotService.UpdateSpot(spot);
+                await _parkingSpotService.UpdateAvailabilityByUser(userId, spot.Availability);
+
+                if (spot.Reservations != null)
                 {
-                    reservation.State = ReservationState.Rejected;
-                    await _parkingSpotService.RemoveReservation(reservation.PublicId);
+                    foreach (var reservation in spot.Reservations)
+                    {
+                        reservation.State = ReservationState.Rejected;
+                        await _parkingSpotService.RemoveReservation(reservation.PublicId);
+                    }
                 }
             }
 
@@ -74,8 +83,8 @@ namespace App.Controllers
                 Availability = spot.Availability?.Select(a => new AvailabilityDto
                 {
                     PublicId = a.PublicId,
-                    Start = a.StartDate == null ? DateTime.UtcNow.Date.Add(a.StartTime) : a.StartDate.Value.Add(a.StartTime),
-                    End = a.EndDate == null ? DateTime.UtcNow.Date.Add(a.EndTime) : a.EndDate.Value.Add(a.EndTime),
+                    Start = a.StartDate == null ? DateTime.Now.Date.Add(a.StartTime) : a.StartDate.Value.Add(a.StartTime),
+                    End = a.EndDate == null ? DateTime.Now.Date.Add(a.EndTime) : a.EndDate.Value.Add(a.EndTime),
                     Recurrence = a.Recurrence,
                     DayOfWeek = a.DayOfWeek
                 }).ToList(),

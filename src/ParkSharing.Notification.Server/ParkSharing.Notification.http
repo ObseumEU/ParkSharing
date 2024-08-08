@@ -1,4 +1,4 @@
-@ParkSharing.Notification_HostAddress = http://localhost:5054
+@ParkSharing.Notification_HostAddress = http://host:5054
 
 GET {{ParkSharing.Notification_HostAddress}}/weatherforecast/
 Accept: application/json

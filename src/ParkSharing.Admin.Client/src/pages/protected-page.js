@@ -11,6 +11,7 @@ const recurrenceMap = {
   "Denně": 1,
   "Týdně": 2,
   "Pracovní dny (Po-Pá)": 3,
+  "Trvale": 4,
 };
 
 const recurrenceReverseMap = {
@@ -18,6 +19,17 @@ const recurrenceReverseMap = {
   1: "Denně",
   2: "Týdně",
   3: "Pracovní dny (Po-Pá)",
+  4: "Trvale",
+};
+
+const dayOfWeekMap = {
+  Sunday: "Neděle",
+  Monday: "Pondělí",
+  Tuesday: "Úterý",
+  Wednesday: "Středa",
+  Thursday: "Čtvrtek",
+  Friday: "Pátek",
+  Saturday: "Sobota",
 };
 
 export const ProtectedPage = () => {
@@ -144,6 +156,7 @@ export const ProtectedPage = () => {
                         <option>Denně</option>
                         <option>Týdně</option>
                         <option>Pracovní dny (Po-Pá)</option>
+                        <option>Trvale</option>
                       </select>
                       {editData.recurrence === "Týdně" && (
                         <>
@@ -191,7 +204,7 @@ export const ProtectedPage = () => {
                             className="input-field custom-datepicker"
                           />
                         </>
-                      ) : (
+                      ) : editData.recurrence === "Trvale" ? null : (
                         <>
                           <label>Od:</label>
                           <DatePicker
@@ -233,10 +246,27 @@ export const ProtectedPage = () => {
                     <div className="availability-item__body">
                       <p>Opakování: {slot.recurrence}</p>
                       {slot.recurrence === "Týdně" && (
-                        <p>Den v týdnu: {slot.dayOfWeek}</p>
+                        <>
+                          <p>Den v týdnu: {dayOfWeekMap[slot.dayOfWeek]}</p>
+                          <p>Od: {slot.start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                          <p>Do: {slot.end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                        </>
                       )}
-                      <p>Začátek: {slot.start.toLocaleString()}</p>
-                      <p>Konec: {slot.end.toLocaleString()}</p>
+                      {slot.recurrence === "Jednorázové" && (
+                        <>
+                          <p>Začátek: {slot.start.toLocaleString()}</p>
+                          <p>Konec: {slot.end.toLocaleString()}</p>
+                        </>
+                      )}
+                      {(slot.recurrence === "Denně" || slot.recurrence === "Pracovní dny (Po-Pá)") && (
+                        <>
+                          <p>Od: {slot.start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                          <p>Do: {slot.end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                        </>
+                      )}
+                      {/* {slot.recurrence === "Trvale" && (
+                        <p>Opakování: Trvale</p>
+                      )} */}
                       <div className="button-container-right">
                         <button
                           onClick={() => handleEditAvailability(index)}
@@ -272,6 +302,7 @@ export const ProtectedPage = () => {
                       <option>Denně</option>
                       <option>Týdně</option>
                       <option>Pracovní dny (Po-Pá)</option>
+                      <option>Trvale</option>
                     </select>
                     {editData.recurrence === "Týdně" && (
                       <>
@@ -319,7 +350,7 @@ export const ProtectedPage = () => {
                           className="input-field custom-datepicker"
                         />
                       </>
-                    ) : (
+                    ) : editData.recurrence === "Trvale" ? null : (
                       <>
                         <label>Od:</label>
                         <DatePicker
