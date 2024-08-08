@@ -30,6 +30,8 @@ public class AvaliabilityController : ControllerBase
             return NotFound();
         }
 
+        var test = DateTime.Now.AddHours(2);
+
         ParkingSpotDto res = new ParkingSpotDto()
         {
             BankAccount = spot.BankAccount,
@@ -39,17 +41,33 @@ public class AvaliabilityController : ControllerBase
             Id = spot.Id,
         };
 
+        var test2 = DateTime.Now.Date.AddHours(2);
+
+
         if (spot.Availability != null)
         {
+
+
+
             res.Availability = new List<AvailabilityDto>();
             foreach (var a in spot.Availability)
             {
+                if (a.EndDate != null)
+                {
+                    a.EndDate = a.EndDate.Value.ToLocalTime();
+                }
+
+                if (a.StartDate != null)
+                {
+                    a.StartDate = a.StartDate.Value.ToLocalTime();
+                }
+
                 res.Availability.Add(new AvailabilityDto()
                 {
                     PublicId = a.PublicId,
                     DayOfWeek = a.DayOfWeek,
-                    End = a.EndDate == null ? DateTime.UtcNow.Date.Add(a.EndTime) : a.EndDate.Value.Date.Add(a.EndTime),
-                    Start = a.StartDate == null ? DateTime.UtcNow.Date.Add(a.StartTime) : a.StartDate.Value.Date.Add(a.StartTime),
+                    End = (a.EndDate == null ? DateTime.Now.ToLocalTime().Date.Add(a.EndTime) : a.EndDate.Value.Date.Add(a.EndTime)).ToLocalTime(),
+                    Start = (a.StartDate == null ? DateTime.Now.ToLocalTime().Date.Add(a.StartTime) : a.StartDate.Value.Date.Add(a.StartTime)).ToLocalTime(),
                     Recurrence = a.Recurrence
                 });
             }
@@ -90,6 +108,9 @@ public class AvaliabilityController : ControllerBase
         spot.Availability = new List<Availability>();
         foreach (var av in updatedSpot)
         {
+            av.Start = av.Start.ToLocalTime();
+            av.End = av.End.ToLocalTime();
+
             spot.Availability.Add(new Availability()
             {
                 DayOfWeek = av.DayOfWeek,
