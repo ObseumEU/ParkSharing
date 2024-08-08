@@ -39,6 +39,9 @@ namespace ParkSharing.Reservation.Server.Reservation
                         case AvailabilityRecurrence.WeekDays:
                             AddWeekDaysAvailability(freeSlots, spot, availability, from, to);
                             break;
+                        case AvailabilityRecurrence.Forever:
+                            AddForeverAvailability(freeSlots, spot, from, to);
+                            break;
                     }
                 }
             }
@@ -118,6 +121,11 @@ namespace ParkSharing.Reservation.Server.Reservation
             }
         }
 
+        private static void AddForeverAvailability(List<FreeSlot> freeSlots, ParkingSpot spot, DateTime from, DateTime to)
+        {
+            AddFreeSlot(freeSlots, spot, from, to);
+        }
+
         private static void AddFreeSlot(List<FreeSlot> freeSlots, ParkingSpot spot, DateTime from, DateTime to)
         {
             if (spot.Reservations == null || spot.Reservations.Count == 0)
@@ -168,6 +176,7 @@ namespace ParkSharing.Reservation.Server.Reservation
                 }
             }
         }
+
         private static List<FreeSlot> MergeOverlappingSlots(List<FreeSlot> slots)
         {
             if (slots == null || slots.Count == 0)
@@ -204,6 +213,7 @@ namespace ParkSharing.Reservation.Server.Reservation
         }
     }
 }
+
 public record FreeSlot
 {
     [Required] public DateTime From { get; init; }

@@ -16,12 +16,12 @@ public class ReservationService : IReservationService
         _broker = broker;
     }
 
-    public async Task<bool> CheckAvaliabilitySpot(DateTime fromUtc, DateTime toUtc, string spotName)
+    public async Task<bool> CheckAvaliabilitySpot(DateTime from, DateTime to, string spotName)
     {
-        var freeSlots = await GetAllOpenSlots(fromUtc.AddDays(-1), toUtc.AddDays(+1));
+        var freeSlots = await GetAllOpenSlots(from.AddDays(-1), to.AddDays(+1));
         foreach (var freeSlot in freeSlots.Where( f => f.SpotName == spotName))
         {
-            if (freeSlot.From <= fromUtc && toUtc <= freeSlot.To)
+            if (freeSlot.From <= from && to <= freeSlot.To)
             {
                 return true;
             }
@@ -34,14 +34,14 @@ public class ReservationService : IReservationService
         return await _parkingSpotsCollection.Find(_ => true).ToListAsync();
     }
 
-    public async Task<List<ReservationSpot>> GetReservationsAsync(string name, DateTime fromUtc, DateTime toUtc)
+    public async Task<List<ReservationSpot>> GetReservationsAsync(string name, DateTime from, DateTime to)
     {
         // Define the filter to match the parking spot by name
         var filter = Builders<ParkingSpot>.Filter.Eq(p => p.Name, name);
 
         // Define the projection to include only the reservations that do not collide with the specified time range
         var projection = Builders<ParkingSpot>.Projection
-            .ElemMatch(p => p.Reservations, r => r.End <= fromUtc || r.Start >= toUtc);
+            .ElemMatch(p => p.Reservations, r => r.End <= from || r.Start >= to);
 
         // Find the parking spot with the specified name and projection
         var parkingSpotWithReservations = await _parkingSpotsCollection
@@ -115,16 +115,16 @@ public class ReservationService : IReservationService
         return success;
     }
 
-    private FilterDefinition<ParkingSpot> CreateAvailabilityFilter(DateTime fromUtc, DateTime toUtc)
+    private FilterDefinition<ParkingSpot> CreateAvailabilityFilter(DateTime from, DateTime to)
     {
-        var fromTimeOfDay = fromUtc.TimeOfDay;
-        var toTimeOfDay = toUtc.TimeOfDay;
-        var fromDayOfWeek = fromUtc.DayOfWeek;
-        var toDayOfWeek = toUtc.DayOfWeek;
+        var fromTimeOfDay = from.TimeOfDay;
+        var toTimeOfDay = to.TimeOfDay;
+        var fromDayOfWeek = from.DayOfWeek;
+        var toDayOfWeek = to.DayOfWeek;
 
         var onceFilter = Builders<ParkingSpot>.Filter.ElemMatch(p => p.Availability, a =>
             a.Recurrence == AvailabilityRecurrence.Once &&
-            a.StartDate <= fromUtc && a.EndDate >= toUtc &&
+            a.StartDate <= from && a.EndDate >= to &&
             fromTimeOfDay >= a.StartTime && toTimeOfDay <= a.EndTime);
 
         var dailyFilter = Builders<ParkingSpot>.Filter.ElemMatch(p => p.Availability, a =>
@@ -144,13 +144,13 @@ public class ReservationService : IReservationService
 
         var dateRangeFilter = Builders<ParkingSpot>.Filter.ElemMatch(p => p.Availability, a =>
             a.StartDate.HasValue && a.EndDate.HasValue &&
-            fromUtc >= a.StartDate.Value && toUtc <= a.EndDate.Value &&
+            from >= a.StartDate.Value && to <= a.EndDate.Value &&
             fromTimeOfDay >= a.StartTime && toTimeOfDay <= a.EndTime);
 
         return Builders<ParkingSpot>.Filter.Or(onceFilter, dailyFilter, weeklyFilter, weekDaysFilter, dateRangeFilter);
     }
 
-    public async Task<List<FreeSlot>> GetAllOpenSlots(DateTime fromUtc, DateTime toUtc)
+    public async Task<List<FreeSlot>> GetAllOpenSlots(DateTime from, DateTime to)
     {
         var filter = 
             Builders<ParkingSpot>.Filter.Ne(spot => spot.Phone, null) &
@@ -160,15 +160,15 @@ public class ReservationService : IReservationService
 
         var allSpots = await _parkingSpotsCollection.Find(filter).ToListAsync();
         var openSlots = new List<OpenSlot>();
-        var openSpots = allSpots.GenerateAvaliableSlots(fromUtc, toUtc);
+        var openSpots = allSpots.GenerateAvaliableSlots(from, to);
 
         return openSpots;
     }
 
-    private FilterDefinition<ParkingSpot> CreateReservationFilter(DateTime fromUtc, DateTime toUtc)
+    private FilterDefinition<ParkingSpot> CreateReservationFilter(DateTime from, DateTime to)
     {
         return Builders<ParkingSpot>.Filter.Not(Builders<ParkingSpot>.Filter.ElemMatch(p => p.Reservations, r =>
-            r.Start < toUtc && r.End > fromUtc));
+            r.Start < to && r.End > from));
     }
 
     private void ValidateReservation(ReservationSpot reservation)
