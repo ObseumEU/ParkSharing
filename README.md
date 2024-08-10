@@ -57,35 +57,69 @@ A React frontend that's so basic, it hurts. It's tied together with the UX equiv
 
 Another React experiment gone wrong. Features a custom chat interface that relies heavily on cookies because who needs a database?
 
-## Setup and Running (Good Luck)
+To run the Aspire project located in the `/src/ParkSharing.AppHost` folder, follow these steps. This process will help you get the entire microservices-based application up and running locally, leveraging .NET Aspire’s orchestration capabilities:
 
-If you're brave enough to attempt running this:
+## How run project ( Good luck )
 
-### 1. Clone the Repository
+### Prerequisites
+
+Before starting, ensure you have the following installed on your system:
+- **.NET SDK 8.0 or higher**
+- **Docker Desktop** (or Podman if you prefer an alternative)
+- **Node.js and npm** (for frontend applications)
+
+### Step 1: Install .NET Aspire Workload
+
+First, you need to install the .NET Aspire workload. Open your terminal and run:
 
 ```bash
-git clone https://github.com/your-repo/parksharing.git
-cd parksharing
+dotnet workload install aspire
 ```
 
-### 2. Build and Run with Docker
+This command installs the necessary components and templates to work with .NET Aspire.
+
+### Step 2: Build the Aspire Project
+
+Navigate to the root of your Aspire project:
+
+```bash
+cd /src/ParkSharing.AppHost
+```
+
+Here, you’ll find the main orchestrator project that wires together all other services and dependencies.
+
+### Step 3: Run the Aspire Application
+
+To run the application, you can use the following command:
+
+```bash
+dotnet run --project ParkSharing.AppHost
+```
+
+This will launch the Aspire orchestrator, which will manage all the interconnected services, like MongoDB, RabbitMQ, and your various microservices (Admin Server, Reservation Server, Notification Server, etc.).
+
+If you prefer to start the application using Docker, make sure Docker Desktop is running, and then use the following command to bring up the entire environment:
 
 ```bash
 docker-compose up --build
 ```
 
-This will:
+This Docker command will spin up all necessary containers, ensuring that every service is correctly configured and running.
 
-- Build Docker images (because we love making things complicated).
-- Start MongoDB and RabbitMQ (because SQL was too easy).
-- Run all backend services (so you can witness the chaos in action).
+### Step 4: Access the Aspire Dashboard
 
-### 3. Access the Application
+Once the project is running, the Aspire dashboard will automatically be available. This dashboard is a powerful tool that lets you monitor all the components of your application, including logs, traces, and environment configurations.
 
-If it actually works, you can find the apps here:
+If you started the application via the command line, you’ll need to manually open the dashboard URL printed in the terminal. If you’re using Visual Studio, it will open automatically in your browser.
 
-- **Admin Client**: [http://localhost:4225](http://localhost:4225)
-- **Reservation Client**: [http://localhost:4224](http://localhost:4224)
+### Additional Notes
+
+- **Configuration**: You can adjust the environment variables and other configurations in the `docker-compose.yml` file or directly in your IDE.
+- **Development**: For local development, you can run each service individually if needed. Ensure that MongoDB and RabbitMQ are running separately if you go this route.
+
+By following these steps, you’ll have the entire ParkSharing Aspire application running locally, fully leveraging the powerful orchestration features of .NET Aspire.
+
+If you encounter any issues, ensure that all dependencies are correctly installed, and refer to the logs provided in the Aspire dashboard for troubleshooting.
 
 ## Environment Configuration (The Maze of Variables)
 
