@@ -1,4 +1,3 @@
-using App.Middlewares;
 using MassTransit;
 using MongoDB.Driver;
 using OpenAI.Extensions;

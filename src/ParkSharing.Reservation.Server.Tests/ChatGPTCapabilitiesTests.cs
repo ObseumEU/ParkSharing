@@ -1,5 +1,4 @@
-﻿using Amazon.Runtime.Internal.Util;
-using FluentAssertions;
+﻿using FluentAssertions;
 using MassTransit;
 using Microsoft.Extensions.Logging;
 using Moq;

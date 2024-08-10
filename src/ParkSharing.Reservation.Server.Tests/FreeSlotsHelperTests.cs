@@ -1,5 +1,5 @@
-﻿    using ParkSharing.Contracts;
-    using ParkSharing.Reservation.Server.Reservation;
+﻿using ParkSharing.Contracts;
+using ParkSharing.Reservation.Server.Reservation;
 
 namespace ParkSharing.Reservation.Server.Tests
 {

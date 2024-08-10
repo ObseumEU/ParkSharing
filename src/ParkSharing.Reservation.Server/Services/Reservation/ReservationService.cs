@@ -1,6 +1,5 @@
 ﻿using App.Context.Models;
 using MassTransit;
-using MongoDB.Bson;
 using MongoDB.Driver;
 using ParkSharing.Contracts;
 using ParkSharing.Reservation.Server.Reservation;
@@ -19,7 +18,7 @@ public class ReservationService : IReservationService
     public async Task<bool> CheckAvaliabilitySpot(DateTime from, DateTime to, string spotName)
     {
         var freeSlots = await GetAllOpenSlots(from.AddDays(-1), to.AddDays(+1));
-        foreach (var freeSlot in freeSlots.Where( f => f.SpotName == spotName))
+        foreach (var freeSlot in freeSlots.Where(f => f.SpotName == spotName))
         {
             if (freeSlot.From <= from && to <= freeSlot.To)
             {
@@ -152,7 +151,7 @@ public class ReservationService : IReservationService
 
     public async Task<List<FreeSlot>> GetAllOpenSlots(DateTime from, DateTime to)
     {
-        var filter = 
+        var filter =
             Builders<ParkingSpot>.Filter.Ne(spot => spot.Phone, null) &
             Builders<ParkingSpot>.Filter.Ne(spot => spot.Phone, "") &
             Builders<ParkingSpot>.Filter.Ne(spot => spot.Name, null) &

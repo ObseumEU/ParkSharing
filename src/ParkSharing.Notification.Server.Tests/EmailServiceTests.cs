@@ -1,8 +1,5 @@
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using Moq;
 using ParkSharing.Notification.Server.Email;
-using Xunit;
 
 namespace ParkSharing.Notification.Server.Tests
 {
