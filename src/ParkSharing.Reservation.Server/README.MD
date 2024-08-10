@@ -1,5 +1,3 @@
-Sure, here's a README written in Markdown format with a touch of humor, acknowledging the origins of the code:
-
 ```markdown
 # ParkSharing Reservation Client
 
