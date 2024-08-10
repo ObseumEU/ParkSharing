@@ -24,12 +24,12 @@ public class ParkingController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Post([FromBody] UserInputModel input)
     {
-        
+
         var session = await GetOrCreateSession();
         try
         {
             _log.LogInformation($"Session PublicId: {session.PublicId} User Input: {input.Input} ");
-            var newMessages = await _gpt.Send( session.Messages, HtmlHelpers.SanitizeHtml(input.Input));
+            var newMessages = await _gpt.Send(session.Messages, HtmlHelpers.SanitizeHtml(input.Input));
             await _sessionsService.UpdateAllMessages(session.PublicId, newMessages);
             session.Messages.RemoveAll(m => m == null);
             newMessages.RemoveAll(m => m == null);
