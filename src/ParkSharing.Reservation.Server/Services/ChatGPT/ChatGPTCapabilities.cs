@@ -1,7 +1,6 @@
 ﻿using MassTransit;
 using OpenAI.Utilities.FunctionCalling;
 using System.Globalization;
-using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Text.RegularExpressions;

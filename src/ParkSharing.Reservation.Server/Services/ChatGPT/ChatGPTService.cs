@@ -108,7 +108,7 @@ namespace ParkSharing.Services.ChatGPT
         {
             var cleanedActivities = messages.ToList();
 
-            for(int i = 0; i < cleanedActivities.Count; i++)
+            for (int i = 0; i < cleanedActivities.Count; i++)
             {
                 if (cleanedActivities[0].ToolCalls != null || !string.IsNullOrEmpty(cleanedActivities[0].ToolCallId))
                 {
