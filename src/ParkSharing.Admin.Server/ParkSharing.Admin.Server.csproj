@@ -12,7 +12,7 @@
     <PackageReference Include="Aspire.Hosting.Testing" Version="8.0.1" />
     <PackageReference Include="Aspire.MongoDB.Driver" Version="8.0.1" />
     <PackageReference Include="Auth0.ManagementApi" Version="7.26.2" />
-    <PackageReference Include="dotenv.net" Version="3.1.1" />
+    <PackageReference Include="dotenv.net" Version="3.2.0" />
     <PackageReference Include="HtmlAgilityPack" Version="1.11.62" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.7" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.0-Preview.1" />
