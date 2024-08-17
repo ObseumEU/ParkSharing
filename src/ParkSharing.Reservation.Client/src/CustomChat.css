@@ -51,7 +51,7 @@
 .rcw-header {
   width: 100% !important;
   background-color: black !important; /* Change header background color to black */
-  padding: 10px !important; /* Ensure there is padding for better visibility */
+  padding: 40px !important; /* Ensure there is padding for better visibility */
   text-align: center; /* Center the title */
 }
 
@@ -73,7 +73,7 @@
 @media only screen and (max-width: 640px) {
   .rcw-header {
     font-size: 19px !important; /* Adjust font size for mobile */
-    padding: 15px !important; /* Adjust padding for mobile */
+    padding: 30px !important; /* Adjust padding for mobile */
   }
 }
 
