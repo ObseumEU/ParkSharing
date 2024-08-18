@@ -106,7 +106,7 @@ const CustomChat = () => {
       <Widget
         handleNewUserMessage={handleNewUserMessage}
         title="Sdílení parkování"
-        subtitle="Příklad: Chci rezerovat parkovací místo na zítřek od 8:00 do 15:00"
+        subtitle="-"
         customLauncher={() => {}}
         customStyles={{
           launcher: {
