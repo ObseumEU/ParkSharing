@@ -15,6 +15,7 @@ const CustomChat = () => {
   // Load messages from cookies
   useEffect(() => {
     const storedMessages = Cookies.get('chatMessages');
+    
     if (storedMessages) {
       JSON.parse(storedMessages).forEach(message => {
         if (message.type === 'user') {
@@ -23,14 +24,11 @@ const CustomChat = () => {
           addResponseMessage(message.content);
         }
       });
-    } else {
-      // Display initial message only if there are no stored messages
-      if (!Cookies.get('initialMessageShown')) {
-        addResponseMessage('👋 Vítejte! Rezervujte si parkování snadno: napište den a čas, kdy chcete místo. Např.: 🗓️ Zítra 8:00 - 17:00.🚗');
-        // Set a cookie to indicate that the initial message has been shown
-        Cookies.set('initialMessageShown', 'true', { expires: 1 / 36 }); // 40 minutes
-      }
     }
+    
+    // Always show the initial message at the start of the conversation
+    addResponseMessage('👋 Vítejte! Rezervujte si parkování snadno: napište den a čas, kdy chcete místo. Např.: 🗓️ Zítra 8:00 - 17:00.🚗');
+    
     toggleWidget(); // Open the chat widget
   }, []);
 
