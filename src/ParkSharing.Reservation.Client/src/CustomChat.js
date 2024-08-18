@@ -26,7 +26,7 @@ const CustomChat = () => {
     } else {
       // Display initial message only if there are no stored messages
       if (!Cookies.get('initialMessageShown')) {
-        addResponseMessage('Sdílení a rezervace parkovacích míst ve Velvarii! 🚗 Stačí napsat na kdy chcete místo rezervovat.');
+        addResponseMessage('Dobrý den! 🚗 Stačí napsat na kdy chcete parkovací místo rezervovat. Například: Zítra od 8:00 do 17:00');
         // Set a cookie to indicate that the initial message has been shown
         Cookies.set('initialMessageShown', 'true', { expires: 1 / 36 }); // 40 minutes
       }
