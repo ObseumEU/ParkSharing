@@ -14,6 +14,9 @@ const CustomChat = () => {
 
   // Load messages from cookies
   useEffect(() => {
+    // Show the initial message every time the chat starts
+    addResponseMessage('Sdílení a rezervace parkovacích míst ve Velvarii! 🚗 Stačí napsat na kdy chcete místo rezervovat.');
+
     const storedMessages = Cookies.get('chatMessages');
     if (storedMessages) {
       JSON.parse(storedMessages).forEach(message => {
@@ -23,14 +26,8 @@ const CustomChat = () => {
           addResponseMessage(message.content);
         }
       });
-    } else {
-      // Display initial message only if there are no stored messages
-      if (!Cookies.get('initialMessageShown')) {
-        addResponseMessage('Sdílení a rezervace parkovacích míst ve Velvarii! 🚗 Stačí napsat na kdy chcete místo rezervovat.');
-        // Set a cookie to indicate that the initial message has been shown
-        Cookies.set('initialMessageShown', 'true', { expires: 1 / 36 }); // 40 minutes
-      }
     }
+
     toggleWidget(); // Open the chat widget
   }, []);
 
@@ -106,7 +103,7 @@ const CustomChat = () => {
       <Widget
         handleNewUserMessage={handleNewUserMessage}
         title="Sdílení parkování"
-        subtitle="Příklad: Chci rezerovat parkovací místo na zítřek od 8:00 do 15:00"
+        subtitle=". . ."
         customLauncher={() => {}}
         customStyles={{
           launcher: {

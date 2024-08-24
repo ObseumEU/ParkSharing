@@ -73,7 +73,7 @@ namespace ParkSharing.Services.ChatGPT
             {
                 return await DebugMessage(conversation);
             }
-
+                
             var response = await GetResponse(conversation);
             conversation.Add(response);
 
@@ -158,7 +158,10 @@ namespace ParkSharing.Services.ChatGPT
             newList.Insert(0, ChatMessage.FromSystem("Nelze rezervovat více časů najednou."));
             newList.Insert(0, ChatMessage.FromSystem("Všechna parkování jsou venkovní."));
             newList.Insert(0, ChatMessage.FromSystem("Nepomáhej s ničím, co není uvedeno v instrukcích."));
+            newList.Insert(0, ChatMessage.FromSystem("Pis velice jasne instrukce."));
+
             newList.Insert(0, ChatMessage.FromSystem("Místo pro rezervaci musí být dostupné po celou dobu rezervace."));
+            newList.Insert(0, ChatMessage.FromUser("Sdílení a rezervace parkovacích míst ve Velvarii! \ud83d\ude97 Stačí napsat na kdy chcete místo rezervovat."));
             return newList;
         }
 
