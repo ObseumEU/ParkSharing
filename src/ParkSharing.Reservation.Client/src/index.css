@@ -3,7 +3,7 @@
 body, html {
   height: 100%;
   margin: 0;
-  background-color: #f0f2f5;
+  background-color: black;
 }
 
 #root {
@@ -26,4 +26,5 @@ body, html {
   display: flex;
   justify-content: center;
   align-items: center;
+  background-color: black;
 }
