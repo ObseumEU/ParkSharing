@@ -15,7 +15,7 @@ const CustomChat = () => {
   // Load messages from cookies
   useEffect(() => {
     // Show the initial message every time the chat starts
-    addResponseMessage('Sdílení a rezervace parkovacích míst ve Velvarii! 🚗 Stačí napsat na kdy chcete místo rezervovat.');
+    addResponseMessage('👋 Vítejte! Rezervujte si parkování snadno: napište den a čas, kdy chcete místo. Např.: 🗓️ Zítra 8:00 - 17:00.🚗');
 
     const storedMessages = Cookies.get('chatMessages');
     
@@ -30,7 +30,6 @@ const CustomChat = () => {
     }
     
     // Always show the initial message at the start of the conversation
-    addResponseMessage('👋 Vítejte! Rezervujte si parkování snadno: napište den a čas, kdy chcete místo. Např.: 🗓️ Zítra 8:00 - 17:00.🚗');
     
     toggleWidget(); // Open the chat widget
   }, []);
