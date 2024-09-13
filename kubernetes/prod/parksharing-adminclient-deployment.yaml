@@ -3,8 +3,9 @@ kind: Deployment
 metadata:
   name: parksharing-adminclient
   namespace: parksharing
-  argocd-image-updater.argoproj.io/image-list: adminclient=smixers/parksharing-admin-client
-  argocd-image-updater.argoproj.io/update-strategy: latest
+  annotations:
+    argocd-image-updater.argoproj.io/image-list: adminclient=smixers/parksharing-admin-client
+    argocd-image-updater.argoproj.io/update-strategy: latest
 spec:
   replicas: 1
   selector:
