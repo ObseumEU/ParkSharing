@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: parksharing-rabbitmq
+  namespace: parksharing
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: parksharing-rabbitmq
+  template:
+    metadata:
+      labels:
+        app: parksharing-rabbitmq
+    spec:
+      containers:
+      - name: rabbitmq
+        image: docker.io/library/rabbitmq:3.13
+        env:
+        - name: RABBITMQ_DEFAULT_USER
+          value: "guest"
+        - name: RABBITMQ_DEFAULT_PASS
+          value: "uao19CHmJw9EnOhjfK6LOQ"
+        - name: TZ
+          value: "Europe/Berlin"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: parksharing-rabbitmq
+  namespace: parksharing
+spec:
+  ports:
+    - port: 5672
+  selector:
+    app: parksharing-rabbitmq
