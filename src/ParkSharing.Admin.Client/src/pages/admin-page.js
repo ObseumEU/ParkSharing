@@ -47,7 +47,7 @@ export const AdminPage = () => {
   if (loading) {
     return (
       <PageLayout>
-        <div>Loading...</div>
+        <div>Načítání...</div>
       </PageLayout>
     );
   }

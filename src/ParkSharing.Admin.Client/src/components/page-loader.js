@@ -5,7 +5,7 @@ export const PageLoader = () => {
 
   return (
     <div className="loader">
-      <img src={loadingImg} alt="Loading..." />
+      <img src={loadingImg} alt="Načítání ..." />
     </div>
   );
 };

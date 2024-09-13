@@ -58,7 +58,7 @@ export const SettingsPage = () => {
     return (
       <PageLayout>
         <div className="protected-page">
-          <p>Loading...</p>
+          <p>Načítání...</p>
         </div>
       </PageLayout>
     );
