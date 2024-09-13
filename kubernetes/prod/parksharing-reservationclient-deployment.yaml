@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: parksharing-reservationclient
+  namespace: parksharing
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: parksharing-reservationclient
+  template:
+    metadata:
+      labels:
+        app: parksharing-reservationclient
+    spec:
+      containers:
+      - name: reservationclient
+        image: smixers/parksharing-reservation-client:latest
+        ports:
+        - containerPort: 8000
+        env:
+        - name: TZ
+          value: "Europe/Berlin"
+        - name: NODE_ENV
+          value: "development"
+        - name: services__reservationserver__http__0
+          value: "http://parksharing-reservationserver:8080"
+        - name: REACT_APP_API_SERVER_URL
+          value: "./api"
+        - name: BROWSER
+          value: "none"
+        - name: PORT
+          value: "8000"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: parksharing-reservationclient
+  namespace: parksharing
+spec:
+  type: NodePort
+  ports:
+    - port: 8000
+      targetPort: 8000
+      nodePort: 30000 # Exposing on port 30000 outside the cluster
+  selector:
+    app: parksharing-reservationclient
