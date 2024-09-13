@@ -27,7 +27,7 @@ export const MobileNavBarTabs = ({ handleClick }) => {
           <MobileNavBarTab path="/reservations" label="Rezervace" handleClick={handleClick} />
           <MobileNavBarTab path="/protected" label="Dostupnost" handleClick={handleClick} />
           <MobileNavBarTab path="/settings" label="Nastavení" handleClick={handleClick} />
-          {hasPermission && <MobileNavBarTab path="/delete-settings" label="Delete Settings" handleClick={handleClick} />}
+          {hasPermission && <MobileNavBarTab path="/delete-settings" label="Delete All Settings" handleClick={handleClick} />}
         </>
       )}
     </div>
