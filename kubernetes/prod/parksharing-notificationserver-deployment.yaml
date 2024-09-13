@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: parksharing-notificationserver
+  namespace: parksharing
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: parksharing-notificationserver
+  template:
+    metadata:
+      labels:
+        app: parksharing-notificationserver
+    spec:
+      containers:
+      - name: notificationserver
+        image: smixers/parksharing-notification-server:latest
+        ports:
+        - containerPort: 8080
+        env:
+        - name: TZ
+          value: "Europe/Berlin"
+        - name: ConnectionStrings__rabbitmq
+          value: "amqp://guest:uao19CHmJw9EnOhjfK6LOQ@parksharing-rabbitmq.parksharing:5672"
+        - name: Otl__Endpoint
+          valueFrom:
+            secretKeyRef:
+              name: parksharing-secrets
+              key: Otl__Endpoint
+        - name: Otlp__Endpoint
+          valueFrom:
+            secretKeyRef:
+              name: parksharing-secrets
+              key: Otlp__Endpoint
+        - name: SmtpOptions__SmtpServer
+          value: "smtp.gmail.com"
+        - name: SmtpOptions__SmtpPort
+          value: "587"
+        - name: SmtpOptions__SenderEmail
+          valueFrom:
+            secretKeyRef:
+              name: parksharing-secrets
+              key: SMTP_EMAIL
+        - name: SenderPassword
+          valueFrom:
+            secretKeyRef:
+              name: parksharing-secrets
+              key: SMTP_PASSWORD
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: parksharing-notificationserver
+  namespace: parksharing
+spec:
+  ports:
+    - port: 8080
+  selector:
+    app: parksharing
