@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: parksharing-mongo
+  namespace: parksharing
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: parksharing-mongo
+  template:
+    metadata:
+      labels:
+        app: parksharing-mongo
+    spec:
+      containers:
+      - name: mongo
+        image: docker.io/library/mongo:7.0
+        ports:
+        - containerPort: 27017
+        env:
+        - name: TZ
+          value: "Europe/Berlin"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: parksharing-mongo
+  namespace: parksharing
+spec:
+  ports:
+    - port: 27017
+  selector:
+    app: parksharing-mongo
