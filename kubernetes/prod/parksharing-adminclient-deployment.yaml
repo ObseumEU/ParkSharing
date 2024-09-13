@@ -31,15 +31,28 @@ spec:
         - name: BROWSER
           value: "none"
         - name: REACT_APP_AUTH0_DOMAIN
-          value: "PUT_REACT_APP_AUTH0_DOMAIN_HERE"
+          valueFrom:
+            secretKeyRef:
+              name: parksharing-secrets
+              key: AUTH0_DOMAIN
         - name: REACT_APP_AUTH0_CLIENT_ID
-          value: "PUT_REACT_APP_AUTH0_CLIENT_ID_HERE"
+          valueFrom:
+            secretKeyRef:
+              name: parksharing-secrets
+              key: AUTH0_CLIENT_ORIGIN_URL
+        - name: REACT_APP_API_SERVER_URL 
+          value: "./api" 
         - name: REACT_APP_AUTH0_CALLBACK_URL
-          value: "PUT_REACT_APP_AUTH0_CALLBACK_URL_HERE"
-        - name: REACT_APP_API_SERVER_URL
+          valueFrom:
+            secretKeyRef:
+              name: parksharing-secrets
+              key: AUTH0_CALLBACK_URL
           value: "./api"
         - name: REACT_APP_AUTH0_AUDIENCE
-          value: "PUT_REACT_APP_AUTH0_CALLBACK_URL_HERE"
+          valueFrom:
+            secretKeyRef:
+              name: parksharing-secrets
+              key: AUTH0_AUDIENCE
         - name: PORT
           value: "8001"
 ---

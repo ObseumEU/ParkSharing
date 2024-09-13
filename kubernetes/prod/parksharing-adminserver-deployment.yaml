@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: parksharing-adminserver
+  namespace: parksharing
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: parksharing-adminserver
+  template:
+    metadata:
+      labels:
+        app: parksharing-adminserver
+    spec:
+      containers:
+      - name: adminserver
+        image: smixers/parksharing-admin-server:latest
+        ports:
+        - containerPort: 8080
+        env:
+        - name: TZ
+          value: "Europe/Berlin"
+        - name: ConnectionStrings__mongodb
+          value: "mongodb://parksharing-mongo:27017/mongodb"
+        - name: ConnectionStrings__rabbitmq
+          value: "amqp://guest:uao19CHmJw9EnOhjfK6LOQ@parksharing-rabbitmq.parksharing:5672"
+        - name: AUTH0_DOMAIN
+          valueFrom:
+            secretKeyRef:
+              name: parksharing-secrets
+              key: AUTH0_DOMAIN
+        - name: Otl__Endpoint
+          valueFrom:
+            secretKeyRef:
+              name: parksharing-secrets
+              key: Otl__Endpoint
+        - name: Otlp__Endpoint
+          valueFrom:
+            secretKeyRef:
+              name: parksharing-secrets
+              key: Otlp__Endpoint
+        - name: AUTH0_AUDIENCE
+          valueFrom:
+            secretKeyRef:
+              name: parksharing-secrets
+              key: AUTH0_AUDIENCE
+        - name: CLIENT_ORIGIN_URL
+          valueFrom:
+            secretKeyRef:
+              name: parksharing-secrets
+              key: AUTH0_CLIENT_ORIGIN_URL
+        - name: ASPNETCORE_URLS
+          value: "http://+:8080"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: parksharing-adminserver
+  namespace: parksharing
+spec:
+  ports:
+    - port: 8080
+  selector:
+    app: parksharing-adminserver
