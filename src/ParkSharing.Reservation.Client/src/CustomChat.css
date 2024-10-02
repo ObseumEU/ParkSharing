@@ -1,6 +1,8 @@
-/* ./src/ParkSharing.Reservation.Client/src/CustomChat.css */
+/* src/ParkSharing.Reservation.Client/src/CustomChat.css */
 
+/* Root Variables */
 :root {
+  /* Colors */
   --orange: #ff4f40;
   --indigo: #635dff;
   --white: #fff;
@@ -14,6 +16,8 @@
   --blue: #3885ff;
   --aqua: #3ec6eb;
   --emerald: #1bc99f;
+
+  /* Gradients */
   --yellow-mandarine-gradient: linear-gradient(153.07deg, var(--yellow) -2.47%, var(--mandarine) 102.78%);
   --mandarine-orange-gradient: linear-gradient(153.07deg, var(--mandarine) -2.47%, var(--orange) 102.78%);
   --pink-yellow-gradient: linear-gradient(153.07deg, var(--pink) -2.47%, var(--yellow) 102.78%);
@@ -22,12 +26,47 @@
   --blue-aqua-gradient: linear-gradient(153.07deg, var(--blue) -2.47%, var(--aqua) 102.78%);
   --aqua-emerald-gradient: linear-gradient(153.07deg, var(--aqua) -2.47%, var(--emerald) 102.78%);
   --emerald-yellow-gradient: linear-gradient(153.07deg, var(--emerald) -2.47%, var(--yellow) 102.78%);
-  --font-primary: "Inter", sans-serif;
-  --font-secondary: "Space Grotesk", sans-serif;
+
+  /* Fonts */
+  --font-primary: "Space Grotesk", sans-serif;
+  --font-secondary: "Inter", sans-serif;
   --font-mono: "Fira Code", monospace;
-  font-family: "Space Grotesk", sans-serif;
+
+  /* Global Font */
+  font-family: var(--font-primary);
 }
 
+/* Box Sizing and Global Styles */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body,
+button,
+input,
+select,
+textarea {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background-color: var(--black);
+  color: var(--white);
+  font-family: var(--font-primary);
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+  overflow-y: scroll;
+}
+
+html {
+  font-size: 19px;
+  text-rendering: geometricPrecision;
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+}
+
+/* Custom Chat Container */
 .custom-chat-container {
   position: fixed;
   top: 0;
@@ -41,6 +80,7 @@
   z-index: 1000;
 }
 
+/* Conversation Container */
 .rcw-conversation-container {
   width: 100% !important;
   height: 100% !important;
@@ -53,17 +93,23 @@
   justify-content: flex-end !important;
 }
 
+/* Header */
 .rcw-header {
   width: 100% !important;
-  background-color: black !important; /* Change header background color to black */
-  padding: 40px !important; /* Ensure there is padding for better visibility */
-  text-align: center; /* Center the title */
+  background-color: var(--black) !important;
+  padding: 40px !important;
+  text-align: center;
+  font-size: 19px !important;
 }
 
-.rcw-close-button {
-  display: none !important; /* Hide the close button */
+/* Hide Close Button */
+.rcw-close-button,
+.rcw-picker-btn,
+.rcw-launcher {
+  display: none !important;
 }
 
+/* Messages and New Message Containers */
 .rcw-messages-container,
 .rcw-new-message {
   width: 100% !important;
@@ -71,114 +117,126 @@
 }
 
 .rcw-messages-container {
-  height: calc(100% - 120px) !important;
-  background: var(--pink-yellow-gradient); /* Applying gradient background */
-  display: flex !important;
-  flex-direction: column !important;
-  justify-content: flex-end !important;
-  overflow-y: auto !important;
-}
-
-@media only screen and (max-width: 640px) {
-  .rcw-header {
-    font-size: 19px !important; /* Adjust font size for mobile */
-    padding: 30px !important; /* Adjust padding for mobile */
-  }
-}
-
-.page-layout__content {
-  flex: 1 1;
-  flex-basis: auto;
-  flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  margin-top: 8rem;
-  max-width: 120rem;
-  width: 100%;
+  justify-content: flex-end;
+  height: calc(100% - 120px) !important;
+  background: var(--pink-yellow-gradient);
+  overflow-y: auto !important;
+
+  /* Hide Scrollbar */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none;  /* IE and Edge */
 }
 
-* {
-  box-sizing: border-box;
+.rcw-messages-container::-webkit-scrollbar {
+  width: 0px; /* Chrome, Safari, Opera */
+  background: transparent; /* Optional: Make scrollbar track transparent */
 }
 
-body, button, input, select, textarea {
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+/* Message Animations */
+.rcw-message {
+  opacity: 0;
+  transform: translateY(20px);
+  animation: slideUpFadeIn 0.5s forwards;
 }
 
-body {
-  background-color: var(--black);
-  color: var(--white);
-  font-family: var(--font-primary);
-  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  overflow-y: scroll;
+.rcw-user-message {
+  animation: slideInFromRight 0.5s forwards;
 }
 
-html {
-  font-size: 19px;
-  text-rendering: geometricPrecision;
-  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+.rcw-response-message {
+  animation: slideInFromLeft 0.5s forwards;
 }
 
-.rcw-response {
-  font-size: 19px;
-  color: var(--black);
-}
-
+/* Response and Message Text */
+.rcw-response,
 .rcw-message-text {
   font-size: 19px;
   color: var(--black);
-  font-family: "Space Grotesk", sans-serif;
+  font-family: var(--font-primary);
 }
 
+/* Input Styles */
 .rcw-input {
   font-size: 19px;
-  font-family: "Space Grotesk", sans-serif;
+  font-family: var(--font-primary);
 }
 
 .rcw-sender {
-  color: #000000;
-  font-family: "Space Grotesk", sans-serif;
+  color: var(--black);
+  font-family: var(--font-primary);
 }
 
-.rcw-picker-btn {
-  display: none !important; /* Hide the close button */
-  font-family: "Space Grotesk", sans-serif;
+/* Animations */
+@keyframes slideUpFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInFromLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInFromRight {
+  from {
+    opacity: 0;
+    transform: translateX(50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Responsive Styles */
+@media only screen and (max-width: 640px) {
+  .rcw-header {
+    font-size: 19px !important;
+    padding: 30px !important;
+  }
 }
 
 @media only screen and (min-width: 640px) {
   .rcw-header {
-    font-size: 19px !important; /* Adjust font size for mobile */
-    padding: 15px !important; /* Adjust padding for mobile */
+    padding: 15px !important;
   }
 
-  .rcw-widget-container{
-    /* width: 80%;
-    max-width: 800px;
-    height: 80%;
-    max-height: 900px; */
+  .rcw-widget-container {
     position: relative;
     max-width: 800px;
     min-width: 600px;
   }
 
-  .rcw-conversation-container.active{
+  .rcw-conversation-container.active {
     width: 100px;
     height: 100px;
   }
 
   .rcw-messages-container {
-    height: calc(100% - 120px) !important;
-    background: var(--pink-yellow-gradient); /* Applying gradient background */
     min-height: 600px;
-    display: flex !important;
-    flex-direction: column !important;
-    justify-content: flex-end !important;
   }
-  
-  .rcw-launcher {
-    display: none !important;
-  }
+}
+
+/* Page Layout Content */
+.page-layout__content {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  margin-top: 8rem;
+  max-width: 120rem;
+  width: 100%;
 }

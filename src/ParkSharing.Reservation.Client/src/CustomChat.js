@@ -1,6 +1,6 @@
 /* ./src/ParkSharing.Reservation.Client/src/CustomChat.js */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Widget, addResponseMessage, addUserMessage, toggleWidget, renderCustomComponent } from 'react-chat-widget';
 import axios from 'axios';
 import Cookies from 'js-cookie';
@@ -13,6 +13,7 @@ console.log('API Server URL:', process.env.REACT_APP_API_SERVER_URL);
 const CustomChat = () => {
   const [isBotTyping, setIsBotTyping] = useState(false);
   const [canSendMessage, setCanSendMessage] = useState(true);
+  const messagesEndRef = useRef(null);
 
   // Load messages from cookies
   useEffect(() => {
@@ -75,6 +76,13 @@ const CustomChat = () => {
     }
   };
 
+  // Auto-scroll to bottom when messages change
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [isBotTyping]);
+
   const CustomInput = ({ handleNewUserMessage }) => {
     const [message, setMessage] = useState('');
 
@@ -115,7 +123,12 @@ const CustomChat = () => {
             display: 'none',
           }
         }}
-        renderCustomComponent={() => renderCustomComponent(CustomInput, { handleNewUserMessage })}
+        renderCustomComponent={() => (
+          <>
+            {renderCustomComponent(CustomInput, { handleNewUserMessage })}
+            <div ref={messagesEndRef} />
+          </>
+        )}
       />
     </div>
   );
