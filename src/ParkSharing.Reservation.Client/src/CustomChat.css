@@ -1,3 +1,5 @@
+/* ./src/ParkSharing.Reservation.Client/src/CustomChat.css */
+
 :root {
   --orange: #ff4f40;
   --indigo: #635dff;
@@ -26,7 +28,7 @@
   font-family: "Space Grotesk", sans-serif;
 }
 
-.chat-container {
+.custom-chat-container {
   position: fixed;
   top: 0;
   left: 0;
@@ -46,6 +48,9 @@
   max-height: none !important;
   border-radius: 0 !important;
   overflow: hidden;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: flex-end !important;
 }
 
 .rcw-header {
@@ -68,6 +73,10 @@
 .rcw-messages-container {
   height: calc(100% - 120px) !important;
   background: var(--pink-yellow-gradient); /* Applying gradient background */
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: flex-end !important;
+  overflow-y: auto !important;
 }
 
 @media only screen and (max-width: 640px) {
@@ -139,7 +148,6 @@ html {
   font-family: "Space Grotesk", sans-serif;
 }
 
-
 @media only screen and (min-width: 640px) {
   .rcw-header {
     font-size: 19px !important; /* Adjust font size for mobile */
@@ -154,11 +162,9 @@ html {
     position: relative;
     max-width: 800px;
     min-width: 600px;
-    
   }
 
-
-  .rcw-conversation-container active{
+  .rcw-conversation-container.active{
     width: 100px;
     height: 100px;
   }
@@ -167,6 +173,9 @@ html {
     height: calc(100% - 120px) !important;
     background: var(--pink-yellow-gradient); /* Applying gradient background */
     min-height: 600px;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: flex-end !important;
   }
   
   .rcw-launcher {

@@ -1,3 +1,5 @@
+/* ./src/ParkSharing.Reservation.Client/src/CustomChat.js */
+
 import React, { useState, useEffect } from 'react';
 import { Widget, addResponseMessage, addUserMessage, toggleWidget, renderCustomComponent } from 'react-chat-widget';
 import axios from 'axios';
@@ -102,7 +104,7 @@ const CustomChat = () => {
   };
 
   return (
-    <div className="chat-container">
+    <div className="custom-chat-container">
       <Widget
         handleNewUserMessage={handleNewUserMessage}
         title="Sdílení parkování"
