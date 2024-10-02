@@ -1,9 +1,11 @@
-﻿using OpenAI;
+﻿using Microsoft.Extensions.Options;
+using OpenAI;
 using OpenAI.Interfaces;
 using OpenAI.Managers;
 using OpenAI.ObjectModels.RequestModels;
 using OpenAI.ObjectModels.ResponseModels;
 using OpenAI.Utilities.FunctionCalling;
+using ParkSharing.Services.ChatGPT.Helpers;
 using System.Collections.Concurrent;
 using System.Globalization;
 
@@ -40,11 +42,11 @@ namespace ParkSharing.Services.ChatGPT
         private readonly ChatGPTSessionService _sessions;
         private readonly ChatGPTCapabilities _capabilities;
 
-        public ChatGPTService(ILogger<ChatGPTService> logger, IReservationService reservationService, ChatGPTSessionService sessions, ChatGPTCapabilities capabilities)
+        public ChatGPTService(IOptions<ChatGPTClientOptions> options, ILogger<ChatGPTService> logger, IReservationService reservationService, ChatGPTSessionService sessions, ChatGPTCapabilities capabilities)
         {
             _openAI = new OpenAIService(new OpenAiOptions
             {
-                ApiKey = "PUT_SECRET_HERE",
+                ApiKey = options.Value.ApiKey,
                 UseBeta = true
             });
             _logger = logger;
@@ -125,7 +127,7 @@ namespace ParkSharing.Services.ChatGPT
             {
                 Tools = GetCapabilities(),
                 Messages = AddChatDescription(cleanedActivities.ToList()),
-                Model = "gpt_4o",
+                Model = "gpt-4o",
                 MaxTokens = 200
             };
 

@@ -100,7 +100,7 @@ File: ./src/ParkSharing.Reservation.Client/src/CustomChat.css
 .rcw-header {
   width: 100% !important;
   background-color: black !important; /* Change header background color to black */
-  padding: 10px !important; /* Ensure there is padding for better visibility */
+  padding: 40px !important; /* Ensure there is padding for better visibility */
   text-align: center; /* Center the title */
 }
 
@@ -121,8 +121,8 @@ File: ./src/ParkSharing.Reservation.Client/src/CustomChat.css
 
 @media only screen and (max-width: 640px) {
   .rcw-header {
-    font-size: 16px !important; /* Adjust font size for mobile */
-    padding: 15px !important; /* Adjust padding for mobile */
+    font-size: 19px !important; /* Adjust font size for mobile */
+    padding: 30px !important; /* Adjust padding for mobile */
   }
 }
 
@@ -157,24 +157,24 @@ body {
 }
 
 html {
-  font-size: 15px;
+  font-size: 19px;
   text-rendering: geometricPrecision;
   -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
 }
 
 .rcw-response {
-  font-size: 15px;
+  font-size: 19px;
   color: var(--black);
 }
 
 .rcw-message-text {
-  font-size: 15px;
+  font-size: 19px;
   color: var(--black);
   font-family: "Space Grotesk", sans-serif;
 }
 
 .rcw-input {
-  font-size: 15px;
+  font-size: 19px;
   font-family: "Space Grotesk", sans-serif;
 }
 
@@ -191,7 +191,7 @@ html {
 
 @media only screen and (min-width: 640px) {
   .rcw-header {
-    font-size: 16px !important; /* Adjust font size for mobile */
+    font-size: 19px !important; /* Adjust font size for mobile */
     padding: 15px !important; /* Adjust padding for mobile */
   }
 
@@ -222,7 +222,7 @@ File: ./src/ParkSharing.Reservation.Client/src/index.css
 body, html {
   height: 100%;
   margin: 0;
-  background-color: #f0f2f5;
+  background-color: black;
 }
 
 #root {
@@ -245,6 +245,7 @@ body, html {
   display: flex;
   justify-content: center;
   align-items: center;
+  background-color: black;
 }
 
 --------------------------------------------------
@@ -293,14 +294,25 @@ File: ./src/ParkSharing.Reservation.Client/src/App.js
 --------------------------------------------------
 import React from 'react';
 import CustomChat from './CustomChat';
-import './index.css'; // Make sure to import the CSS file
+import './index.css';
 
 function App() {
+  const isMobile = window.innerWidth <= 640;
+
   return (
     <div className="App">
-      <div className="chat-container">
+      {isMobile ? (
+        <div className="chat-container">
+          <CustomChat />
+        </div>
+      ) : (
+        <div className="chat-container">
         <CustomChat />
       </div>
+        // <div className="desktop-message">
+        //   <p>Tato aplikace je podporována pouze na mobilních zařízeních.</p>
+        // </div>
+      )}
     </div>
   );
 }
@@ -357,7 +369,11 @@ const CustomChat = () => {
 
   // Load messages from cookies
   useEffect(() => {
+    // Show the initial message every time the chat starts
+    addResponseMessage('👋 Vítejte! Rezervujte si parkování snadno: napište den a čas, kdy chcete místo. Např.: 🗓️ Zítra 8:00 - 17:00.🚗');
+
     const storedMessages = Cookies.get('chatMessages');
+    
     if (storedMessages) {
       JSON.parse(storedMessages).forEach(message => {
         if (message.type === 'user') {
@@ -366,14 +382,10 @@ const CustomChat = () => {
           addResponseMessage(message.content);
         }
       });
-    } else {
-      // Display initial message only if there are no stored messages
-      if (!Cookies.get('initialMessageShown')) {
-        addResponseMessage('Sdílení a rezervace parkovacích míst ve Velvarii! 🚗 Stačí napsat na kdy chcete místo rezervovat.');
-        // Set a cookie to indicate that the initial message has been shown
-        Cookies.set('initialMessageShown', 'true', { expires: 1 / 36 }); // 40 minutes
-      }
     }
+    
+    // Always show the initial message at the start of the conversation
+    
     toggleWidget(); // Open the chat widget
   }, []);
 
@@ -434,7 +446,7 @@ const CustomChat = () => {
           type="text"
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          placeholder="Type a message..."
+          placeholder="Napsat zprávu..."
           disabled={!canSendMessage}
         />
         <button type="submit" className="rcw-send" disabled={!canSendMessage}>
@@ -449,7 +461,7 @@ const CustomChat = () => {
       <Widget
         handleNewUserMessage={handleNewUserMessage}
         title="Sdílení parkování"
-        subtitle="Příklad: Chci rezerovat parkovací místo na zítřek od 8:00 do 15:00"
+        subtitle=". . ."
         customLauncher={() => {}}
         customStyles={{
           launcher: {
@@ -463,7 +475,6 @@ const CustomChat = () => {
 };
 
 export default CustomChat;
-
 --------------------------------------------------
 File: ./src/ParkSharing.Reservation.Client/src/index.js
 --------------------------------------------------

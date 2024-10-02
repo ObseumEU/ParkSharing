@@ -152,6 +152,9 @@ html {
     height: 80%;
     max-height: 900px; */
     position: relative;
+    max-width: 800px;
+    min-width: 600px;
+    
   }
 
 
@@ -160,6 +163,11 @@ html {
     height: 100px;
   }
 
+  .rcw-messages-container {
+    height: calc(100% - 120px) !important;
+    background: var(--pink-yellow-gradient); /* Applying gradient background */
+    min-height: 600px;
+  }
   
   .rcw-launcher {
     display: none !important;

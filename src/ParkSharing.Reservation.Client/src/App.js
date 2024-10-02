@@ -12,9 +12,12 @@ function App() {
           <CustomChat />
         </div>
       ) : (
-        <div className="desktop-message">
-          <p>Tato aplikace je podporována pouze na mobilních zařízeních.</p>
-        </div>
+        <div className="chat-container">
+        <CustomChat />
+      </div>
+        // <div className="desktop-message">
+        //   <p>Tato aplikace je podporována pouze na mobilních zařízeních.</p>
+        // </div>
       )}
     </div>
   );

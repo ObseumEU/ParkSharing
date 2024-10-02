@@ -84,7 +84,7 @@ namespace ParkSharing.Services.ChatGPT
             return $"Reservation created TotalPrice:{totalPrice} BankAccount To pay:{spot.BankAccount} Owner Phone:{spot.Phone}";
         }
 
-        [FunctionDescription("Tata metoda vrací možné volné termíny a jejich cenu za hodinu. Povolene jsou jen cele hodiny, například od 13:00 do 15:00. Pokud je zdarma napiš to. Návratová hodnota jsou možnosti výběru. Nelze rezervovat více slotů najednou.")]
+        [FunctionDescription("Tata metoda vrací možné volné termíny a jejich cenu za hodinu. Povolene jsou jen cele hodiny, například od 13:00 do 15:00. Pokud je zdarma napiš to. Návratová hodnota jsou možnosti výběru. Nelze rezervovat více slotů najednou. Pokud neni přesné zadání, dopln co dává smysl.")]
         public async Task<string> GetAllOpenSlots(
           [ParameterDescription("Datetime format yyyy-mm-dd HH:00")] string from,
           [ParameterDescription("Datetime format yyyy-mm-dd HH:00")] string to)
