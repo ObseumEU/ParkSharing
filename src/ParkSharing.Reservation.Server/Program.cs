@@ -9,6 +9,9 @@ using System.Reflection;
 
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Configuration.AddEnvironmentVariables();
+
+
 builder.AddServiceDefaults();
 var config = builder.Configuration;
 
