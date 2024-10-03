@@ -19,15 +19,15 @@ const App = () => {
       setMessages(JSON.parse(storedMessages));
     } else {
       // If no stored messages, show initial bot message
-      const initialBotMessage = '👋 Vítejte! Rezervujte si parkování snadno: napište den a čas, kdy chcete místo. Např.: 🗓️ Zítra 8:00 - 17:00.🚗';
+      const initialBotMessage = '👋 Vítejte! Rezervujte si parkování snadno. Napište den a čas, kdy chcete místo, např.: 🗓️ "Zítra 8:00 - 17:00" 🚗';
       setMessages([{ type: 'bot', content: initialBotMessage }]);
     }
   }, []);
 
   // Save messages to cookies whenever messages change
   useEffect(() => {
-    // Keep only the last 20 messages
-    const lastMessages = messages.slice(-20);
+    // Keep only the last 50 messages
+    const lastMessages = messages.slice(-50);
     Cookies.set('chatMessages', JSON.stringify(lastMessages), { expires: 1 / 36 }); // 40 minutes
   }, [messages]);
 
@@ -64,7 +64,7 @@ const App = () => {
       setMessages(prevMessages => [...prevMessages, { type: 'bot', content: botReply }]);
     } catch (error) {
       console.error('Error sending message:', error);
-      setMessages(prevMessages => [...prevMessages, { type: 'bot', content: 'Sorry, something went wrong with your request.' }]);
+      setMessages(prevMessages => [...prevMessages, { type: 'bot', content: 'Omlouváme se, došlo k chybě při zpracování vašeho požadavku.' }]);
     } finally {
       setIsBotTyping(false);
       setCanSendMessage(true);
@@ -81,7 +81,7 @@ const App = () => {
     <div className="App">
       <div className="chat-container">
         <div className="chat-header">
-          <h2>Sdílení parkování</h2>
+          <h2>Sdílení Parkování</h2>
         </div>
         <div className="chat-messages">
           <div className="messages-wrapper">
@@ -92,7 +92,13 @@ const App = () => {
             ))}
             {isBotTyping && (
               <div className="message bot-message typing">
-                <div className="message-content">...</div>
+                <div className="message-content">
+                  <div className="typing-indicator">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                  </div>
+                </div>
               </div>
             )}
             <div ref={messagesEndRef} />
@@ -107,7 +113,11 @@ const App = () => {
             onKeyPress={handleInputKeyPress}
             disabled={!canSendMessage}
           />
-          <button onClick={handleSendMessage} disabled={!canSendMessage}>Send</button>
+          <button onClick={handleSendMessage} disabled={!canSendMessage}>
+            <svg viewBox="0 0 24 24" className="send-icon">
+              <path d="M2,21L23,12L2,3V10L17,12L2,14V21Z" />
+            </svg>
+          </button>
         </div>
       </div>
     </div>
