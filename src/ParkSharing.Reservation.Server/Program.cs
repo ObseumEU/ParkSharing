@@ -10,6 +10,7 @@ using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddEnvironmentVariables();
+Console.WriteLine($"ChatGPT:ApiKey = {builder.Configuration["ChatGPT:ApiKey"]}");
 
 
 builder.AddServiceDefaults();
