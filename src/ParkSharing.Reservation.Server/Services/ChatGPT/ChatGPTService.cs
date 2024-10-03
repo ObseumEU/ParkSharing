@@ -41,6 +41,7 @@ namespace ParkSharing.Services.ChatGPT
         private readonly IReservationService _reservationService;
         private readonly ChatGPTSessionService _sessions;
         private readonly ChatGPTCapabilities _capabilities;
+        private readonly IOptions<ChatGPTClientOptions> _options;
 
         public ChatGPTService(IOptions<ChatGPTClientOptions> options, ILogger<ChatGPTService> logger, IReservationService reservationService, ChatGPTSessionService sessions, ChatGPTCapabilities capabilities)
         {
@@ -53,6 +54,7 @@ namespace ParkSharing.Services.ChatGPT
             _reservationService = reservationService;
             _sessions = sessions;
             _capabilities = capabilities;
+            _options = options;
         }
 
         public async Task<List<ChatMessage>> CreateConversation()
@@ -127,7 +129,7 @@ namespace ParkSharing.Services.ChatGPT
             {
                 Tools = GetCapabilities(),
                 Messages = AddChatDescription(cleanedActivities.ToList()),
-                Model = "gpt-4o",
+                Model = _options.Value.Model,
                 MaxTokens = 200
             };
 

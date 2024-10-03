@@ -11,6 +11,7 @@ const App = () => {
   const [isBotTyping, setIsBotTyping] = useState(false);
   const [canSendMessage, setCanSendMessage] = useState(true);
   const messagesEndRef = useRef(null);
+  const inputRef = useRef(null); // Reference to the input field
 
   // Load messages from cookies on mount
   useEffect(() => {
@@ -51,6 +52,11 @@ const App = () => {
     setIsBotTyping(true);
     setCanSendMessage(false);
 
+    // Keep focus on the input after sending the message
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
+
     try {
       // Send message to backend
       const response = await axios.post(`${process.env.REACT_APP_API_SERVER_URL}/parking`, {
@@ -72,7 +78,7 @@ const App = () => {
   };
 
   const handleInputKeyPress = (e) => {
-    if (e.key === 'Enter' && canSendMessage) {
+    if (e.key === 'Enter' && canSendMessage && inputMessage.trim() !== '') {
       handleSendMessage();
     }
   };
@@ -106,14 +112,15 @@ const App = () => {
         </div>
         <div className="chat-input">
           <input
+            ref={inputRef} // Attach the ref to the input element
             type="text"
             placeholder="Napsat zprávu..."
             value={inputMessage}
             onChange={(e) => setInputMessage(e.target.value)}
             onKeyPress={handleInputKeyPress}
-            disabled={!canSendMessage}
+            // Remove the disabled attribute
           />
-          <button onClick={handleSendMessage} disabled={!canSendMessage}>
+          <button onClick={handleSendMessage} disabled={!canSendMessage || inputMessage.trim() === ''}>
             <svg viewBox="0 0 24 24" className="send-icon">
               <path d="M2,21L23,12L2,3V10L17,12L2,14V21Z" />
             </svg>
