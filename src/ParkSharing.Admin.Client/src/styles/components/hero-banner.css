@@ -141,8 +141,16 @@
 
 .hero-banner__buttons {
   display: flex;
-  flex-direction: column;
-  gap: 10px;
+  justify-content: center;
+  margin-top: 20px;
 }
 
+
+.button__reserve .material-icons {
+  margin-right: 8px;
+}
+
+.button__reserve:hover {
+  background-color: #4d49e0; /* Slightly darker shade */
+}
 
