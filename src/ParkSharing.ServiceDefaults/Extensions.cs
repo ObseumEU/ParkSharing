@@ -1,6 +1,7 @@
 using MassTransit;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
@@ -17,6 +18,8 @@ namespace Microsoft.Extensions.Hosting
     {
         public static IHostApplicationBuilder AddServiceDefaults(this IHostApplicationBuilder builder)
         {
+            builder.Configuration.AddEnvironmentVariables();
+
             //builder.ConfigureOpenTelemetry();
             builder.AddDefaultHealthChecks();
 

@@ -15,10 +15,12 @@ using System.Reflection;
 
 
 var builder = WebApplication.CreateBuilder(args);
+builder.AddServiceDefaults();
+
+
 var config = builder.Configuration;
 Mapper.BindMaps();
 // Add Service Defaults
-builder.AddServiceDefaults();
 builder.AddMongoDBClient("mongodb");
 
 // Register custom services
@@ -33,13 +35,6 @@ builder.Services.AddScoped<DebugSeedData>(); // Register SeedData service
 
 builder.ConfigureMassTransit(config.GetConnectionString("rabbitmq"), Assembly.GetExecutingAssembly());
 
-// Add Configuration
-builder.Host.ConfigureAppConfiguration((configBuilder) =>
-{
-    configBuilder.Sources.Clear();
-    DotEnv.Load();
-    configBuilder.AddEnvironmentVariables();
-});
 
 // Configure Kestrel
 builder.WebHost.ConfigureKestrel(serverOptions =>

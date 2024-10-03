@@ -6,13 +6,15 @@ using ParkSharing.Services.ChatGPT;
 using ParkSharing.Services.ChatGPT.Helpers;
 using System.Reflection;
 
+
+
 var builder = WebApplication.CreateBuilder(args);
-ParkSharing.Reservation.Server.Mapper.BindMaps();
-// Add Service Defaults
 builder.AddServiceDefaults();
+var config = builder.Configuration;
+
+ParkSharing.Reservation.Server.Mapper.BindMaps();
 
 builder.AddMongoDBClient("mongodb");
-var config = builder.Configuration;
 
 // Register custom services
 builder.Services.AddScoped<IMongoDbContext, MongoDbContext>(sp =>
@@ -26,11 +28,7 @@ builder.Services.AddScoped<DebugSeedData>(); // Register SeedData service
 
 builder.ConfigureMassTransit(config.GetConnectionString("rabbitmq"), Assembly.GetExecutingAssembly());
 
-// Add Configuration
-builder.Host.ConfigureAppConfiguration((configBuilder) =>
-{
-    configBuilder.AddEnvironmentVariables();
-});
+
 
 // Configure Kestrel
 builder.WebHost.ConfigureKestrel(serverOptions =>
