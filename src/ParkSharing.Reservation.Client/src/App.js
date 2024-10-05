@@ -22,7 +22,7 @@ const App = () => {
     } else {
       // If no stored messages, show initial bot message with Markdown
       const initialBotMessage =
-        '👋 **Vítejte!** Rezervujte si parkování snadno. Napište den a čas, kdy chcete místo, např.: 🗓️ "_Zítra 8:00 - 17:00_" 🚗';
+        '👋 Vítejte! Rezervujte si parkování snadno. Napište den a čas, kdy chcete místo, např.: 🗓️ "Zítra 8:00 - 17:00" 🚗';
       setMessages([{ type: 'bot', content: initialBotMessage }]);
     }
   }, []);
