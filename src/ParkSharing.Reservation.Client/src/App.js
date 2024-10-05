@@ -2,42 +2,36 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
-import Cookies from 'js-cookie';
-import ReactMarkdown from 'react-markdown'; // Import react-markdown
+import ReactMarkdown from 'react-markdown';
 import './App.css';
 
 const App = () => {
-  const [messages, setMessages] = useState([]);
+  const initialBotMessage =
+    '👋 Vítejte! Rezervujte si parkování snadno. Napište den a čas, kdy chcete místo, např.: 🗓️ "Zítra 8:00 - 17:00" 🚗';
+
+  // Initialize messages from localStorage
+  const [messages, setMessages] = useState(() => {
+    const storedMessages = localStorage.getItem('chatMessages');
+    return storedMessages
+      ? JSON.parse(storedMessages)
+      : [{ type: 'bot', content: initialBotMessage }];
+  });
   const [inputMessage, setInputMessage] = useState('');
   const [isBotTyping, setIsBotTyping] = useState(false);
   const [canSendMessage, setCanSendMessage] = useState(true);
   const messagesEndRef = useRef(null);
-  const inputRef = useRef(null); // Reference to the input field
+  const inputRef = useRef(null);
 
-  // Load messages from cookies on mount
+  // Save messages to localStorage whenever messages change
   useEffect(() => {
-    const storedMessages = Cookies.get('chatMessages');
-    if (storedMessages) {
-      setMessages(JSON.parse(storedMessages));
-    } else {
-      // If no stored messages, show initial bot message with Markdown
-      const initialBotMessage =
-        '👋 Vítejte! Rezervujte si parkování snadno. Napište den a čas, kdy chcete místo, např.: 🗓️ "Zítra 8:00 - 17:00" 🚗';
-      setMessages([{ type: 'bot', content: initialBotMessage }]);
-    }
-  }, []);
-
-  // Save messages to cookies whenever messages change
-  useEffect(() => {
-    // Keep only the last 50 messages
-    const lastMessages = messages.slice(-50);
-    Cookies.set('chatMessages', JSON.stringify(lastMessages), { expires: 1 / 36 }); // 40 minutes
+    const lastMessages = messages.slice(-50); // Keep only the last 50 messages
+    localStorage.setItem('chatMessages', JSON.stringify(lastMessages));
   }, [messages]);
 
   // Scroll to bottom when messages change
   useEffect(() => {
     if (messagesEndRef.current) {
-      // Use setTimeout to ensure it runs after the DOM updates
+      // Optimize scroll to run after DOM updates
       setTimeout(() => {
         messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
       }, 100);
@@ -45,42 +39,46 @@ const App = () => {
   }, [messages]);
 
   const handleSendMessage = async () => {
-    if (inputMessage.trim() === '') return;
+    const trimmedMessage = inputMessage.trim();
+    if (trimmedMessage === '') return;
 
-    // Add user message to messages
-    const newMessages = [...messages, { type: 'user', content: inputMessage }];
-    setMessages(newMessages);
     setInputMessage('');
     setIsBotTyping(true);
     setCanSendMessage(false);
 
-    // Keep focus on the input after sending the message
+    // Update messages with user input
+    setMessages((prevMessages) => [
+      ...prevMessages,
+      { type: 'user', content: trimmedMessage },
+    ]);
+
+    // Keep focus on the input field
     if (inputRef.current) {
       inputRef.current.focus();
     }
 
     try {
-      // Send message to backend
+      const apiUrl =
+        process.env.REACT_APP_API_SERVER_URL || 'https://default-api-url.com';
       const response = await axios.post(
-        `${process.env.REACT_APP_API_SERVER_URL}/parking`,
-        {
-          input: inputMessage,
-        },
-        {
-          withCredentials: true,
-        }
+        `${apiUrl}/parking`,
+        { input: trimmedMessage },
+        { withCredentials: true }
       );
 
       const botReply = response.data.reply;
-      // Add bot message to messages
-      setMessages((prevMessages) => [...prevMessages, { type: 'bot', content: botReply }]);
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        { type: 'bot', content: botReply },
+      ]);
     } catch (error) {
       console.error('Error sending message:', error);
       setMessages((prevMessages) => [
         ...prevMessages,
         {
           type: 'bot',
-          content: 'Omlouváme se, došlo k chybě při zpracování vašeho požadavku.',
+          content:
+            'Omlouváme se, došlo k chybě při zpracování vašeho požadavku.',
         },
       ]);
     } finally {
@@ -89,9 +87,9 @@ const App = () => {
     }
   };
 
-  const handleInputKeyPress = (e) => {
+  const handleInputKeyDown = (e) => {
     if (e.key === 'Enter' && canSendMessage && inputMessage.trim() !== '') {
-      e.preventDefault(); // Prevents adding a new line on mobile devices
+      e.preventDefault(); // Prevents adding a new line
       handleSendMessage();
     }
   };
@@ -107,7 +105,9 @@ const App = () => {
             {messages.map((message, index) => (
               <div
                 key={index}
-                className={`message ${message.type === 'user' ? 'user-message' : 'bot-message'}`}
+                className={`message ${
+                  message.type === 'user' ? 'user-message' : 'bot-message'
+                }`}
               >
                 <div className="message-content">
                   <ReactMarkdown>{message.content}</ReactMarkdown>
@@ -130,13 +130,14 @@ const App = () => {
         </div>
         <div className="chat-input">
           <input
-            ref={inputRef} // Attach the ref to the input element
+            ref={inputRef}
             type="text"
             placeholder="Napsat zprávu..."
             value={inputMessage}
             onChange={(e) => setInputMessage(e.target.value)}
-            onKeyPress={handleInputKeyPress}
+            onKeyDown={handleInputKeyDown}
             autoComplete="off"
+            aria-label="Napsat zprávu"
           />
           <button
             onClick={handleSendMessage}

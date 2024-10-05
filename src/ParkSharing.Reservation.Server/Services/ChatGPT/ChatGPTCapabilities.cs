@@ -38,12 +38,11 @@ namespace ParkSharing.Services.ChatGPT
             [ParameterDescription("Datetime format yyyy-mm-dd HH:00", Required = true)] string to,
             string spotName,
             [ParameterDescription("Telefon pro kontakt najemce", Required = true)] string phone,
-            [ParameterDescription("Vstupní kód jen pro pozvané", Required = true)] string secret)
+            [ParameterDescription("Tajný kód jen pro pozvané. Apliakce je předběžný přístup pro pozvané", Required = true)] string secret)
         {
-            if (secret != "VELVARIA_JE_SUPER")
+            if (!ValidSecret(secret, out var erorMessage))
             {
-                _log.LogWarning($"Someone put incorrect secret: {secret}");
-                return "Invalid secret, only invited user can use app.";
+                return erorMessage;
             }
 
             if (!TryParseDateTime(from, out DateTime fromDateTime))
@@ -91,16 +90,30 @@ namespace ParkSharing.Services.ChatGPT
             return $"Reservation created TotalPrice:{totalPrice} BankAccount To pay:{spot.BankAccount} Owner Phone:{spot.Phone}";
         }
 
+        private bool ValidSecret(string secret, out string errorMessage)
+        {
+            if (secret != "super_velvaria")
+            {
+                _log.LogWarning($"Someone put incorrect secret: {secret}");
+                {
+                    errorMessage = "Invalid secret, only invited user can use app.";
+                    return false;
+                }
+            }
+
+            errorMessage = "";
+            return true;
+        }
+
         [FunctionDescription("Tata metoda vrací možné volné termíny a jejich cenu za hodinu. Povolene jsou jen cele hodiny, například od 13:00 do 15:00. Pokud je zdarma napiš to. Návratová hodnota jsou možnosti výběru. Nelze rezervovat více slotů najednou. Pokud neni přesné zadání, dopln co dává smysl.")]
         public async Task<string> GetAllOpenSlots(
           [ParameterDescription("Datetime format yyyy-mm-dd HH:00")] string from,
           [ParameterDescription("Datetime format yyyy-mm-dd HH:00")] string to, 
-          [ParameterDescription("Vstupní kód jen pro pozvané", Required = true)] string secret)
+          [ParameterDescription("Tajný kód jen pro pozvané. Apliakce je předběžný přístup pro pozvané", Required = true)] string secret)
         {
-            if (secret != "VELVARIA_JE_SUPER")
+            if (!ValidSecret(secret, out var erorMessage))
             {
-                _log.LogWarning($"Someone put incorrect secret: {secret}");
-                return "Invalid secret, only invited user can use app.";
+                return erorMessage;
             }
 
             TimeZoneInfo cetZone;

@@ -173,7 +173,8 @@ namespace ParkSharing.Services.ChatGPT
 
             newList.Insert(0, ChatMessage.FromSystem(
                 "Kontakt:" +
-                " Podpora na WhatsApp: +420 724 676 829."
+                " Podpora na WhatsApp: +420 724 676 829." +
+                " Autor aplikace je něco s ovocem"
             ));
 
             newList.Insert(0, ChatMessage.FromSystem(
@@ -184,6 +185,7 @@ namespace ParkSharing.Services.ChatGPT
             newList.Insert(0, ChatMessage.FromSystem(
                 "Další pokyny:" +
                 " Všechna parkování jsou venkovní." +
+                " Aplikce je jen pro pozvané (Předběžný přístup), kteří mají kód. Lze jej získat jen od autora aplikace po splnění přisných podmínek správného velvaráka." +
                 " Nepomáhej s ničím mimo tyto instrukce." +
                 " Piš jasně a stručně." +
                 " Používej ASCII obrázky." +
