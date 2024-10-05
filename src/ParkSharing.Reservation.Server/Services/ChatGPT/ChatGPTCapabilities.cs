@@ -37,8 +37,15 @@ namespace ParkSharing.Services.ChatGPT
             [ParameterDescription("Datetime format yyyy-mm-dd HH:00", Required = true)] string from,
             [ParameterDescription("Datetime format yyyy-mm-dd HH:00", Required = true)] string to,
             string spotName,
-            [ParameterDescription("Telefon pro kontakt najemce", Required = true)] string phone)
+            [ParameterDescription("Telefon pro kontakt najemce", Required = true)] string phone,
+            [ParameterDescription("Vstupní kód jen pro pozvané", Required = true)] string secret)
         {
+            if (secret != "VELVARIA_JE_SUPER")
+            {
+                _log.LogWarning($"Someone put incorrect secret: {secret}");
+                return "Invalid secret, only invited user can use app.";
+            }
+
             if (!TryParseDateTime(from, out DateTime fromDateTime))
             {
                 _log.LogWarning($"{from} Invalid From Date");
@@ -87,8 +94,15 @@ namespace ParkSharing.Services.ChatGPT
         [FunctionDescription("Tata metoda vrací možné volné termíny a jejich cenu za hodinu. Povolene jsou jen cele hodiny, například od 13:00 do 15:00. Pokud je zdarma napiš to. Návratová hodnota jsou možnosti výběru. Nelze rezervovat více slotů najednou. Pokud neni přesné zadání, dopln co dává smysl.")]
         public async Task<string> GetAllOpenSlots(
           [ParameterDescription("Datetime format yyyy-mm-dd HH:00")] string from,
-          [ParameterDescription("Datetime format yyyy-mm-dd HH:00")] string to)
+          [ParameterDescription("Datetime format yyyy-mm-dd HH:00")] string to, 
+          [ParameterDescription("Vstupní kód jen pro pozvané", Required = true)] string secret)
         {
+            if (secret != "VELVARIA_JE_SUPER")
+            {
+                _log.LogWarning($"Someone put incorrect secret: {secret}");
+                return "Invalid secret, only invited user can use app.";
+            }
+
             TimeZoneInfo cetZone;
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
@@ -162,7 +176,7 @@ namespace ParkSharing.Services.ChatGPT
             return DateTime.TryParseExact(input, formats, CultureInfo.CurrentCulture, DateTimeStyles.None, out dateTime);
         }
 
-        [FunctionDescription("Detail o parkovacim miste. Zobrazit vzdy pri potvrzeni rezervace")]
+        [FunctionDescription("Detail o parkovacim miste. Zobrazit vzdy pri potvrzeni rezervace.")]
         public async Task<string> SpotDetail(string spot)
         {
             // Sanitize the input

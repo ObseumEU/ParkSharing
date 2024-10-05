@@ -255,3 +255,63 @@ body, html {
     font-size: 15px;
   }
 }
+
+
+/* Markdown Content Styling */
+.message .message-content h1,
+.message .message-content h2,
+.message .message-content h3,
+.message .message-content h4,
+.message .message-content h5,
+.message .message-content h6 {
+  margin: 0;
+  font-weight: bold;
+}
+
+.message .message-content p {
+  margin: 0;
+}
+
+.message .message-content em {
+  font-style: italic;
+}
+
+.message .message-content strong {
+  font-weight: bold;
+}
+
+.message .message-content a {
+  color: var(--blue);
+  text-decoration: underline;
+}
+
+.message .message-content ul,
+.message .message-content ol {
+  padding-left: 20px;
+  margin: 0;
+}
+
+.message .message-content li {
+  margin-bottom: 5px;
+}
+
+.message .message-content code {
+  background-color: rgba(0, 0, 0, 0.05);
+  padding: 2px 4px;
+  border-radius: 4px;
+  font-family: monospace;
+}
+
+.message .message-content pre {
+  background-color: rgba(0, 0, 0, 0.05);
+  padding: 8px;
+  border-radius: 4px;
+  overflow-x: auto;
+}
+
+/* Ensure images fit within the message bubble */
+.message .message-content img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 5px;
+}

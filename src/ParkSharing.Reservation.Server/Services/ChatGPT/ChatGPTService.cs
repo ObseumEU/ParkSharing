@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Options;
 using OpenAI;
 using OpenAI.Interfaces;
 using OpenAI.Managers;
@@ -150,21 +150,47 @@ namespace ParkSharing.Services.ChatGPT
 
 
             newList.Insert(0, ChatMessage.FromSystem($"Datum a čas: {DateTime.Now.ToString("dd. MMMM yyyy")}"));
-            newList.Insert(0, ChatMessage.FromSystem("Úloha: Pomáháš s rezervací a dostupností venkovních parkovacích míst. S ničím jiným nepomáháš."));
-            newList.Insert(0, ChatMessage.FromSystem("Rezervace jednoho místa najednou."));
-            newList.Insert(0, ChatMessage.FromSystem("Vždy náhodně vyber jedno volné místo a potvrď uživatelem před rezervací."));
-            newList.Insert(0, ChatMessage.FromSystem("Max dvě rezervace denně."));
-            newList.Insert(0, ChatMessage.FromSystem("Pokud není volné místo, navrhni jiný čas."));
-            newList.Insert(0, ChatMessage.FromSystem("Registrace a správa míst: - Pro pronájem místa se registrujte na https://parksharing-admin.obseum.cloud/."));
-            newList.Insert(0, ChatMessage.FromSystem("Komunikace: Pouze v češtině, pokud uživatel mluví jiným jazykem, komunikuj v jeho jazyce."));
-            newList.Insert(0, ChatMessage.FromSystem("Platby: Peníze přijdou na účet majitele parkovacího místa."));
-            newList.Insert(0, ChatMessage.FromSystem("Kontakt: Podpora na WhatsApp +420 724 676 829."));
-            newList.Insert(0, ChatMessage.FromSystem("Nelze rezervovat více časů najednou."));
-            newList.Insert(0, ChatMessage.FromSystem("Všechna parkování jsou venkovní."));
-            newList.Insert(0, ChatMessage.FromSystem("Nepomáhej s ničím, co není uvedeno v instrukcích."));
-            newList.Insert(0, ChatMessage.FromSystem("Pis velice jasne instrukce a buď stručnej. Používej ascii obrázky"));
+            newList.Insert(0, ChatMessage.FromSystem("Pomáháš s rezervací venkovních parkovacích míst, nic jiného."));
+            newList.Insert(0, ChatMessage.FromSystem(
+                "Rezervace:" +
+                " Jedno místo najednou." +
+                " Náhodně vyber volné místo a potvrď s uživatelem před rezervací." +
+                " Max dvě rezervace denně." +
+                " Nelze rezervovat více časů najednou." +
+                " Pokud není místo, navrhni jiný čas." +
+                " Místo musí být dostupné po celou dobu rezervace."
+                ));
 
-            newList.Insert(0, ChatMessage.FromSystem("Místo pro rezervaci musí být dostupné po celou dobu rezervace."));
+            newList.Insert(0, ChatMessage.FromSystem(
+                "Registrace:" +
+                " Pro pronájem místa se registruj na parksharing-admin.obseum.cloud."
+            ));
+
+            newList.Insert(0, ChatMessage.FromSystem(
+                "Komunikace:" +
+                " Pouze česky; pokud uživatel mluví jinak, komunikuj v jeho jazyce."
+            ));
+
+            newList.Insert(0, ChatMessage.FromSystem(
+                "Kontakt:" +
+                " Podpora na WhatsApp: +420 724 676 829."
+            ));
+
+            newList.Insert(0, ChatMessage.FromSystem(
+                "Platby:" +
+                " Peníze přijdou na účet majitele."
+            ));
+
+            newList.Insert(0, ChatMessage.FromSystem(
+                "Další pokyny:" +
+                " Všechna parkování jsou venkovní." +
+                " Nepomáhej s ničím mimo tyto instrukce." +
+                " Piš jasně a stručně." +
+                " Používej ASCII obrázky." +
+                " K formátování používej Markdown."
+            ));
+
+
             newList.Insert(0, ChatMessage.FromUser("Sdílení a rezervace parkovacích míst ve Velvarii! \ud83d\ude97 Stačí napsat na kdy chcete místo rezervovat."));
             return newList;
         }
@@ -175,7 +201,7 @@ namespace ParkSharing.Services.ChatGPT
             var msgContent = messages.LastOrDefault().Content;
             if (msgContent.Contains("reservation"))
             {
-                var newMsg = await _capabilities.ReserveSpot("2024-03-21 11:00", "2024-03-21 14:00", "GS22", "123123123");
+                var newMsg = await _capabilities.ReserveSpot("2024-03-21 11:00", "2024-03-21 14:00", "GS22", "123123123", "VELVARIA_JE_SUPER");
                 messages.Add(ChatMessage.FromAssistant(newMsg));
             }
             else if (msgContent.Contains("avaliable"))
@@ -189,87 +215,6 @@ namespace ParkSharing.Services.ChatGPT
             }
             return messages;
         }
-
-        //public async Task<List<ChatMessage>> SendOld(List<ChatMessage> messages)
-        //{
-        //    if (messages.LastOrDefault().Content.Contains("debug"))
-        //    {
-        //        await Task.Delay(2000);
-        //        var msgContent = messages.LastOrDefault().Content;
-        //        if (msgContent.Contains("reservation"))
-        //        {
-        //            var newMsg = await _capabilities.ReserveSpot("2024-03-21 11:00", "2024-03-21 14:00", "GS22", "123123123");
-        //            messages.Add(ChatMessage.FromAssistant(newMsg));
-        //        }
-        //        else if (msgContent.Contains("avaliable"))
-        //        {
-        //            //var newMsg = await _capabilities.AvaliableSpots("2024-03-21 11:00", "2024-03-21 14:00");
-        //            //messages.Add(ChatMessage.FromAssistant(newMsg));
-        //        }
-        //        else
-        //        {
-        //            messages.Add(ChatMessage.FromAssistant("Unknown command " + messages.LastOrDefault().Content));
-        //        }
-        //        return messages;
-        //    }
-
-        //    var toolDefinitions = FunctionCallingHelper.GetToolDefinitions(_capabilities);
-
-        //    messages.Insert(0, ChatMessage.FromSystem("Pouzivas v odpovedich markdown. Český chatbot pro sdílení a rezervaci parkovacích míst. Umožňuje majitelům nabízet místa když je nepoužívají a ostatním je rezervovat a platit přes bankovní účet. Uživatelé mohou registrovat místa, nastavovat dostupnost a spravovat nabídky, rezervace omezeny na dvě denně. Komunikace v češtině, pokud uživatel mluvi jinou reci mluvi jinou reci. Nevyplňuj nejasné funkce bez dotazu. Pokud uzivatel zadal email, pouzij jej pro kazdej dotaz. Pokud uzivatel zadal platny kod, pouzij jej pro kazdy dotaz. Pokud chce uzivatel pridavat, menit, mazat svoje parkovaci misto musi se nejdrive identifikovat."));
-        //    messages.Insert(0, ChatMessage.FromSystem($"Aktualni datum {DateTime.Now.ToString("dd. MMMM yyyy")}"));
-        //    messages.Insert(0, ChatMessage.FromSystem($"Pokud chce nekdo rezervovat misto, vyber mu nahodne jedno znich a nech si potvrdit ze to je ok nez ho rezervujes."));
-        //    messages.Insert(0, ChatMessage.FromSystem($"Nelze rezervovat vice casu najendou. Pouze jeden po jednom."));
-        //    messages.Insert(0, ChatMessage.FromSystem($"Podpora whatsapp 724 676 829"));
-        //    messages.Insert(0, ChatMessage.FromSystem($"Neodpovídej na nic co se netýká rezervace a dostupnosti míst, nebo neni tady napsáno."));
-        //    messages.Insert(0, ChatMessage.FromSystem($"Vsechna parkovani jsou venkovni. Nic neni v garazi"));
-        //    messages.Insert(0, ChatMessage.FromSystem($"FAQ: Penize prijdou na ucet majitele parkovaciho stani"));
-        //    messages.Insert(0, ChatMessage.FromSystem($"Jsi assisten co pomaha s parkovanim. S nicim jinym nepomahas. Pokud neni nic volného, navrhni at vyhledá jiný čas."));
-        //    messages.Insert(0, ChatMessage.FromSystem($"Nikdy si nevymýšlej odpověd funkcí."));
-        //    messages.Insert(0, ChatMessage.FromSystem($"FAQ: Pokud chce nekdo pronajimat sve misto at se registruje na https://parksharing-admin.obseum.cloud/"));
-
-        //    var req = new ChatCompletionCreateRequest
-        //    {
-        //        Tools = toolDefinitions,
-        //        Messages = messages.Where(m => m != null).ToList(),
-        //        Model = "gpt_4o",
-        //        MaxTokens = 200
-        //    };
-
-        //    var reply = await _openAI.ChatCompletion.CreateCompletion(req, "gpt-4o");
-        //    if (!reply.Successful)
-        //    {
-        //        messages.Add(ChatMessage.FromAssistant("Ups! Něco se pokazilo"));
-        //        Console.WriteLine(reply.Error?.Message);
-        //        return req.Messages.ToList();
-        //    }
-
-        //    ChatMessage response = reply.Choices.First().Message;
-        //    req.Messages.Add(response);
-
-        //    if (response.ToolCalls?.Count > 0 && !string.IsNullOrEmpty(response.ToolCalls[0].FunctionCall.Name))
-        //    {
-        //        do
-        //        {
-        //            if (req.Messages.LastOrDefault(m => m.Role == "assistant") != null)
-        //            {
-        //                req.Messages.Remove(req.Messages.LastOrDefault());
-        //            }
-        //            string stringResponse = await ExecuteFunction(response);
-        //            req.Messages.Add(ChatMessage.FromTool(stringResponse, response.ToolCalls[0].Id));
-        //            reply = await _openAI.ChatCompletion.CreateCompletion(req, "gpt-4o");
-        //            response = reply?.Choices?.First()?.Message;
-        //            req.Messages.Add(response);
-        //        } while (response?.ToolCalls != null);
-        //        req.Messages.Add(response); //Add answer from assistent
-
-        //    }
-        //    else
-        //    {
-        //        return req.Messages.ToList();
-        //    }
-
-        //    return req.Messages.ToList();
-        //}
 
         private async Task<string> ExecuteFunction(FunctionCall? functionCall)
         {
