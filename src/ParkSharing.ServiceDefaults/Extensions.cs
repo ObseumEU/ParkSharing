@@ -4,10 +4,10 @@ using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
-using Microsoft.Extensions.Logging;
 using Obseum.Telemetry;
 using OpenTelemetry;
 using System.Reflection;
+using Microsoft.FeatureManagement;
 
 namespace Microsoft.Extensions.Hosting
 {
@@ -19,7 +19,7 @@ namespace Microsoft.Extensions.Hosting
         public static IHostApplicationBuilder AddServiceDefaults(this IHostApplicationBuilder builder)
         {
             builder.Configuration.AddEnvironmentVariables();
-
+            builder.Services.AddFeatureManagement();
             //builder.ConfigureOpenTelemetry();
             builder.AddDefaultHealthChecks();
 

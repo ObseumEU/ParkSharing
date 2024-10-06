@@ -12,5 +12,8 @@ namespace ParkSharing.Contracts
         public string Email { get; set; }
         public string PublicSpotId { get; set; }
         public string UserId { get; set; }
+        public string Phone { get; set; }
+        public string BankAccount { get; set; }
+        public string SpotName { get; set; }
     }
 }

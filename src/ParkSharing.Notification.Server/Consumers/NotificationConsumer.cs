@@ -1,33 +1,91 @@
 ﻿using App.Context.Models;
 using MassTransit;
+using Microsoft.FeatureManagement;
 using ParkSharing.Notification.Server.Email;
+using ParkSharing.Notification.Server.SMS;
 using ParkSharing.Notification.Server.Services;
 
-public class NotificationConsumer : IConsumer<ReservationCreatedEvent>
+namespace ParkSharing.Notification.Server.Consumers
 {
-    ILogger<NotificationConsumer> _logger;
-    IEmailService _emailService;
-    IUserInfoService _userService;
-    public NotificationConsumer(ILogger<NotificationConsumer> logger, IEmailService emailService, IUserInfoService userService)
+    public class NotificationConsumer : IConsumer<ReservationCreatedEvent>
     {
-        _logger = logger;
-        _userService = userService;
-        _emailService = emailService;
-    }
+        private readonly ILogger<NotificationConsumer> _logger;
+        private readonly IEmailService _emailService;
+        private readonly IUserInfoService _userService;
+        private readonly IFeatureManager _feature;
+        private bool _enableNotifications;
+        private readonly SMSClient _smsClient;
 
-    public async Task Consume(ConsumeContext<ReservationCreatedEvent> context)
-    {
-        //There is for now, only one template called "ReservationCreated". Its harcoded in string variable.
-        var userInfo = await _userService.GetUserInfo(context.Message.PublicSpotId);
-        var values = new Dictionary<string, string>();
-        values["start"] = context.Message.Start.Value.ToString("d MMMM HH:mm");
-        values["end"] = context.Message.End.Value.ToString("d MMMM HH:mm");
-        values["phone"] = context.Message.Phone;
-        values["price"] = context.Message.Price.ToString();
+        public NotificationConsumer(
+            ILogger<NotificationConsumer> logger,
+            IEmailService emailService,
+            IUserInfoService userService,
+            SMSClient smsClient,
+            IFeatureManager feature)
+        {
+            _logger = logger;
+            _emailService = emailService;
+            _userService = userService;
+            _smsClient = smsClient;
+            _feature = feature;
+        }
 
-#if !DEBUG
-        await _emailService.SendTemplatedEmailAsync(userInfo.Email, "Místo bylo zarezervováno", "Reservation", values);
-#endif
-        _logger.LogInformation($"Email sent to {userInfo.Email}");
+        public async Task Consume(ConsumeContext<ReservationCreatedEvent> context)
+        {
+
+            //#if !DEBUG
+            //_enableNotifications = true;
+            //endif#
+            _enableNotifications = true;
+            
+            if (!_enableNotifications)
+            {
+                _logger.LogInformation("Notifications are disabled. Skipping sending email and SMS.");
+                return;
+            }
+
+            await SendNotificationAsync(context);
+        }
+
+        private async Task SendNotificationAsync(ConsumeContext<ReservationCreatedEvent> context)
+        {
+            try
+            {
+                var userInfo = await _userService.GetUserInfo(context.Message.PublicSpotId);
+                var values = new Dictionary<string, string>
+                {
+                    ["start"] = context.Message.Start.Value.ToString("d MMMM HH:mm"),
+                    ["end"] = context.Message.End.Value.ToString("d MMMM HH:mm"),
+                    ["phone"] = context.Message.ClientPhone,
+                    ["price"] = context.Message.Price.ToString()
+                };
+
+
+                // Send Email
+                if (await _feature.IsEnabledAsync(FeatureFlags.EmailNotifications))
+                {
+                    await _emailService.SendTemplatedEmailAsync(
+                        userInfo.Email,
+                        "Místo bylo zarezervováno",
+                        "Reservation",
+                        values);
+                    _logger.LogInformation($"Email sent to {userInfo.Email}");
+                }
+
+                // Send SMS
+                if (await _feature.IsEnabledAsync(FeatureFlags.SMSNotifications))
+                {
+                    var smsBody =
+                        $"Vaše rezervace místa {userInfo.SpotName} od {values["start"]} do {values["end"]} je potvrzena. Cena: {values["price"]} Kč. Kontakt na majitele: {userInfo.Phone}. Zaplaťte prosím na {userInfo.BankAccount}.";
+                    await _smsClient.SendSmsAsync(context.Message.ClientPhone, smsBody);
+                }
+
+                _logger.LogInformation($"SMS sent to {context.Message.ClientPhone}");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while sending notifications.");
+            }
+        }
     }
 }

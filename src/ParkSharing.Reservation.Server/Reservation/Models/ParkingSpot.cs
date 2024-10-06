@@ -47,7 +47,8 @@ public class ReservationSpot
     public string Id { get; set; }
     [Required]
     public string PublicId { get; set; }
-    public string Phone { get; set; }
+    [Required]
+    public string ClientPhone { get; set; }
     [Required]
     public DateTime Start { get; set; }
     [Required]

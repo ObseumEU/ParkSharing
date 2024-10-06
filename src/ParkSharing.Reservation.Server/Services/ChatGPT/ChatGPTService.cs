@@ -163,7 +163,7 @@ namespace ParkSharing.Services.ChatGPT
 
             newList.Insert(0, ChatMessage.FromSystem(
                 "Registrace:" +
-                " Pro pronájem místa se registruj na parksharing-admin.obseum.cloud."
+                " Pro pronájem místa se registruj na https://parksharing-admin.obseum.cloud."
             ));
 
             newList.Insert(0, ChatMessage.FromSystem(

@@ -3,6 +3,7 @@ using MassTransit;
 using MassTransit.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using ParkSharing.Contracts;
+using ParkSharing.Notification.Server.Consumers;
 using ParkSharing.Notification.Server.Email;
 using ParkSharing.Notification.Server.Services;
 
@@ -35,7 +36,7 @@ namespace ParkSharing.Notification.Server.Tests.Integration
                 var reservationEvent = new ReservationCreatedEvent
                 {
                     PublicSpotId = "publicSpotId",
-                    Phone = "123456789",
+                    ClientPhone = "123456789",
                     Start = DateTime.Now,
                     End = DateTime.Now.AddHours(2),
                     Price = 20

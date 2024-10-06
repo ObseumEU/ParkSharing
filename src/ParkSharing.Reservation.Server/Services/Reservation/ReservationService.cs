@@ -104,7 +104,7 @@ public class ReservationService : IReservationService
             await _broker.Publish(new ReservationCreatedEvent()
             {
                 End = reservation.End,
-                Phone = reservation.Phone,
+                ClientPhone = reservation.ClientPhone,
                 PublicId = reservation.PublicId,
                 PublicSpotId = parkingSpot.PublicId,
                 Start = reservation.Start,

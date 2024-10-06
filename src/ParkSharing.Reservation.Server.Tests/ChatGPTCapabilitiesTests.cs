@@ -27,7 +27,7 @@ namespace ParkSharing.Reservation.Server.Tests
         [Fact]
         public async Task ReserveSpot_InvalidFromDateFormat_ReturnsErrorMessage()
         {
-            var result = await _chatGPTCapabilities.ReserveSpot("invalid-date", "2023-01-01 12:00", "TestSpot", "123456789");
+            var result = await _chatGPTCapabilities.ReserveSpot("invalid-date", "2023-01-01 12:00", "TestSpot", "123456789", "super_velvaria");
 
             Assert.Equal("Invalid 'from' date format.", result);
         }
@@ -35,7 +35,7 @@ namespace ParkSharing.Reservation.Server.Tests
         [Fact]
         public async Task ReserveSpot_InvalidToDateFormat_ReturnsErrorMessage()
         {
-            var result = await _chatGPTCapabilities.ReserveSpot("2023-01-01 10:00", "invalid-date", "TestSpot", "123456789");
+            var result = await _chatGPTCapabilities.ReserveSpot("2023-01-01 10:00", "invalid-date", "TestSpot", "123456789", "super_velvaria");
 
             Assert.Equal("Invalid 'to' date format.", result);
         }
@@ -59,7 +59,7 @@ namespace ParkSharing.Reservation.Server.Tests
             var expectedMessage = $"Reservation created TotalPrice:20 BankAccount To pay:TestBankAccount Owner Phone:776234234";
 
             // Act
-            var result = await _chatGPTCapabilities.ReserveSpot(from, to, spotName, phone);
+            var result = await _chatGPTCapabilities.ReserveSpot(from, to, spotName, phone, "super_velvaria");
 
             // Assert
             Assert.Equal(expectedMessage, result);
@@ -83,7 +83,7 @@ namespace ParkSharing.Reservation.Server.Tests
             var expectedMessage = $"Reservation not created, spot is already reserved for this time.";
 
             // Act
-            var result = await _chatGPTCapabilities.ReserveSpot(from, to, spotName, phone);
+            var result = await _chatGPTCapabilities.ReserveSpot(from, to, spotName, phone, "super_velvaria");
 
             // Assert
             Assert.Equal(expectedMessage, result);
@@ -92,7 +92,7 @@ namespace ParkSharing.Reservation.Server.Tests
         [Fact]
         public async Task GetAllOpenSlots_InvalidFromDateFormat_ReturnsErrorMessage()
         {
-            var result = await _chatGPTCapabilities.GetAllOpenSlots("invalid-date", "2023-01-01 12:00");
+            var result = await _chatGPTCapabilities.GetAllOpenSlots("invalid-date", "2023-01-01 12:00", "super_velvaria");
 
             Assert.Equal("Invalid 'from' date format.", result);
         }
@@ -100,43 +100,10 @@ namespace ParkSharing.Reservation.Server.Tests
         [Fact]
         public async Task GetAllOpenSlots_InvalidToDateFormat_ReturnsErrorMessage()
         {
-            var result = await _chatGPTCapabilities.GetAllOpenSlots("2023-01-01 10:00", "invalid-date");
+            var result = await _chatGPTCapabilities.GetAllOpenSlots("2023-01-01 10:00", "invalid-date", "super_velvaria");
 
             Assert.Equal("Invalid 'to' date format.", result);
         }
-
-        //[Fact]
-        //public async Task GetAllOpenSlots_SuccessfulRetrieval_ReturnsFormattedSlots()
-        //{
-        //    DateTime date = DateTime.Now.AddDays(2);
-        //    // Arrange
-        //    var from = date.ToString("yyyy-MM-dd") + " 7:00";
-        //    var to = date.ToString("yyyy-MM-dd") + " 19:00";
-
-        //    _mockReservationService.Setup(r => r.GetAllOpenSlots(It.IsAny<DateTime>(), It.IsAny<DateTime>()))
-        //        .ReturnsAsync(new[]
-        //        {
-        //        new FreeSlot {
-        //            From = ParseDateTime(date.ToString("yyyy-MM-dd") + " 9:00"),
-        //            To = ParseDateTime(date.ToString("yyyy-MM-dd") + " 11:00"),
-        //            SpotName = "Spot1",
-        //            PricePerHour = 10 },
-        //        new FreeSlot {
-        //            From = ParseDateTime(date.ToString("yyyy-MM-dd") + " 11:00"),
-        //            To = ParseDateTime(date.ToString("yyyy-MM-dd") + " 13:00"),
-        //            SpotName = "Spot2",
-        //            PricePerHour = 20 }
-        //        }.ToList());
-
-        //    var expectedMessage = "01 led 2023 09:00-01 led 2023 11:00,Spot1,PricePerHour:10:\n01 led 2023 11:00-01 led 2023 13:00,Spot2,PricePerHour:20:";
-
-        //    // Act
-        //    var result = await _chatGPTCapabilities.GetAllOpenSlots(from, to);
-
-        //    // Assert
-        //    Assert.Equal(expectedMessage, result);
-        //}
-
 
         private DateTime ParseDateTime(string input)
         {
@@ -208,12 +175,32 @@ namespace ParkSharing.Reservation.Server.Tests
         public void IsValidPhoneNumber_ShouldValidateCorrectly(string phoneNumber, bool expected)
         {
             // Arrange & Act
-            var result = ChatGPTCapabilities.IsValidPhoneNumber(phoneNumber);
+            var result = ChatGPTCapabilities.TryFormatPhoneNumber(phoneNumber, out string formated);
 
             // Assert
             result.Should().Be(expected, $"because the phone number being tested is: {phoneNumber}");
         }
 
+
+        [Theory]
+        [InlineData("724 676 829", "+420724676829")]
+        [InlineData("724676829", "+420724676829")]
+        [InlineData("+420 724 676 829", "+420724676829")]
+        [InlineData("+420724676829", "+420724676829")]
+        [InlineData("+421 724 676 829", "+421 724 676 829")]
+        [InlineData("+421724676829", "+421724676820")]
+        [InlineData("724 676 829 ", "+420724676829")] // Trailing space
+        [InlineData("724 676829", "+420724676829")]   // Missing space
+        [InlineData("724676 829", "+420724676829")]   // Missing space
+        [InlineData("123 456 789", "+420123456789")] // Invalid phone number
+        public void IsValidPhoneNumber_ShouldReturnFormatedPhone(string phoneNumber, string expected)
+        {
+            // Arrange & Act
+            var result = ChatGPTCapabilities.TryFormatPhoneNumber(phoneNumber, out string formated);
+
+            // Assert
+            formated.Should().Be(expected, $"because the phone number being tested is: {phoneNumber}");
+        }
 
     }
 }

@@ -20,10 +20,10 @@ public class DebugSeedData
             await Task.Delay(3000);
 
             var newSpot = await _parkingSpotService.GetOrCreateSpotByUser("google-oauth2|106383545592871849353");
-
+            newSpot.Email = "rosko.dav@gmail.com";
             newSpot.PublicId = "ADebugSpot";
-            newSpot.BankAccount = "NL22ABNA0123456789";
-            newSpot.Phone = "345342234";
+            newSpot.BankAccount = "5126342156/0222";
+            newSpot.Phone = "+420724676829";
             newSpot.Availability = new List<Availability>
                     {
                         new Availability

@@ -20,16 +20,36 @@ namespace ParkSharing.Services.ChatGPT
             _log = log;
         }
 
-        public static bool IsValidPhoneNumber(string phoneNumber)
+        public static bool TryFormatPhoneNumber(string input, out string formattedPhoneNumber)
         {
             // Normalize the phone number by removing leading and trailing whitespaces
-            phoneNumber = phoneNumber.Trim();
+            input = input.Trim();
 
-            // Regex pattern for Czech and Slovak phone numbers
+            // Regex pattern for Czech and Slovak phone numbers in various formats
             string pattern = @"^(\+420|\+421)?\s?\d{3}\s?\d{3}\s?\d{3}$";
 
             Regex regex = new Regex(pattern);
-            return regex.IsMatch(phoneNumber);
+
+            // Remove all spaces and other non-numeric characters (except +)
+            string phoneNumber = Regex.Replace(input, @"[^\d+]", "");
+
+            // Ensure the phone number starts with +420 if no prefix is present
+            if (!phoneNumber.StartsWith("+420") && !phoneNumber.StartsWith("+421"))
+            {
+                phoneNumber = "+420" + phoneNumber;
+            }
+
+            // Check if the formatted phone number matches the pattern
+            if (regex.IsMatch(phoneNumber))
+            {
+                formattedPhoneNumber = phoneNumber;
+                return true;
+            }
+            else
+            {
+                formattedPhoneNumber = null;
+                return false;
+            }
         }
 
         [FunctionDescription("Rezervace parkovacího místa. Neni dovoleno rezervova na delsi dobu nez 3 dny, neni dovoleno rezervovat misto pokud nebyla overena jeho dostupnost metodou GetAllOpenSlots. Navratova hodnota je Nazev parkovaciho mista a celkova cena. Povolene jsou rezervovat jen cele hodiny. Telefonní číslo je povinné a musí jej uživatel zadat.")]
@@ -59,14 +79,11 @@ namespace ParkSharing.Services.ChatGPT
                 return "Invalid 'to' date format.";
             }
 
-            if (!IsValidPhoneNumber(phone))
+            if (!TryFormatPhoneNumber(phone, out var formatedPhone))
             {
                 _log.LogWarning($"{phone} Invalid Phone Number");
                 return "Invalid Phone Number. Valid is for example 724 666 854";
             }
-
-            //fromDateTime = DateTime.SpecifyKind(fromDateTime, DateTimeKind.Local).ToUniversalTime();
-            //toDateTime = DateTime.SpecifyKind(toDateTime, DateTimeKind.Local).ToUniversalTime();
 
             var spot = await _reservation.GetParkingSpotByNameAsync(spotName);
 
@@ -75,7 +92,7 @@ namespace ParkSharing.Services.ChatGPT
             var id = Guid.NewGuid().ToString();
             var result = await _reservation.ReserveAsync(spot.Name, new ReservationSpot()
             {
-                Phone = phone,
+                ClientPhone = formatedPhone,
                 End = toDateTime,
                 Start = fromDateTime,
                 Price = (int)totalPrice,

@@ -33,6 +33,9 @@ namespace App.Consumers
                 PublicSpotId = context.Message.PublicSpotId,
                 UserId = parkingSpot.UserId,
                 Email = parkingSpot.Email,
+                Phone = parkingSpot.Phone,
+                BankAccount = parkingSpot.BankAccount,
+                SpotName = parkingSpot.Name
             });
         }
 
@@ -40,7 +43,7 @@ namespace App.Consumers
         {
             existingReservation.Start = message.Start;
             existingReservation.End = message.End;
-            existingReservation.Phone = message.Phone;
+            existingReservation.Phone = message.ClientPhone;
             existingReservation.Price = message.Price;
         }
 
@@ -51,7 +54,7 @@ namespace App.Consumers
                 PublicId = message.PublicId,
                 Start = message.Start,
                 End = message.End,
-                Phone = message.Phone,
+                Phone = message.ClientPhone,
                 Price = message.Price,
             });
         }

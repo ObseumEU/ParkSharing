@@ -24,7 +24,7 @@ public class DebugSeedData
                     PublicId = Guid.NewGuid().ToString(),
                     Start = new DateTime(DateTime.Now.Year, DateTime.Now.Month + 1, DateTime.Now.Day, 11, 0, 0),
                     End = new DateTime(DateTime.Now.Year, DateTime.Now.Month + 1, DateTime.Now.Day, 17, 0, 0),
-                    Phone = "123123123",
+                    ClientPhone = "+420724676829",
                     Price = 22,
                     State = ParkSharing.Contracts.ReservationState.Created
                 },
