@@ -1,5 +1,6 @@
 ﻿using App.Context.Models;
 using MassTransit;
+using MongoDB.Bson;
 using MongoDB.Driver;
 using ParkSharing.Contracts;
 using ParkSharing.Reservation.Server.Reservation;
@@ -155,7 +156,8 @@ public class ReservationService : IReservationService
             Builders<ParkingSpot>.Filter.Ne(spot => spot.Phone, null) &
             Builders<ParkingSpot>.Filter.Ne(spot => spot.Phone, "") &
             Builders<ParkingSpot>.Filter.Ne(spot => spot.Name, null) &
-            Builders<ParkingSpot>.Filter.Ne(spot => spot.Name, "");
+            Builders<ParkingSpot>.Filter.Ne(spot => spot.Name, "") &
+            Builders<ParkingSpot>.Filter.Regex(spot => spot.Name, new BsonRegularExpression("^GS\\d{3}$"));
 
         var allSpots = await _parkingSpotsCollection.Find(filter).ToListAsync();
         var openSlots = new List<OpenSlot>();
