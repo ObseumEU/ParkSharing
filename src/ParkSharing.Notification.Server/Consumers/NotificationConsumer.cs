@@ -32,35 +32,22 @@ namespace ParkSharing.Notification.Server.Consumers
 
         public async Task Consume(ConsumeContext<ReservationCreatedEvent> context)
         {
-
-            //#if !DEBUG
-            //_enableNotifications = true;
-            //endif#
-            _enableNotifications = true;
-            
-            if (!_enableNotifications)
-            {
-                _logger.LogInformation("Notifications are disabled. Skipping sending email and SMS.");
-                return;
-            }
-
             await SendNotificationAsync(context);
         }
 
         private async Task SendNotificationAsync(ConsumeContext<ReservationCreatedEvent> context)
         {
+            var userInfo = await _userService.GetUserInfo(context.Message.PublicSpotId);
+            var values = new Dictionary<string, string>
+            {
+                ["start"] = context.Message.Start.Value.ToString("d MMMM HH:mm"),
+                ["end"] = context.Message.End.Value.ToString("d MMMM HH:mm"),
+                ["phone"] = context.Message.ClientPhone,
+                ["price"] = context.Message.Price.ToString()
+            };
+
             try
             {
-                var userInfo = await _userService.GetUserInfo(context.Message.PublicSpotId);
-                var values = new Dictionary<string, string>
-                {
-                    ["start"] = context.Message.Start.Value.ToString("d MMMM HH:mm"),
-                    ["end"] = context.Message.End.Value.ToString("d MMMM HH:mm"),
-                    ["phone"] = context.Message.ClientPhone,
-                    ["price"] = context.Message.Price.ToString()
-                };
-
-
                 // Send Email
                 if (await _feature.IsEnabledAsync(FeatureFlags.EmailNotifications))
                 {
@@ -71,20 +58,26 @@ namespace ParkSharing.Notification.Server.Consumers
                         values);
                     _logger.LogInformation($"Email sent to {userInfo.Email}");
                 }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to send Email notification");
+            }
 
+            try
+            {
                 // Send SMS
                 if (await _feature.IsEnabledAsync(FeatureFlags.SMSNotifications))
                 {
                     var smsBody =
                         $"Vaše rezervace místa {userInfo.SpotName} od {values["start"]} do {values["end"]} je potvrzena. Cena: {values["price"]} Kč. Kontakt na majitele: {userInfo.Phone}. Zaplaťte prosím na {userInfo.BankAccount}.";
                     await _smsClient.SendSmsAsync(context.Message.ClientPhone, smsBody);
+                    _logger.LogInformation($"SMS sent to {context.Message.ClientPhone}");
                 }
-
-                _logger.LogInformation($"SMS sent to {context.Message.ClientPhone}");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error occurred while sending notifications.");
+                _logger.LogError(ex, "Failed to send SMS notification");
             }
         }
     }
