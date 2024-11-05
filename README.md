@@ -69,7 +69,12 @@ Before starting, ensure you have the following installed on your system:
 - **Node.js and npm** (for frontend applications)
 
 ### Addition for running our project 
-- **Version of Node.js** must be higher than '20.13'
+- **Version of Node.js** must be '20.XX'
+- **npm**: for install npm you need open your terminal and write -
+```bash
+npm install --force 
+```
+(this install npm without any requirements)
 - when you finnaly have done all steps, make sure if your **Docker is running** before you start this app
 
 ### Step 1: Install .NET Aspire Workload
