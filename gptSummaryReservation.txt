@@ -1,53 +1,12 @@
 --------------------------------------------------
 File: ./src/ParkSharing.Reservation.Client/src/App.css
 --------------------------------------------------
-.App {
-  text-align: center;
-  width: 100%;
-  height: 100%;
-}
+/* App.css */
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap');
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
-}
-
-.App-link {
-  color: #61dafb;
-}
-
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-
---------------------------------------------------
-File: ./src/ParkSharing.Reservation.Client/src/CustomChat.css
---------------------------------------------------
 :root {
+  /* Original Colors */
   --orange: #ff4f40;
   --indigo: #635dff;
   --white: #fff;
@@ -61,162 +20,309 @@ File: ./src/ParkSharing.Reservation.Client/src/CustomChat.css
   --blue: #3885ff;
   --aqua: #3ec6eb;
   --emerald: #1bc99f;
-  --yellow-mandarine-gradient: linear-gradient(153.07deg, var(--yellow) -2.47%, var(--mandarine) 102.78%);
-  --mandarine-orange-gradient: linear-gradient(153.07deg, var(--mandarine) -2.47%, var(--orange) 102.78%);
+
+  /* Gradients */
   --pink-yellow-gradient: linear-gradient(153.07deg, var(--pink) -2.47%, var(--yellow) 102.78%);
-  --pink-indigo-gradient: linear-gradient(153.07deg, var(--pink) -2.47%, var(--indigo) 102.78%);
-  --indigo-aqua-gradient: linear-gradient(153.07deg, var(--indigo) -2.47%, var(--aqua) 102.78%);
-  --blue-aqua-gradient: linear-gradient(153.07deg, var(--blue) -2.47%, var(--aqua) 102.78%);
-  --aqua-emerald-gradient: linear-gradient(153.07deg, var(--aqua) -2.47%, var(--emerald) 102.78%);
-  --emerald-yellow-gradient: linear-gradient(153.07deg, var(--emerald) -2.47%, var(--yellow) 102.78%);
-  --font-primary: "Inter", sans-serif;
-  --font-secondary: "Space Grotesk", sans-serif;
-  --font-mono: "Fira Code", monospace;
-  font-family: "Space Grotesk", sans-serif;
+
+  /* Fonts */
+  --font-primary: 'Roboto', sans-serif;
 }
 
-.chat-container {
-  position: fixed;
-  top: 0;
-  left: 0;
+body, html {
+  height: 100%;
+  margin: 0;
+  background-color: var(--black);
+  font-family: var(--font-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  height: 100%;
+  width: 100%;
+}
+
+.App {
   width: 100%;
   height: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: white;
-  z-index: 1000;
 }
 
-.rcw-conversation-container {
-  width: 100% !important;
-  height: 100% !important;
-  max-width: none !important;
-  max-height: none !important;
-  border-radius: 0 !important;
-  overflow: hidden;
-}
-
-.rcw-header {
-  width: 100% !important;
-  background-color: black !important; /* Change header background color to black */
-  padding: 40px !important; /* Ensure there is padding for better visibility */
-  text-align: center; /* Center the title */
-}
-
-.rcw-close-button {
-  display: none !important; /* Hide the close button */
-}
-
-.rcw-messages-container,
-.rcw-new-message {
-  width: 100% !important;
-  height: auto !important;
-}
-
-.rcw-messages-container {
-  height: calc(100% - 120px) !important;
-  background: var(--pink-yellow-gradient); /* Applying gradient background */
-}
-
-@media only screen and (max-width: 640px) {
-  .rcw-header {
-    font-size: 19px !important; /* Adjust font size for mobile */
-    padding: 30px !important; /* Adjust padding for mobile */
-  }
-}
-
-.page-layout__content {
-  flex: 1 1;
-  flex-basis: auto;
-  flex-shrink: 0;
+.chat-container {
+  width: 100%;
+  max-width: 600px;
+  height: 600px;
+  background: var(--pink-yellow-gradient);
   display: flex;
   flex-direction: column;
-  margin-top: 8rem;
-  max-width: 120rem;
-  width: 100%;
+  border-radius: 10px;
+  overflow: hidden;
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
 }
 
-* {
-  box-sizing: border-box;
-}
-
-body, button, input, select, textarea {
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-body {
-  background-color: var(--black);
+.chat-header {
+  background-color: rgba(0, 0, 0, 0.7);
   color: var(--white);
-  font-family: var(--font-primary);
-  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  overflow-y: scroll;
+  text-align: center;
+  padding: 15px;
 }
 
-html {
-  font-size: 19px;
-  text-rendering: geometricPrecision;
-  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+.chat-header h2 {
+  margin: 0;
+  font-size: 20px;
 }
 
-.rcw-response {
-  font-size: 19px;
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.messages-wrapper {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  flex-grow: 1;
+  padding: 10px 15px;
+}
+
+.message {
+  margin-bottom: 8px;
+  display: flex;
+  animation: fadeIn 0.3s forwards;
+}
+
+.message.user-message {
+  justify-content: flex-end;
+}
+
+.message.bot-message {
+  justify-content: flex-start;
+}
+
+.message .message-content {
+  background-color: rgba(255, 255, 255, 0.85);
+  color: var(--black);
+  padding: 8px 12px;
+  border-radius: 15px;
+  max-width: 80%;
+  font-size: 16px;
+  line-height: 1.4;
+  word-break: break-word; /* Ensure text wraps on small screens */
+}
+
+.message.user-message .message-content {
+  background-color: var(--blue);
+  color: var(--white);
+}
+
+.message.typing .message-content {
+  background-color: transparent;
+  padding: 0;
+}
+
+.typing-indicator {
+  display: flex;
+  align-items: center;
+  height: 20px;
+}
+
+.typing-indicator span {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin: 0 2px;
+  background-color: rgba(255, 255, 255, 0.85);
+  border-radius: 50%;
+  animation: bounce 1s infinite;
+}
+
+.typing-indicator span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.typing-indicator span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes bounce {
+  0%, 60%, 100% {
+    transform: translateY(0);
+  }
+  30% {
+    transform: translateY(-6px);
+  }
+}
+
+.chat-input {
+  display: flex;
+  align-items: center;
+  padding: 10px 15px;
+  background-color: rgba(0, 0, 0, 0.7);
+}
+
+.chat-input input {
+  flex: 1;
+  padding: 8px 12px;
+  font-size: 16px;
+  border: none;
+  border-radius: 20px;
+  outline: none;
+  margin-right: 10px;
+  background-color: var(--white);
   color: var(--black);
 }
 
-.rcw-message-text {
-  font-size: 19px;
-  color: var(--black);
-  font-family: "Space Grotesk", sans-serif;
+.chat-input input::placeholder {
+  color: #999999;
 }
 
-.rcw-input {
-  font-size: 19px;
-  font-family: "Space Grotesk", sans-serif;
+.chat-input button {
+  padding: 0;
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
 }
 
-.rcw-sender {
-  color: #000000;
-  font-family: "Space Grotesk", sans-serif;
+.chat-input button .send-icon {
+  width: 24px;
+  height: 24px;
+  fill: var(--white);
 }
 
-.rcw-picker-btn {
-  display: none !important; /* Hide the close button */
-  font-family: "Space Grotesk", sans-serif;
+.chat-input input:disabled {
+  background-color: #f0f0f0;
+}
+
+.chat-input button:disabled .send-icon {
+  fill: #cccccc;
+}
+
+.chat-input input:disabled,
+.chat-input button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Scrollbar Styles */
+.chat-messages {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.5) transparent;
+}
+
+.chat-messages::-webkit-scrollbar {
+  width: 6px;
+}
+
+.chat-messages::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.chat-messages::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.5);
+  border-radius: 10px;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive Design */
+@media only screen and (max-width: 600px) {
+  .chat-container {
+    max-width: 100%;
+    height: 100%;
+    border-radius: 0;
+  }
+
+  .chat-header h2 {
+    font-size: 18px;
+  }
+
+  .message .message-content {
+    font-size: 15px;
+  }
+
+  .chat-input input {
+    font-size: 15px;
+  }
 }
 
 
-@media only screen and (min-width: 640px) {
-  .rcw-header {
-    font-size: 19px !important; /* Adjust font size for mobile */
-    padding: 15px !important; /* Adjust padding for mobile */
-  }
+/* Markdown Content Styling */
+.message .message-content h1,
+.message .message-content h2,
+.message .message-content h3,
+.message .message-content h4,
+.message .message-content h5,
+.message .message-content h6 {
+  margin: 0;
+  font-weight: bold;
+}
 
-  .rcw-widget-container{
-    /* width: 80%;
-    max-width: 800px;
-    height: 80%;
-    max-height: 900px; */
-    position: relative;
-  }
+.message .message-content p {
+  margin: 0;
+}
 
+.message .message-content em {
+  font-style: italic;
+}
 
-  .rcw-conversation-container active{
-    width: 100px;
-    height: 100px;
-  }
+.message .message-content strong {
+  font-weight: bold;
+}
 
-  
-  .rcw-launcher {
-    display: none !important;
-  }
+.message .message-content a {
+  color: var(--blue);
+  text-decoration: underline;
+}
+
+.message .message-content ul,
+.message .message-content ol {
+  padding-left: 20px;
+  margin: 0;
+}
+
+.message .message-content li {
+  margin-bottom: 5px;
+}
+
+.message .message-content code {
+  background-color: rgba(0, 0, 0, 0.05);
+  padding: 2px 4px;
+  border-radius: 4px;
+  font-family: monospace;
+}
+
+.message .message-content pre {
+  background-color: rgba(0, 0, 0, 0.05);
+  padding: 8px;
+  border-radius: 4px;
+  overflow-x: auto;
+}
+
+/* Ensure images fit within the message bubble */
+.message .message-content img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 5px;
 }
 --------------------------------------------------
 File: ./src/ParkSharing.Reservation.Client/src/index.css
 --------------------------------------------------
+/* ./src/ParkSharing.Reservation.Client/src/index.css */
+
 @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap');
 
 body, html {
@@ -238,7 +344,7 @@ body, html {
   align-items: center;
 }
 
-.chat-container {
+.main-chat-container {
   width: 100%;
   height: 100%;
   font-family: Roboto, sans-serif;
@@ -249,73 +355,162 @@ body, html {
 }
 
 --------------------------------------------------
-File: ./src/ParkSharing.Reservation.Client/src/OwnerPage.css
---------------------------------------------------
-.owner-page {
-  padding: 20px;
-  max-width: 800px;
-  margin: 0 auto;
-}
-
-.spot-card {
-  background: white;
-  padding: 20px;
-  margin-bottom: 20px;
-  border-radius: 8px;
-  box-shadow: 0 0 10px rgb(0 0 0 / 10%);
-}
-
-.availabilities {
-  margin-top: 10px;
-}
-
-.availability {
-  background: #f9f9f9;
-  padding: 10px;
-  margin-bottom: 5px;
-  border-radius: 4px;
-}
-
-.new-availability {
-  margin-top: 20px;
-}
-
-.new-availability label {
-  display: block;
-  margin-bottom: 10px;
-}
-
-.new-availability input, .new-availability select {
-  margin-left: 10px;
-}
-
---------------------------------------------------
 File: ./src/ParkSharing.Reservation.Client/src/App.js
 --------------------------------------------------
-import React from 'react';
-import CustomChat from './CustomChat';
-import './index.css';
+// App.js
 
-function App() {
-  const isMobile = window.innerWidth <= 640;
+import React, { useState, useEffect, useRef } from 'react';
+import axios from 'axios';
+import ReactMarkdown from 'react-markdown';
+import './App.css';
+
+const App = () => {
+  const initialBotMessage =
+    '👋 Vítejte! Rezervujte si parkování snadno. Napište den a čas, kdy chcete místo, např.: 🗓️ "Zítra 8:00 - 17:00" 🚗';
+
+  // Initialize messages from localStorage
+  const [messages, setMessages] = useState(() => {
+    const storedMessages = localStorage.getItem('chatMessages');
+    return storedMessages
+      ? JSON.parse(storedMessages)
+      : [{ type: 'bot', content: initialBotMessage }];
+  });
+  const [inputMessage, setInputMessage] = useState('');
+  const [isBotTyping, setIsBotTyping] = useState(false);
+  const [canSendMessage, setCanSendMessage] = useState(true);
+  const messagesEndRef = useRef(null);
+  const inputRef = useRef(null);
+
+  // Save messages to localStorage whenever messages change
+  useEffect(() => {
+    const lastMessages = messages.slice(-50); // Keep only the last 50 messages
+    localStorage.setItem('chatMessages', JSON.stringify(lastMessages));
+  }, [messages]);
+
+  // Scroll to bottom when messages change
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      // Optimize scroll to run after DOM updates
+      setTimeout(() => {
+        messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+    }
+  }, [messages]);
+
+  const handleSendMessage = async () => {
+    const trimmedMessage = inputMessage.trim();
+    if (trimmedMessage === '') return;
+
+    setInputMessage('');
+    setIsBotTyping(true);
+    setCanSendMessage(false);
+
+    // Update messages with user input
+    setMessages((prevMessages) => [
+      ...prevMessages,
+      { type: 'user', content: trimmedMessage },
+    ]);
+
+    // Keep focus on the input field
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
+
+    try {
+      const apiUrl =
+        process.env.REACT_APP_API_SERVER_URL || 'https://default-api-url.com';
+      const response = await axios.post(
+        `${apiUrl}/parking`,
+        { input: trimmedMessage },
+        { withCredentials: true }
+      );
+
+      const botReply = response.data.reply;
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        { type: 'bot', content: botReply },
+      ]);
+    } catch (error) {
+      console.error('Error sending message:', error);
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        {
+          type: 'bot',
+          content:
+            'Omlouváme se, došlo k chybě při zpracování vašeho požadavku.',
+        },
+      ]);
+    } finally {
+      setIsBotTyping(false);
+      setCanSendMessage(true);
+    }
+  };
+
+  const handleInputKeyDown = (e) => {
+    if (e.key === 'Enter' && canSendMessage && inputMessage.trim() !== '') {
+      e.preventDefault(); // Prevents adding a new line
+      handleSendMessage();
+    }
+  };
 
   return (
     <div className="App">
-      {isMobile ? (
-        <div className="chat-container">
-          <CustomChat />
+      <div className="chat-container">
+        <div className="chat-header">
+          <h2>Sdílení Parkování</h2>
         </div>
-      ) : (
-        <div className="chat-container">
-        <CustomChat />
+        <div className="chat-messages">
+          <div className="messages-wrapper">
+            {messages.map((message, index) => (
+              <div
+                key={index}
+                className={`message ${
+                  message.type === 'user' ? 'user-message' : 'bot-message'
+                }`}
+              >
+                <div className="message-content">
+                  <ReactMarkdown>{message.content}</ReactMarkdown>
+                </div>
+              </div>
+            ))}
+            {isBotTyping && (
+              <div className="message bot-message typing">
+                <div className="message-content">
+                  <div className="typing-indicator">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                  </div>
+                </div>
+              </div>
+            )}
+            <div ref={messagesEndRef} />
+          </div>
+        </div>
+        <div className="chat-input">
+          <input
+            ref={inputRef}
+            type="text"
+            placeholder="Napsat zprávu..."
+            value={inputMessage}
+            onChange={(e) => setInputMessage(e.target.value)}
+            onKeyDown={handleInputKeyDown}
+            autoComplete="off"
+            aria-label="Napsat zprávu"
+          />
+          <button
+            onClick={handleSendMessage}
+            disabled={!canSendMessage || inputMessage.trim() === ''}
+          >
+            <svg viewBox="0 0 24 24" className="send-icon">
+              <path d="M2,21L23,12L2,3V10L17,12L2,14V21Z" />
+            </svg>
+          </button>
+        </div>
       </div>
-        // <div className="desktop-message">
-        //   <p>Tato aplikace je podporována pouze na mobilních zařízeních.</p>
-        // </div>
-      )}
     </div>
   );
-}
+};
 
 export default App;
 
@@ -351,131 +546,6 @@ function App() {
 export default App;
 
 --------------------------------------------------
-File: ./src/ParkSharing.Reservation.Client/src/CustomChat.js
---------------------------------------------------
-import React, { useState, useEffect } from 'react';
-import { Widget, addResponseMessage, addUserMessage, toggleWidget, renderCustomComponent } from 'react-chat-widget';
-import axios from 'axios';
-import Cookies from 'js-cookie';
-import 'react-chat-widget/lib/styles.css';
-import './CustomChat.css';
-
-const apiServerUrl = process.env.REACT_APP_API_SERVER_URL;
-console.log('API Server URL:', process.env.REACT_APP_API_SERVER_URL);
-
-const CustomChat = () => {
-  const [isBotTyping, setIsBotTyping] = useState(false);
-  const [canSendMessage, setCanSendMessage] = useState(true);
-
-  // Load messages from cookies
-  useEffect(() => {
-    // Show the initial message every time the chat starts
-    addResponseMessage('👋 Vítejte! Rezervujte si parkování snadno: napište den a čas, kdy chcete místo. Např.: 🗓️ Zítra 8:00 - 17:00.🚗');
-
-    const storedMessages = Cookies.get('chatMessages');
-    
-    if (storedMessages) {
-      JSON.parse(storedMessages).forEach(message => {
-        if (message.type === 'user') {
-          addUserMessage(message.content);
-        } else {
-          addResponseMessage(message.content);
-        }
-      });
-    }
-    
-    // Always show the initial message at the start of the conversation
-    
-    toggleWidget(); // Open the chat widget
-  }, []);
-
-  // Save messages to cookies
-  const saveMessagesToCookies = (messages) => {
-    // Keep only the last 20 messages
-    const lastMessages = messages.slice(-20);
-    Cookies.set('chatMessages', JSON.stringify(lastMessages), { expires: 1 / 36 }); // 40 minutes
-  };
-
-  const handleNewUserMessage = async (newMessage) => {
-    setIsBotTyping(true);
-    setCanSendMessage(false);
-
-    // Add user message to cookies
-    const currentMessages = Cookies.get('chatMessages') ? JSON.parse(Cookies.get('chatMessages')) : [];
-    currentMessages.push({ type: 'user', content: newMessage });
-    saveMessagesToCookies(currentMessages);
-
-    // Send the message to the backend
-    try {
-      const response = await axios.post(`${apiServerUrl}/parking`, {
-        input: newMessage,
-      }, {
-        withCredentials: true,
-      });
-
-      const botReply = response.data.reply;
-      addResponseMessage(botReply);
-
-      // Add bot message to cookies
-      currentMessages.push({ type: 'bot', content: botReply });
-      saveMessagesToCookies(currentMessages);
-    } catch (error) {
-      console.error('Error sending message:', error);
-      addResponseMessage('Sorry, something went wrong with your request.');
-    } finally {
-      setIsBotTyping(false);
-      setCanSendMessage(true);
-    }
-  };
-
-  const CustomInput = ({ handleNewUserMessage }) => {
-    const [message, setMessage] = useState('');
-
-    const handleSubmit = (event) => {
-      event.preventDefault();
-      if (message.trim()) {
-        handleNewUserMessage(message);
-        setMessage('');
-      }
-    };
-
-    return (
-      <form onSubmit={handleSubmit} className="rcw-new-message">
-        <input
-          className="rcw-input"
-          type="text"
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          placeholder="Napsat zprávu..."
-          disabled={!canSendMessage}
-        />
-        <button type="submit" className="rcw-send" disabled={!canSendMessage}>
-          Send
-        </button>
-      </form>
-    );
-  };
-
-  return (
-    <div className="chat-container">
-      <Widget
-        handleNewUserMessage={handleNewUserMessage}
-        title="Sdílení parkování"
-        subtitle=". . ."
-        customLauncher={() => {}}
-        customStyles={{
-          launcher: {
-            display: 'none',
-          }
-        }}
-        renderCustomComponent={() => renderCustomComponent(CustomInput, { handleNewUserMessage })}
-      />
-    </div>
-  );
-};
-
-export default CustomChat;
---------------------------------------------------
 File: ./src/ParkSharing.Reservation.Client/src/index.js
 --------------------------------------------------
 // File: src/ParkSharing/client-app/src/index.js
@@ -484,7 +554,6 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
 import App from './App';
-import OwnerPage from './OwnerPage';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom'; // Updated import
 
 ReactDOM.render(
@@ -492,93 +561,11 @@ ReactDOM.render(
     <Router>
       <Routes> {/* Updated from Switch to Routes */}
         <Route exact path="/" element={<App />} /> {/* Updated from component to element */}
-        <Route path="/owner" element={<OwnerPage />} /> {/* Updated from component to element */}
       </Routes>
     </Router>
   </React.StrictMode>,
   document.getElementById('root')
 );
-
---------------------------------------------------
-File: ./src/ParkSharing.Reservation.Client/src/OwnerPage.js
---------------------------------------------------
-// File: src/ParkSharing/client-app/src/OwnerPage.js
-
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import './OwnerPage.css';
-
-const OwnerPage = () => {
-  const [spots, setSpots] = useState([]);
-  const [newAvailability, setNewAvailability] = useState({ dayOfWeek: '', startTime: '', endTime: '', isRecurring: false });
-
-  useEffect(() => {
-    // Fetch parking spots for the owner
-    axios.get('http://localhost:5239/owner/spots', { withCredentials: true })
-      .then(response => setSpots(response.data))
-      .catch(error => console.error('Error fetching spots:', error));
-  }, []);
-
-  const handleAddAvailability = (spotId) => {
-    axios.post(`http://localhost:5239/owner/spots/${spotId}/availability`, newAvailability, { withCredentials: true })
-      .then(response => {
-        setSpots(spots.map(spot => spot.parkingSpotId === spotId ? { ...spot, availabilities: response.data.availabilities } : spot));
-      })
-      .catch(error => console.error('Error adding availability:', error));
-  };
-
-  const handleInputChange = (event) => {
-    const { name, value, type, checked } = event.target;
-    setNewAvailability(prevState => ({ ...prevState, [name]: type === 'checkbox' ? checked : value }));
-  };
-
-  return (
-    <div className="owner-page">
-      <h1>Manage My Parking Spots</h1>
-      {spots.map(spot => (
-        <div key={spot.parkingSpotId} className="spot-card">
-          <h2>{spot.name}</h2>
-          <p>Price per hour: {spot.pricePerHour}</p>
-          <div className="availabilities">
-            {spot.availabilities.map(avail => (
-              <div key={avail.availabilityId} className="availability">
-                <p>{avail.dayOfWeek || avail.specificDate}: {avail.startTime} - {avail.endTime}</p>
-                <p>Recurring: {avail.isRecurring ? 'Yes' : 'No'}</p>
-              </div>
-            ))}
-          </div>
-          <div className="new-availability">
-            <h3>Add New Availability</h3>
-            <label>
-              Day of Week:
-              <select name="dayOfWeek" value={newAvailability.dayOfWeek} onChange={handleInputChange}>
-                <option value="">Select</option>
-                {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map(day => (
-                  <option key={day} value={day}>{day}</option>
-                ))}
-              </select>
-            </label>
-            <label>
-              Start Time:
-              <input type="time" name="startTime" value={newAvailability.startTime} onChange={handleInputChange} />
-            </label>
-            <label>
-              End Time:
-              <input type="time" name="endTime" value={newAvailability.endTime} onChange={handleInputChange} />
-            </label>
-            <label>
-              Recurring:
-              <input type="checkbox" name="isRecurring" checked={newAvailability.isRecurring} onChange={handleInputChange} />
-            </label>
-            <button onClick={() => handleAddAvailability(spot.parkingSpotId)}>Add Availability</button>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-};
-
-export default OwnerPage;
 
 --------------------------------------------------
 File: ./src/ParkSharing.Reservation.Client/src/reportWebVitals.js

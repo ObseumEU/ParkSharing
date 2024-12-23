@@ -17,7 +17,8 @@
     "react-router-dom": "^6.3.0",
     "react-scripts": "5.0.1",
     "react-select": "^5.8.0",
-    "react-transition-group": "^4.4.5"
+    "react-transition-group": "^4.4.5",
+    "spa_react_javascript_hello-world": "file:"
   },
   "scripts": {
     "dev": "cross-env PORT=4041 react-scripts start",
