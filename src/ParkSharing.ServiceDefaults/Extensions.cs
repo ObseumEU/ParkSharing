@@ -8,6 +8,8 @@ using Obseum.Telemetry;
 using OpenTelemetry;
 using System.Reflection;
 using Microsoft.FeatureManagement;
+using Microsoft.AspNetCore.Hosting;
+using Sentry.OpenTelemetry;
 
 namespace Microsoft.Extensions.Hosting
 {
@@ -16,7 +18,7 @@ namespace Microsoft.Extensions.Hosting
     // To learn more about using this project, see https://aka.ms/dotnet/aspire/service-defaults
     public static class Extensions
     {
-        public static IHostApplicationBuilder AddServiceDefaults(this IHostApplicationBuilder builder)
+        public static IHostApplicationBuilder AddServiceDefaults(this WebApplicationBuilder builder)
         {
             builder.Configuration.AddEnvironmentVariables();
             builder.Services.AddFeatureManagement();
@@ -67,22 +69,19 @@ namespace Microsoft.Extensions.Hosting
             return builder;
         }
 
-        private static IHostApplicationBuilder AddOpenTelemetryExporters(this IHostApplicationBuilder builder)
+        private static WebApplicationBuilder AddOpenTelemetryExporters(this WebApplicationBuilder builder)
         {
-            Console.WriteLine("");
-            Console.Write("UseAspireTelemetry ? ");
-            var useAspireTelemetry = !string.IsNullOrWhiteSpace(builder.Configuration["Otl"]);
-            Console.WriteLine($" {useAspireTelemetry}");
-            if (useAspireTelemetry)
+            builder.AddObservability(configureTracing: (tracingBuilder) =>
             {
-                Console.WriteLine("Start local OpenTelemetry");
+                tracingBuilder.AddSentry();
+            });
+
+            builder.WebHost.UseSentry(options =>
+            {
                 builder.Services.AddOpenTelemetry().UseOtlpExporter();
-            }
-            else
-            {
-                Console.WriteLine("Start remote OpenTelemetry");
-                builder.AddObservability();
-            }
+                options.TracesSampleRate = 1.0;
+                options.UseOpenTelemetry();
+            });
 
             return builder;
         }

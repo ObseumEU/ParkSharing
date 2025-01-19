@@ -157,7 +157,7 @@ public class ReservationService : IReservationService
             Builders<ParkingSpot>.Filter.Ne(spot => spot.Phone, "") &
             Builders<ParkingSpot>.Filter.Ne(spot => spot.Name, null) &
             Builders<ParkingSpot>.Filter.Ne(spot => spot.Name, "") &
-            Builders<ParkingSpot>.Filter.Regex(spot => spot.Name, new BsonRegularExpression("^GS\\d{3}$")) & 
+            Builders<ParkingSpot>.Filter.Regex(spot => spot.Name, new BsonRegularExpression("\\d{3}")) & 
             Builders<ParkingSpot>.Filter.Lte(spot => spot.PricePerHour, 200);
 
         var allSpots = await _parkingSpotsCollection.Find(filter).ToListAsync();

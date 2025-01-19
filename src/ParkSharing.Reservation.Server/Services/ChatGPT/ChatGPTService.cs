@@ -203,7 +203,7 @@ namespace ParkSharing.Services.ChatGPT
             var msgContent = messages.LastOrDefault().Content;
             if (msgContent.Contains("reservation"))
             {
-                var newMsg = await _capabilities.ReserveSpot("2024-03-21 11:00", "2024-03-21 14:00", "GS22", "123123123", "VELVARIA_JE_SUPER");
+                var newMsg = await _capabilities.ReserveSpot("2024-03-21 11:00", "2024-03-21 14:00", "GS22", "123123123");
                 messages.Add(ChatMessage.FromAssistant(newMsg));
             }
             else if (msgContent.Contains("avaliable"))

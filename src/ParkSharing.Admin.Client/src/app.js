@@ -14,6 +14,7 @@ import { ReservationsPage } from "./pages/reservations-page";
 import { SettingsPage } from "./pages/settings-page";
 import Policies from "./pages/policies-page";
 import { DeleteSettingsPage } from "./pages/delete-settings-page"; // Ensure this is imported
+import { SignpostPage } from "./pages/signpost-page";
 
 export const App = () => {
   const { isLoading } = useAuth0();
@@ -28,7 +29,7 @@ export const App = () => {
 
   return (
     <Routes>
-      <Route path="/" element={<HomePage />} />
+       <Route path="/" element={<SignpostPage />} />
       <Route path="/public" element={<PublicPage />} />
       <Route
         path="/protected"

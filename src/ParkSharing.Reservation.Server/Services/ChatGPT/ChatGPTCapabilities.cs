@@ -57,10 +57,8 @@ namespace ParkSharing.Services.ChatGPT
             [ParameterDescription("Datetime format yyyy-mm-dd HH:00", Required = true)] string from,
             [ParameterDescription("Datetime format yyyy-mm-dd HH:00", Required = true)] string to,
             string spotName,
-            [ParameterDescription("Telefon pro kontakt najemce", Required = true)] string phone,
-            [ParameterDescription("Tajný kód jen pro pozvané. Apliakce je předběžný přístup pro pozvané", Required = true)] string secret)
+            [ParameterDescription("Telefon pro kontakt najemce", Required = true)] string phone)
         {
-
 
             if (!TryParseDateTime(from, out DateTime fromDateTime))
             {

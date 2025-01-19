@@ -27,7 +27,7 @@ namespace ParkSharing.Reservation.Server.Tests
         [Fact]
         public async Task ReserveSpot_InvalidFromDateFormat_ReturnsErrorMessage()
         {
-            var result = await _chatGPTCapabilities.ReserveSpot("invalid-date", "2023-01-01 12:00", "TestSpot", "123456789", "super_velvaria");
+            var result = await _chatGPTCapabilities.ReserveSpot("invalid-date", "2023-01-01 12:00", "TestSpot", "123456789");
 
             Assert.Equal("Invalid 'from' date format.", result);
         }
@@ -35,7 +35,7 @@ namespace ParkSharing.Reservation.Server.Tests
         [Fact]
         public async Task ReserveSpot_InvalidToDateFormat_ReturnsErrorMessage()
         {
-            var result = await _chatGPTCapabilities.ReserveSpot("2023-01-01 10:00", "invalid-date", "TestSpot", "123456789", "super_velvaria");
+            var result = await _chatGPTCapabilities.ReserveSpot("2023-01-01 10:00", "invalid-date", "TestSpot", "123456789");
 
             Assert.Equal("Invalid 'to' date format.", result);
         }
@@ -59,7 +59,7 @@ namespace ParkSharing.Reservation.Server.Tests
             var expectedMessage = $"Reservation created TotalPrice:20 BankAccount To pay:TestBankAccount Owner Phone:776234234";
 
             // Act
-            var result = await _chatGPTCapabilities.ReserveSpot(from, to, spotName, phone, "super_velvaria");
+            var result = await _chatGPTCapabilities.ReserveSpot(from, to, spotName, phone);
 
             // Assert
             Assert.Equal(expectedMessage, result);
@@ -83,7 +83,7 @@ namespace ParkSharing.Reservation.Server.Tests
             var expectedMessage = $"Reservation not created, spot is already reserved for this time.";
 
             // Act
-            var result = await _chatGPTCapabilities.ReserveSpot(from, to, spotName, phone, "super_velvaria");
+            var result = await _chatGPTCapabilities.ReserveSpot(from, to, spotName, phone);
 
             // Assert
             Assert.Equal(expectedMessage, result);
@@ -92,7 +92,7 @@ namespace ParkSharing.Reservation.Server.Tests
         [Fact]
         public async Task GetAllOpenSlots_InvalidFromDateFormat_ReturnsErrorMessage()
         {
-            var result = await _chatGPTCapabilities.GetAllOpenSlots("invalid-date", "2023-01-01 12:00", "super_velvaria");
+            var result = await _chatGPTCapabilities.GetAllOpenSlots("invalid-date", "2023-01-01 12:00");
 
             Assert.Equal("Invalid 'from' date format.", result);
         }
@@ -100,7 +100,7 @@ namespace ParkSharing.Reservation.Server.Tests
         [Fact]
         public async Task GetAllOpenSlots_InvalidToDateFormat_ReturnsErrorMessage()
         {
-            var result = await _chatGPTCapabilities.GetAllOpenSlots("2023-01-01 10:00", "invalid-date", "super_velvaria");
+            var result = await _chatGPTCapabilities.GetAllOpenSlots("2023-01-01 10:00", "invalid-date");
 
             Assert.Equal("Invalid 'to' date format.", result);
         }

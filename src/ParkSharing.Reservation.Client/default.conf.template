@@ -5,12 +5,12 @@ server {
 
     access_log  /var/log/nginx/server.access.log  main;
 
-    location / {
+    location /chat/ {
         root /usr/share/nginx/html;
         try_files $uri $uri/ /index.html;
     }
 
-    location /api/ {
+    location /chat/api/ {
         proxy_pass ${services__reservationserver__http__0};
         proxy_http_version 1.1;
         proxy_ssl_server_name on;
