@@ -133,7 +133,7 @@ namespace ParkSharing.Services.ChatGPT
                 MaxTokens = 200
             };
 
-            var reply = await _openAI.ChatCompletion.CreateCompletion(req, "gpt-4o");
+            var reply = await _openAI.ChatCompletion.CreateCompletion(req, "gpt-5");
             if (!reply.Successful)
             {
                 _logger.LogError(System.Text.Json.JsonSerializer.Serialize(req) + reply.Error?.Message);
