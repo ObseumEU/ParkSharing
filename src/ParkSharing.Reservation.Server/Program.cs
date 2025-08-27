@@ -52,7 +52,6 @@ builder.Services.Configure<ChatGPTClientOptions>(
     builder.Configuration.GetSection("ChatGPT"));
 builder.Services.AddScoped<ChatGPTCapabilities>();
 builder.Services.AddScoped<ISessionService, SessionService>();
-builder.Services.AddOpenAIService();
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddControllers();
 
